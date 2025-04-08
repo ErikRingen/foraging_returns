@@ -1,0 +1,94 @@
+﻿Index,Yaka,English,Processing_Condition,kcal.g
+1,Mobe,Unknown,whole,0.597857143
+2,Maondo,Unknown,whole,0.224772727
+3,Maika,Taro,Tuber without periderm,1.27
+4,Dunda,Taro leaves,Leaves with petiole,0.234
+5,Mbila,Palm nut,many fruits with bracts,2.97
+6,Mbila,Palm nut,many fruits with bracts and thorns,1.944
+7,Mbila,Palm nut,bunch,1.782
+8,Mbila,Palm nut,fruits without bracts nor thorns,3.24
+9,Madi ma mbila,Palm oil red,liquid,8.98
+10,Meleku/Molenge,palm wine,liquid,0.34
+11,Papaye,Papaya,whole,0.337142857
+12,Papaye,Papaya,fruit without epicarp nor seeds,0.59
+13,Benje,Sweet potato,with periderm,0.61824
+14,Ekule,Wild yam,Tuber without periderm,1.19
+15,Epangi,Wild yam,Tuber without periderm,1.19
+16,Esaa,Wild yam,Tuber without periderm,1.19
+17,Kobo,Wild yam,Tuber without periderm,1.19
+18,Ndiki,Wild yam,Tuber with periderm,1.19
+19,Ngangi,Wild yam,Tuber with periderm,1.19
+20,Boma,Cassava,Tuber retted without periderm,1.21
+21,Boma,Cassava,Tuber without periderm,1.42
+22,Boma,Cassava,Tuber with periderm,0.91448
+23,Boma,Cassava,Tuber retted with periderm,0.5610528
+24,Jabuka,Cassava leaves,Leaves with petiole,0.527
+25,Kaso,Owusa Nut,with seed tegument only,1.987390625
+26,Kaso,Owusa Nut,with pericarp,1.001519685
+27,Kaso,Owusa Nut,without pericarp nor tegument,2.0515
+28,Mbala,Unknown,without pod,5.6
+29,Mbala,Unknown,with pod,4.327272727
+30,Koko,Unknown,Leaves with petiole,0.588571429
+31,Koko,Unknown,Leaves without petiole,1.03
+32,Payo,Unknown,"Fruits without pericarp and without endocarp, and with seed tegument",5.963
+33,Payo,Unknown,whole,0.3685
+34,Cacao,Cacao,with pericarp,0.1343
+35,Mela,Wild yam,Tuber with periderm,1.19
+36,Pusa,African breadfruit,seeds with endocarp,1.476
+37,Pusa,African breadfruit,synocarp,0.254482759
+38,Gondo/Bolo,Plantain/Banana,with epicarp,0.525
+39,Gondo/Bolo,Plantain/Banana,without epicarp,1.05
+40,Kana,Panda,seeds only,4.07
+41,Mombombo,Corn,with spathes and axe,0.534
+42,Mombombo,Corn,"without spathes, with axe",0.89
+43,Mbeku,Unknown,without petiole,unknown
+44,Citron,Lemon,with epicarp,0.1332
+45,Malala,Orange,with epicarp,0.317777778
+46,Malala,Orange,without epicarp,0.44
+47,Matokodi,Unknown,seeds only,7.377
+48,Matokodi,Unknown,with pericarp,5.269285714
+49,Mondonge,Unknown,whole,0
+50,Konji,Peppers,without pedicel,0.3431
+51,Konji,Peppers,with pedicel,0.133290648
+52,Kango,Unknown,without petiole,unknown
+53,Makombo,Mushooms,whole,0.31
+54,Makombo,Mushrooms,smoked,0.31
+55,Ediki,Monkey fruit,whole,0.1225
+56,Ngai ngai,Unknown,whole,2.94
+93,Pangolin,Pangolin,"raw with scales, bones, and guts",0.92
+57,Unknown,bat,"raw with bones, without guts",2.61414
+58,Nyodi,bird,"raw with bones and guts, without feathers",1.307219917
+59,Nyodi,bird,"raw with feathers, bones, and guts",1.26016
+60,Nyodi,bird,"smoked with bones, without feathers and guts",2.42315515
+61,Ngbumo,black-fronted duiker,raw skin only,1.215
+62,Ngbumo,black-fronted duiker,"raw with bones, without guts",1.0935
+63,Mboloko,blue duiker,"rotten meat with bones, without guts",1.18817
+64,Mboloko,blue duiker,"smoked meat with bones, without guts",1.65074
+65,Mboloko,blue duiker,"raw head only, with bones",1.61472
+66,Mboloko,blue duiker,smoked organs only,1.18
+67,Mboloko,blue duiker,smoked heart only,1.82
+68,Mboloko,blue duiker,smoked intestins only,1.18
+69,Mboloko,blue duiker,"smoked head only, with bones",2.01376
+70,Mboloko,blue duiker,raw intestins only,0.84
+71,Ngomba,brush-tailed porcupine,"raw with quills, guts, and bones",1.51496
+72,Ngomba,brush-tailed porcupine,"raw foot only with bones, without quills",2.16224
+73,Ngomba,brush-tailed porcupine,"smoked with bones, without quills or guts",2.226
+74,Ngomba,brush-tailed porcupine,"raw with bones, without quills or guts",2.125234568
+75,Kongo,caterpillars,raw whole with guts,0.688
+76,Basui,fish,"raw whole with scales, skin, bones, and guts",0.49851
+77,Basui,fish,"smoked whole, with skin, bones and guts",2.587
+78,Eta,frog,"raw whole, with skin, bones, and guts",0.511
+79,Mabongi,grub,"raw whole, with guts",0.86
+80,Gombe,lizard,"raw whole, with skin, bones, and guts",0.791
+81,Nganda,long-snouted mongoose,"raw, with guts and bones",0.82792
+82,Kema,monkey,"smoked whole, with bones, without hair and guts",2.9931
+83,Kema,monkey,"raw with with hair, bones, and guts",0.903
+84,Ngolo,rat,"raw with bones, without guts",1.512971429
+85,Ngolo,rat,"smoked with bones, without guts",2.0416
+86,Njua,red river hog,"smoked with bones, without guts",1.92262
+87,Moseme,snake,raw with skin and guts,0.65518
+88,Moseme,snake,"raw with skin, without guts",0.94
+89,Kudu,turtle,raw with shell and guts,0.267
+90,Make,egg,raw with shell,1.2727
+91,Djeme,honey,liquid honey,3.11
+92,Duma,mead,liquid mead,0.55
