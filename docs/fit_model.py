@@ -16,6 +16,7 @@
 # %%
 import pandas as pd
 import xarray as xr
+import numpy as np
 import pymc as pm
 import arviz as az
 import matplotlib.pyplot as plt
@@ -24,25 +25,33 @@ from pyprojroot.here import here
 
 from preprocessing import preprocess_data
 
+from foraging_model.foraging_data import ForagingData
+
 # %%
 raw_data_dir = "raw_data/"
 
 # %%
-df_foragers, df_groups, df_returns = preprocess_data(
+df_foragers, df_time_agg, df_returns = preprocess_data(
     returns_file=here(raw_data_dir + 'returns.csv'),
+    recall_file=here(raw_data_dir + 'recall.csv'),
     kcal_file=here(raw_data_dir + 'kcal.csv'),
     group_file=here(raw_data_dir + 'groups.csv'),
-    camp_members_file=here(raw_data_dir + 'camp_members.csv')
+    camp_members_file=here(raw_data_dir + 'camp_members.csv'),
+    days_in_camp_file=here(raw_data_dir + 'daysincamp.csv')
 )
 
 # %%
-ds_groups = df_groups.set_index('group_id').to_xarray().rename({'group_id': 'group', 'id': 'foragers'}).set_coords('date')
+data = ForagingData(
+    foragers_df=df_foragers,
+    time_allocation_df=df_time_agg,
+    production_df=df_returns,
+    target_column='kcal',
+    target_scaling='mean',
+    age_scaling='max',
+    group_id_col='group_id',
+    forager_id_col='id'
+)
 
-ds_returns = df_returns.set_index('group_id').to_xarray().rename({'group_id': 'group'}).set_coords('date')
-
-ds_foragers = df_foragers.set_index('id').to_xarray().rename({'id': 'forager'})
-
-# %% Combine into a single dataset
-combined_ds = xr.merge([ds_foragers, ds_groups, ds_returns])
-
+# %%
+dataset = data.to_dataset()
 # %%

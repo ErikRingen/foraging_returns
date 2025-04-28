@@ -9,10 +9,25 @@ def preprocess_data(
     group_file: str | Path,
     camp_members_file: str | Path,
     days_in_camp_file: str | Path,
-    output_dir: str | Path = None
+    output_dir: str | Path | None = None
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Preprocess the data
+    Preprocesses raw foraging data files into analysis-ready DataFrames.
+
+    Args:
+        returns_file: Path to the returns data CSV.
+        recall_file: Path to the recall data CSV.
+        kcal_file: Path to the kcal data CSV.
+        group_file: Path to the group activity data CSV.
+        camp_members_file: Path to the camp members demographic data CSV.
+        days_in_camp_file: Path to the days in camp data CSV.
+        output_dir: Optional path to save the processed DataFrames.
+
+    Returns:
+        A tuple containing:
+        - df_foragers: DataFrame with forager demographic info (id, sex, age).
+        - df_time_agg: DataFrame with time allocation per forager per date (id, date, total.minutes).
+        - df_production: DataFrame with combined foraging/recall production (group_id, kcal, type, date).
     """ 
     
     def _cols_to_lower(df):
@@ -26,57 +41,43 @@ def preprocess_data(
     df_group = _cols_to_lower(pd.read_csv(group_file))
     df_camp_members = _cols_to_lower(pd.read_csv(camp_members_file))
     df_days_in_camp = _cols_to_lower(pd.read_csv(days_in_camp_file))
-    # make dates have some format
+
+    # Format date columns
     df_group['date'] = pd.to_datetime(df_group['date'], dayfirst=True)
     df_returns['date'] = pd.to_datetime(df_returns['date'], dayfirst=True)
+    df_recall['date'] = pd.to_datetime(df_recall['date'], dayfirst=True)
 
-    # Get forager demographic info ------------------------------------------------
-    df_camp_members['age'] = df_camp_members['birthyear'].apply(lambda x: 2018 - x)
-    df_foragers = df_camp_members[['id', 'sex', 'age']]
-    df_foragers.head()
-
-    # recode sex as "male" and "female"
-    df_foragers['sex'] = df_foragers['sex'].apply(lambda x: "male" if x == "M" else "female")
-    df_foragers.head()
-
-    #unique_forager_ids = df_group_agg['id'].apply(lambda x: x.split('_')).explode().unique()
-
+    # --- Forager Demographics ---
+    df_camp_members['age'] = 2018 - df_camp_members['birthyear']
+    df_foragers = df_camp_members[['id', 'sex', 'age']].copy() # Use .copy() to avoid SettingWithCopyWarning
+    df_foragers['sex'] = df_foragers['sex'].map({'M': 'male', 'F': 'female'}) # Use map for clarity
     df_foragers['id'] = df_foragers['id'].astype(str)
-        #df_foragers = df_foragers[df_foragers['id'].isin(unique_forager_ids)]
 
-    # Days in camp ---------------------------------------------------------------
+    # --- Days in Camp --- 
     df_days_in_camp.rename(columns={'id/date': 'forager_id'}, inplace=True)
-    # Melt the dataframe to long format
-    df_days_long = pd.melt(df_days_in_camp.drop(columns=['total']), id_vars=['forager_id'], var_name='date_str', value_name='in_camp')
-    # Convert date string to datetime objects, ensuring correct format
+    df_days_long = pd.melt(df_days_in_camp.drop(columns=['total']), 
+                           id_vars=['forager_id'], 
+                           var_name='date_str', 
+                           value_name='in_camp')
     df_days_long['date'] = pd.to_datetime(df_days_long['date_str'], format='%d/%m/%Y')
-    df_days_long.drop(columns=['date_str'], inplace=True)
-    # Ensure forager_id is string type to match df_time_agg['id']
     df_days_long['forager_id'] = df_days_long['forager_id'].astype(str)
+    df_days_long.drop(columns=['date_str'], inplace=True)
 
+    # --- Time Allocation --- 
+    # Prepare group data for time aggregation
+    df_group_time = df_group[df_group['activity.type'] == "Foraging"].copy()
+    df_group_time['id'] = df_group_time['id'].astype(str)
 
-    # Create a time allocation dataframe with dims (forager, date) --------------------------------------------
-    #df_group['group'] = df_group['group'].astype(str)
-    df_group['id'] = df_group['id'].astype(str)
+    # Create multi-index for all potential forager-date combinations
+    all_forager_ids = df_group_time['id'].unique()
+    all_dates = df_group_time['date'].unique()
+    multi_index = pd.MultiIndex.from_product([all_forager_ids, all_dates], names=['id', 'date'])
 
-    #solo_foraging = df_group['group'] == '0'
-    #id_if_true = df_group['date'].astype(str) + '_' + df_group['id']
-    #id_if_false = df_group['date'].astype(str) + '_' + df_group['group'] # Assuming group is integer/float, convert to str
+    # Aggregate time, reindex to include all combinations, and sort
+    df_time_agg = df_group_time.groupby(['id', 'date']).agg({'total.minutes': 'sum'})
+    df_time_agg = df_time_agg.reindex(multi_index).reset_index().sort_values(by=['id', 'date'])
 
-    #df_group['group_id'] = np.where(solo_foraging, id_if_true, id_if_false)
-
-    df_group_foraging = df_group[df_group['activity.type'] == "Foraging"]
-
-    # Create all combinations of id and date
-    ids = df_group_foraging['id'].unique()
-    dates = df_group_foraging['date'].unique()
-    multi_index = pd.MultiIndex.from_product([ids, dates], names=['id', 'date'])
-
-    # Aggregate and reindex to include all combinations
-    df_time_agg = df_group_foraging.groupby(['id', 'date']).agg({'total.minutes': 'sum'})
-    df_time_agg = df_time_agg.reindex(multi_index).reset_index().sort_values(by=['date'])
-
-    # Merge with days_in_camp data to fill NaNs conditionally
+    # Merge with days_in_camp to identify time spent outside camp
     df_time_agg = pd.merge(
         df_time_agg,
         df_days_long[['forager_id', 'date', 'in_camp']],
@@ -85,57 +86,158 @@ def preprocess_data(
         how='left'
     )
 
-    # Fill NaN in 'total.minutes' with 0 only if the forager was in camp (in_camp == 1)
+    # Fill NaN time with 0 *only* if the forager was in camp (in_camp == 1)
     fill_condition = (df_time_agg['total.minutes'].isna()) & (df_time_agg['in_camp'] == 1)
     df_time_agg.loc[fill_condition, 'total.minutes'] = 0
 
-    # Drop the helper columns used for merging and condition
+    # Clean up temporary columns
     df_time_agg.drop(columns=['forager_id', 'in_camp'], inplace=True)
 
-    # get the number of unique ids within each group, split the ids into a list and count the number of unique ids
-    #df_group_agg['id_count'] = df_group_agg['id'].apply(lambda x: len(x.split('_')))
-
-    # Merge foraging and recall with kcal ------------------------------------------
-    df_recall_merged = pd.merge(df_recall, df_kcal[['index', 'kcal.g']], on='index', how='left')
+    # --- Production Data (Foraging Returns & Recall) ---
+    # Merge returns/recall with kcal data
     df_foraging_merged = pd.merge(df_returns, df_kcal[['index', 'kcal.g']], on='index', how='left')
+    df_recall_merged = pd.merge(df_recall, df_kcal[['index', 'kcal.g']], on='index', how='left')
 
-    df_merged['kcal.g'] = pd.to_numeric(df_merged['kcal.g'], errors='coerce')
-    df_merged['kcal'] = df_merged['kcal.g'] * df_merged['net_food_weight_gram']
-    df_merged = df_merged[df_merged["gift"] == 0].drop(columns=["gift"])
+    # Calculate total kcal
+    for df in [df_foraging_merged, df_recall_merged]:
+        df['kcal.g'] = pd.to_numeric(df['kcal.g'], errors='coerce')
+        weight_col = 'net_food_weight_gram' if 'net_food_weight_gram' in df.columns else 'x1_unit_weight_grams'
+        df['kcal'] = df['kcal.g'] * df[weight_col]
+        # Clean up unnecessary columns
+        df.drop(columns=['kcal.g', weight_col, 'index', 'gift'], inplace=True, errors='ignore') 
 
-    df_merged['pooled_group'] = np.round(df_merged['pooled_group'].fillna(0), 0).astype(int).astype(str)
-    df_merged['id'] = df_merged['id'].astype(str)
+    # --- Create group_id for df_foraging_merged ---
+    df = df_foraging_merged # Work with a clear reference
+    df['pooled_group'] = np.round(df['pooled_group'].fillna(0), 0).astype(int).astype(str)
+    df['id'] = df['id'].astype(str)
+    df['date_str'] = df['date'].dt.strftime('%Y-%m-%d')
+    non_solo_df = df[df['pooled_group'] != '0'].copy()
+    if not non_solo_df.empty:
+        group_forager_ids = non_solo_df.groupby(['date_str', 'pooled_group'])['id'] \
+                                        .agg(lambda x: '_'.join(sorted(x.unique()))) \
+                                        .reset_index() \
+                                        .rename(columns={'id': 'aggregated_ids'})
+        df = pd.merge(df, group_forager_ids, on=['date_str', 'pooled_group'], how='left')
+    else:
+        df['aggregated_ids'] = pd.NA 
+    is_solo = df['pooled_group'] == '0'
+    id_if_solo = df['date_str'] + '_' + df['id']
+    id_if_group = df['date_str'] + '_' + df['aggregated_ids']
+    df['group_id'] = np.where(is_solo, id_if_solo, id_if_group)
+    df.drop(columns=['date_str', 'aggregated_ids'], inplace=True, errors='ignore')
+    df_foraging_merged = df # Assign back the modified dataframe
 
-    solo_foraging = df_merged['pooled_group'] == '0'
-    id_if_true = df_merged['date'].astype(str) + '_' + df_merged['id']
-    id_if_false = df_merged['date'].astype(str) + '_' + df_merged['pooled_group'] # Assuming group is integer/float, convert to str
+    # --- Create group_id for df_recall_merged ---
+    df = df_recall_merged # Work with a clear reference
+    df['pooled_group'] = np.round(df['pooled_group'].fillna(0), 0).astype(int).astype(str)
+    df['id'] = df['id'].astype(str)
+    df['date_str'] = df['date'].dt.strftime('%Y-%m-%d')
+    non_solo_df = df[df['pooled_group'] != '0'].copy()
+    if not non_solo_df.empty:
+        group_forager_ids = non_solo_df.groupby(['date_str', 'pooled_group'])['id'] \
+                                        .agg(lambda x: '_'.join(sorted(x.unique()))) \
+                                        .reset_index() \
+                                        .rename(columns={'id': 'aggregated_ids'})
+        df = pd.merge(df, group_forager_ids, on=['date_str', 'pooled_group'], how='left')
+    else:
+        df['aggregated_ids'] = pd.NA
+    is_solo = df['pooled_group'] == '0'
+    id_if_solo = df['date_str'] + '_' + df['id']
+    id_if_group = df['date_str'] + '_' + df['aggregated_ids']
+    df['group_id'] = np.where(is_solo, id_if_solo, id_if_group)
+    df.drop(columns=['date_str', 'aggregated_ids'], inplace=True, errors='ignore')
+    df_recall_merged = df # Assign back the modified dataframe
 
-    df_merged['group_id'] = np.where(solo_foraging, id_if_true, id_if_false)
+    # Aggregate production per group_id (taking mean kcal)
+    df_foraging_agg = df_foraging_merged.groupby('group_id', as_index=False)['kcal'].mean()
+    df_recall_agg = df_recall_merged.groupby('group_id', as_index=False)['kcal'].mean()
 
-    # get the mean, because returns are repeated for each member of a group
-    df_merged_agg = df_merged.groupby('group_id').agg({'kcal': 'mean'}).reset_index()
+    # Combine foraging and recall production
+    df_production = pd.concat([
+        df_foraging_agg.assign(type='foraging'),
+        df_recall_agg.assign(type='recall')
+    ], ignore_index=True)
 
-    # Join the two dataframes on the group_id column, fill missing values with 0
-    df_joined = pd.merge(df_group_agg[['group_id', 'total.minutes']], df_merged_agg, on='group_id', how='left')
+    # --- Check Time vs. Returns & Append Zero Rows ---
+    print("--- Checking Time vs Production & Appending Zeros ---")
+    foraging_time_col = 'total.minutes'
 
-    df_joined["kcal"] = df_joined["kcal"].fillna(0)
-    np.mean(df_joined['kcal'] == 0)
+    # 1. Get (id, date) pairs with foraging time > 0 from df_time_agg
+    valid_time_entries = df_time_agg[
+        (df_time_agg[foraging_time_col] > 0) & 
+        (df_time_agg[foraging_time_col].notna())
+    ].copy() # Use .copy() for safety
+    valid_time_entries['id'] = valid_time_entries['id'].astype(str)
+    valid_time_entries['date'] = pd.to_datetime(valid_time_entries['date'])
+    time_agg_pairs = set(zip(valid_time_entries['id'], valid_time_entries['date']))
 
-    ### Merge with camp_members
+    # 2. Get (individual_id, date) pairs from df_production
+    production_pairs = set()
+    # Iterate through unique group_ids to avoid redundant parsing
+    for group_id in df_production['group_id'].unique():
+        parts = group_id.split('_', 1) 
+        if len(parts) == 2:
+            date_str, ids_str = parts
+            try:
+                date_obj = pd.to_datetime(date_str) 
+                individual_ids = ids_str.split('_')
+                for ind_id in individual_ids:
+                    production_pairs.add((str(ind_id), date_obj))
+            except ValueError:
+                print(f"Warning: Could not parse date or IDs from group_id: {group_id}")
+        else:
+             print(f"Warning: Unexpected group_id format: {group_id}")
 
-    # Get date from group_id
-    df_group_agg["date"] = pd.to_datetime(df_group_agg["group_id"].str.split("_").str[0])
-    df_joined["date"] = pd.to_datetime(df_joined["group_id"].str.split("_").str[0])
+    # 3. Find (id, date) pairs with time logged but no production record
+    time_without_production_pairs = time_agg_pairs - production_pairs
 
-    # Rename cols
+    # 4. Count and report
+    num_time_without_production = len(time_without_production_pairs)
+    print(f"Processing: Found {num_time_without_production} (forager, date) instances with time but no production.")
 
+    # 5. Append zero-production rows if needed
+    if num_time_without_production > 0:
+        zero_production_rows = []
+        for forager_id, forage_date in time_without_production_pairs:
+            date_str = forage_date.strftime('%Y-%m-%d') 
+            group_id = f"{date_str}_{forager_id}" # Implicitly solo trip
+            new_row = {
+                'group_id': group_id,
+                'kcal': 0,
+                'type': 'zero_inferred' # New type for these rows
+            }
+            zero_production_rows.append(new_row)
 
+        df_zero_production = pd.DataFrame(zero_production_rows)
+        df_production = pd.concat([df_production, df_zero_production], ignore_index=True)
+        print(f"Processing: Appended {len(df_zero_production)} zero-inferred production rows.")
+    print("--- End Time vs Production Check ---")
+
+    # --- Final Filtering and Cleanup ---
+    # Filter foragers to include only those present in time allocation data
+    present_forager_ids = df_time_agg['id'].unique()
+    df_foragers = df_foragers[df_foragers['id'].isin(present_forager_ids)].reset_index(drop=True)
+
+    # Add date column to df_production (parsed from group_id)
+    # Use error coercion for safety, although warnings handle most issues
+    df_production['date'] = pd.to_datetime(df_production['group_id'].str.split('_').str[0], errors='coerce')
+    # Report if any dates could not be parsed
+    if df_production['date'].isna().any():
+        print("Warning: Some dates could not be parsed from group_id in the final production df.")
+
+    # add number of foragers in each group
+    df_production['group_size'] = df_production['group_id'].str.split('_').apply(len) - 1
+
+    # --- Save Output (Optional) ---
     if output_dir is not None:
-        df_foragers.to_csv(output_dir + '/foragers.csv', index=False)
-        df_group_agg.to_csv(output_dir + '/groups.csv', index=False)
-        df_joined.to_csv(output_dir + '/returns.csv', index=False)
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True) # Ensure directory exists
+        df_foragers.to_csv(output_path / 'foragers.csv', index=False)
+        df_time_agg.to_csv(output_path / 'time_allocation.csv', index=False)
+        df_production.to_csv(output_path / 'production.csv', index=False)
+        print(f"Processed files saved to: {output_path}")
 
-    return df_foragers, df_group_agg, df_joined
+    return df_foragers, df_time_agg, df_production
         
 
 

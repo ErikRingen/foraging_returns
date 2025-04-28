@@ -1,2515 +1,761 @@
-"Date","pooled_group","index","net_food_weight_gram","gift","ID","article","state"
-"01.08.18",1,55,1100,0,1030,"ediki","with inedible"
-"01.08.18",1,55,1100,0,2523,"ediki","with inedible"
-"01.08.18",1,55,1100,0,1010,"ediki","with inedible"
-"01.08.18",10,14,100,0,2513,"ekule","ready-to-eat"
-"01.08.18",10,14,100,0,2039,"ekule","ready-to-eat"
-"01.08.18",11,14,1600,0,2039,"ekule","ready-to-eat"
-"01.08.18",11,14,1600,0,2513,"ekule","ready-to-eat"
-"01.08.18",2,24,1200,0,3117,"cassava leaves","with stem"
-"01.08.18",2,24,1200,0,1035,"cassava leaves","with stem"
-"01.08.18",3,36,1000,0,1035,"pusa","without skin"
-"01.08.18",3,36,1000,0,3117,"pusa","without skin"
-"01.08.18",4,42,250,0,1035,"corn","without husk"
-"01.08.18",4,42,250,0,3117,"corn","without husk"
-"01.08.18",5,36,600,0,1035,"pusa","without skin"
-"01.08.18",5,36,600,0,3117,"pusa","without skin"
-"01.08.18",6,35,5100,0,3117,"mela","ready-to-eat"
-"01.08.18",6,35,5100,0,1035,"mela","ready-to-eat"
-"01.08.18",7,45,900,0,1035,"orange","with peel"
-"01.08.18",7,45,900,0,3117,"orange","with peel"
-"01.08.18",8,2,1000,0,3040,"maondo","with peel"
-"01.08.18",8,2,1000,0,3041,"maondo","with peel"
-"01.08.18",9,20,500,0,3041,"cassava","with water"
-"01.08.18",9,20,500,0,3040,"cassava","with water"
-"01.09.18",1,75,350,0,1030,"caterpillars","with guts"
-"01.09.18",1,75,350,0,1031,"caterpillars","with guts"
-"01.09.18",2,2,70.88,0,3077,"maondo","with peel"
-"01.09.18",2,2,70.88,0,2523,"maondo","with peel"
-"01.09.18",2,2,70.88,0,1035,"maondo","with peel"
-"01.09.18",3,75,1800,0,3041,"caterpillars","with guts"
-"01.09.18",3,75,1800,0,3077,"caterpillars","with guts"
-"01.09.18",3,75,1800,0,3117,"caterpillars","with guts"
-"01.09.18",4,75,2350,0,1106,"caterpillars","with guts"
-"01.09.18",4,75,2350,0,1023,"caterpillars","with guts"
-"01.09.18",5,75,400,0,3040,"caterpillars","with guts"
-"01.09.18",5,75,400,0,1122,"caterpillars","with guts"
-"01.09.18",6,35,2600,0,1120,"mela","ready-to-eat"
-"01.09.18",6,35,2600,0,1115,"mela","ready-to-eat"
-"01.09.18",7,75,1600,0,2513,"caterpillars","with guts"
-"01.09.18",7,75,1600,0,2038,"caterpillars","with guts"
-"01.09.18",8,34,2700,0,3117,"cacao","with husk"
-"01.09.18",8,34,2700,0,1023,"cacao","with husk"
-"02.08.18",1,2,4000,0,2513,"maondo","with peel"
-"02.08.18",1,2,4000,0,3077,"maondo","with peel"
-"02.08.18",1,2,4000,0,3117,"maondo","with peel"
-"02.08.18",1,2,4000,0,1035,"maondo","with peel"
-"02.08.18",1,2,4000,0,1007,"maondo","with peel"
-"02.08.18",1,2,4000,0,1010,"maondo","with peel"
-"02.08.18",1,2,4000,0,2523,"maondo","with peel"
-"02.08.18",1,2,4000,0,2544,"maondo","with peel"
-"02.08.18",1,2,4000,0,1016,"maondo","with peel"
-"02.08.18",1,2,4000,0,1008,"maondo","with peel"
-"02.08.18",1,2,4000,0,3118,"maondo","with peel"
-"02.08.18",1,2,4000,0,3119,"maondo","with peel"
-"02.08.18",1,2,4000,0,1011,"maondo","with peel"
-"02.08.18",2,36,250,0,1030,"pusa","without skin"
-"02.08.18",2,36,250,0,1120,"pusa","without skin"
-"02.08.18",3,2,2500,0,1104,"maondo","with peel"
-"02.08.18",3,2,2500,0,1009,"maondo","with peel"
-"02.08.18",3,2,2500,0,1121,"maondo","with peel"
-"02.08.18",4,5,1350,0,1116,"palm nut","without thorns"
-"02.08.18",4,5,1350,0,2039,"palm nut","without thorns"
-"02.08.18",5,36,1500,0,1120,"pusa","without skin"
-"02.08.18",5,36,1500,0,1030,"pusa","without skin"
-"02.08.18",6,36,1500,0,1030,"pusa","without skin"
-"02.08.18",6,36,1500,0,1120,"pusa","without skin"
-"02.09.18",1,75,400,0,1008,"caterpillars","with guts"
-"02.09.18",1,75,400,0,1007,"caterpillars","with guts"
-"02.09.18",2,75,750,0,1031,"caterpillars","with guts"
-"02.09.18",2,75,750,0,1009,"caterpillars","with guts"
-"02.09.18",3,75,250,0,1120,"caterpillars","with guts"
-"02.09.18",3,75,250,0,1030,"caterpillars","with guts"
-"02.09.18",4,35,6600,0,3041,"mela","ready-to-eat"
-"02.09.18",4,35,6600,0,3077,"mela","ready-to-eat"
-"02.09.18",5,35,13500,0,1121,"mela","ready-to-eat"
-"02.09.18",5,35,13500,0,1104,"mela","ready-to-eat"
-"02.09.18",6,35,2700,0,1023,"mela","ready-to-eat"
-"02.09.18",6,35,2700,0,1106,"mela","ready-to-eat"
-"02.09.18",6,35,2700,0,1028,"mela","ready-to-eat"
-"02.09.18",7,35,7700,0,2031,"mela","ready-to-eat"
-"02.09.18",7,35,7700,0,3142,"mela","ready-to-eat"
-"03.08.18",1,47,500,0,1006,"matokodi","ready-to-eat"
-"03.08.18",1,47,500,0,2544,"matokodi","ready-to-eat"
-"03.08.18",2,53,700,0,1101,"mushooms","ready-to-eat"
-"03.08.18",2,53,700,0,1010,"mushooms","ready-to-eat"
-"03.08.18",3,2,1000,0,1009,"maondo","with peel"
-"03.08.18",3,2,1000,0,2523,"maondo","with peel"
-"03.08.18",3,2,1000,0,1031,"maondo","with peel"
-"03.08.18",3,2,1000,0,3119,"maondo","with peel"
-"03.08.18",3,2,1000,0,1008,"maondo","with peel"
-"03.08.18",3,2,1000,0,1011,"maondo","with peel"
-"03.08.18",4,2,3750,0,2544,"maondo","with peel"
-"03.08.18",4,2,3750,0,1007,"maondo","with peel"
-"03.08.18",4,2,3750,0,1010,"maondo","with peel"
-"03.08.18",4,2,3750,0,2539,"maondo","with peel"
-"03.08.18",4,2,3750,0,3118,"maondo","with peel"
-"03.08.18",5,2,3000,0,1122,"maondo","with peel"
-"03.08.18",5,2,3000,0,1121,"maondo","with peel"
-"03.08.18",6,26,200,0,1030,"kaso","with husk"
-"03.08.18",6,26,200,0,1032,"kaso","with husk"
-"03.08.18",6,26,200,0,1006,"kaso","with husk"
-"03.08.18",7,47,1250,0,2030,"matokodi","ready-to-eat"
-"03.08.18",7,47,1250,0,2031,"matokodi","ready-to-eat"
-"04.08.18",1,2,1250,0,3118,"maondo","with peel"
-"04.08.18",1,2,1250,0,1016,"maondo","with peel"
-"04.08.18",1,2,1250,0,1007,"maondo","with peel"
-"04.08.18",1,2,1250,0,1010,"maondo","with peel"
-"04.08.18",1,2,1250,0,3119,"maondo","with peel"
-"04.08.18",1,2,1250,0,2513,"maondo","with peel"
-"04.08.18",1,2,1250,0,2539,"maondo","with peel"
-"04.08.18",1,2,1250,0,2544,"maondo","with peel"
-"04.08.18",2,2,2500,0,3118,"maondo","with peel"
-"04.08.18",2,2,2500,0,2544,"maondo","with peel"
-"04.08.18",2,2,2500,0,2539,"maondo","with peel"
-"04.08.18",2,2,2500,0,2513,"maondo","with peel"
-"04.08.18",2,2,2500,0,1016,"maondo","with peel"
-"04.08.18",2,2,2500,0,3119,"maondo","with peel"
-"04.08.18",2,2,2500,0,1007,"maondo","with peel"
-"04.08.18",2,2,2500,0,1010,"maondo","with peel"
-"04.08.18",3,2,2700,0,1007,"maondo","with peel"
-"04.08.18",3,2,2700,0,2539,"maondo","with peel"
-"04.08.18",3,2,2700,0,2544,"maondo","with peel"
-"04.08.18",3,2,2700,0,2513,"maondo","with peel"
-"04.08.18",3,2,2700,0,1010,"maondo","with peel"
-"04.08.18",3,2,2700,0,3118,"maondo","with peel"
-"04.08.18",3,2,2700,0,3119,"maondo","with peel"
-"04.08.18",3,2,2700,0,1016,"maondo","with peel"
-"04.08.18",4,37,2900,0,2513,"pusa","with skin"
-"04.08.18",4,37,2900,0,1011,"pusa","with skin"
-"04.08.18",4,37,2900,0,3119,"pusa","with skin"
-"04.08.18",4,37,2900,0,3118,"pusa","with skin"
-"04.08.18",4,37,2900,0,1010,"pusa","with skin"
-"04.08.18",4,37,2900,0,1016,"pusa","with skin"
-"04.08.18",4,37,2900,0,2544,"pusa","with skin"
-"04.08.18",4,37,2900,0,2523,"pusa","with skin"
-"04.08.18",4,37,2900,0,2539,"pusa","with skin"
-"04.08.18",5,37,10500,0,1010,"pusa","with skin"
-"04.08.18",5,37,10500,0,2513,"pusa","with skin"
-"04.08.18",5,37,10500,0,3119,"pusa","with skin"
-"04.08.18",5,37,10500,0,3118,"pusa","with skin"
-"04.08.18",5,37,10500,0,1011,"pusa","with skin"
-"04.08.18",5,37,10500,0,1016,"pusa","with skin"
-"04.08.18",5,37,10500,0,2523,"pusa","with skin"
-"04.08.18",5,37,10500,0,2544,"pusa","with skin"
-"04.08.18",5,37,10500,0,2539,"pusa","with skin"
-"04.08.18",6,76,400,0,2539,"fish","raw"
-"04.08.18",6,76,400,0,2031,"fish","raw"
-"04.08.18",7,36,900,0,2539,"pusa","without skin"
-"04.08.18",7,36,900,0,2031,"pusa","without skin"
-"04.08.18",8,53,1100,0,2539,"mushooms","ready-to-eat"
-"04.08.18",8,53,1100,0,2031,"mushooms","ready-to-eat"
-"05.08.18",1,2,500,0,1016,"maondo","with peel"
-"05.08.18",1,2,500,0,1010,"maondo","with peel"
-"05.08.18",1,2,500,0,1007,"maondo","with peel"
-"05.08.18",1,2,500,0,1031,"maondo","with peel"
-"05.08.18",1,2,500,0,1009,"maondo","with peel"
-"05.08.18",1,2,500,0,1011,"maondo","with peel"
-"05.08.18",1,2,500,0,2513,"maondo","with peel"
-"05.08.18",1,2,500,0,2539,"maondo","with peel"
-"05.08.18",1,2,500,0,3119,"maondo","with peel"
-"05.08.18",2,2,1100,0,1104,"maondo","with peel"
-"05.08.18",2,2,1100,0,1102,"maondo","with peel"
-"05.08.18",3,55,750,0,2539,"ediki","with inedible"
-"05.08.18",3,55,750,0,2544,"ediki","with inedible"
-"05.08.18",3,55,750,0,1010,"ediki","with inedible"
-"05.08.18",3,55,750,0,3118,"ediki","with inedible"
-"05.08.18",3,55,750,0,1007,"ediki","with inedible"
-"05.08.18",4,30,900,0,3117,"koko","with stem"
-"05.08.18",4,30,900,0,1121,"koko","with stem"
-"05.08.18",5,2,100,0,2513,"maondo","with peel"
-"05.08.18",5,2,100,0,3118,"maondo","with peel"
-"05.08.18",5,2,100,0,2523,"maondo","with peel"
-"05.08.18",5,2,100,0,1007,"maondo","with peel"
-"05.08.18",5,2,100,0,1010,"maondo","with peel"
-"05.08.18",5,2,100,0,1016,"maondo","with peel"
-"05.08.18",5,2,100,0,1009,"maondo","with peel"
-"05.08.18",5,2,100,0,1124,"maondo","with peel"
-"05.08.18",5,2,100,0,3119,"maondo","with peel"
-"05.08.18",5,2,100,0,2539,"maondo","with peel"
-"05.08.18",5,2,100,0,2544,"maondo","with peel"
-"05.08.18",5,2,100,0,1101,"maondo","with peel"
-"05.08.18",5,2,100,0,1032,"maondo","with peel"
-"05.08.18",5,2,100,0,1006,"maondo","with peel"
-"05.08.18",5,2,100,0,1008,"maondo","with peel"
-"05.08.18",5,2,100,0,1031,"maondo","with peel"
-"05.08.18",5,2,100,0,1030,"maondo","with peel"
-"05.08.18",6,35,4400,0,2030,"mela","ready-to-eat"
-"05.08.18",6,35,4400,0,2031,"mela","ready-to-eat"
-"06.08.18",1,26,500,0,3077,"kaso","with husk"
-"06.08.18",1,26,500,0,3117,"kaso","with husk"
-"06.08.18",10,76,1600,0,1028,"fish","raw"
-"06.08.18",10,76,1600,0,2055,"fish","raw"
-"06.08.18",11,91,9250,0,1124,"honey","ready-to-eat"
-"06.08.18",11,91,9250,0,1116,"honey","ready-to-eat"
-"06.08.18",2,5,900,0,1122,"palm nut","without thorns"
-"06.08.18",2,5,900,0,1032,"palm nut","without thorns"
-"06.08.18",3,48,1250,0,1122,"matokodi","with husk"
-"06.08.18",3,48,1250,0,1032,"matokodi","with husk"
-"06.08.18",4,55,500,0,1032,"ediki","with inedible"
-"06.08.18",4,55,500,0,1122,"ediki","with inedible"
-"06.08.18",5,30,200,0,1008,"koko","with stem"
-"06.08.18",5,30,200,0,1016,"koko","with stem"
-"06.08.18",5,30,200,0,3119,"koko","with stem"
-"06.08.18",6,76,300,0,2055,"fish","raw"
-"06.08.18",6,76,300,0,2523,"fish","raw"
-"06.08.18",7,76,600,0,3118,"fish","raw"
-"06.08.18",7,76,600,0,3077,"fish","raw"
-"06.08.18",8,76,350,0,2544,"fish","raw"
-"06.08.18",8,76,350,0,1035,"fish","raw"
-"06.08.18",8,76,350,0,1016,"fish","raw"
-"06.08.18",9,76,818.82,0,1122,"fish","raw"
-"06.08.18",9,76,818.82,0,1121,"fish","raw"
-"07.08.18",1,35,600,0,1010,"mela","ready-to-eat"
-"07.08.18",1,35,600,0,2539,"mela","ready-to-eat"
-"07.08.18",1,35,600,0,3077,"mela","ready-to-eat"
-"07.08.18",10,38,5750,0,2038,"banana","with peel"
-"07.08.18",10,38,5750,0,2039,"banana","with peel"
-"07.08.18",11,38,500,0,2038,"banana","with peel"
-"07.08.18",11,38,500,0,2039,"banana","with peel"
-"07.08.18",2,30,600,0,2539,"koko","with stem"
-"07.08.18",2,30,600,0,2522,"koko","with stem"
-"07.08.18",2,30,600,0,3077,"koko","with stem"
-"07.08.18",2,30,600,0,1010,"koko","with stem"
-"07.08.18",3,2,500,0,2513,"maondo","with peel"
-"07.08.18",3,2,500,0,2544,"maondo","with peel"
-"07.08.18",4,59,2150,0,1124,"bird","with feathers"
-"07.08.18",4,59,2150,0,1116,"bird","with feathers"
-"07.08.18",4,59,2150,0,2055,"bird","with feathers"
-"07.08.18",4,59,2150,0,1028,"bird","with feathers"
-"07.08.18",5,91,1900,0,1124,"honey","ready-to-eat"
-"07.08.18",5,91,1900,0,2055,"honey","ready-to-eat"
-"07.08.18",5,91,1900,0,1116,"honey","ready-to-eat"
-"07.08.18",5,91,1900,0,1106,"honey","ready-to-eat"
-"07.08.18",6,36,450,0,1106,"pusa","without skin"
-"07.08.18",6,36,450,0,1023,"pusa","without skin"
-"07.08.18",7,35,4400,0,1106,"mela","ready-to-eat"
-"07.08.18",7,35,4400,0,1023,"mela","ready-to-eat"
-"07.08.18",8,91,3500,0,1030,"honey","ready-to-eat"
-"07.08.18",8,91,3500,0,1119,"honey","ready-to-eat"
-"07.08.18",8,91,3500,0,1120,"honey","ready-to-eat"
-"07.08.18",9,91,1750,0,1030,"honey","ready-to-eat"
-"07.08.18",9,91,1750,0,1119,"honey","ready-to-eat"
-"07.08.18",9,91,1750,0,1120,"honey","ready-to-eat"
-"08.08.18",1,30,250,0,3117,"koko","with stem"
-"08.08.18",1,30,250,0,1028,"koko","with stem"
-"08.08.18",2,6,10350,0,1102,"palm nut","with thorns"
-"08.08.18",2,6,10350,0,1101,"palm nut","with thorns"
-"08.08.18",3,44,300,0,1101,"lemon","with peel"
-"08.08.18",3,44,300,0,1102,"lemon","with peel"
-"08.08.18",4,10,3500,0,1119,"palm wine","0"
-"08.08.18",4,10,3500,0,1120,"palm wine","0"
-"09.08.18",1,24,750,0,1016,"cassava leaves","with stem"
-"09.08.18",1,24,750,0,1008,"cassava leaves","with stem"
-"09.08.18",2,6,23000,0,1104,"palm nut","with thorns"
-"09.08.18",2,6,23000,0,1103,"palm nut","with thorns"
-"09.08.18",3,35,7700,0,1116,"mela","ready-to-eat"
-"09.08.18",3,35,7700,0,2522,"mela","ready-to-eat"
-"09.08.18",4,10,2000,0,1119,"palm wine","0"
-"09.08.18",4,10,2000,0,1120,"palm wine","0"
-"09.08.18",5,26,2100,0,2038,"kaso","with husk"
-"09.08.18",5,26,2100,0,2039,"kaso","with husk"
-"10.08.18",1,53,500,0,2544,"mushooms","ready-to-eat"
-"10.08.18",1,53,500,0,3118,"mushooms","ready-to-eat"
-"10.08.18",2,76,850,0,1016,"fish","raw"
-"10.08.18",2,76,850,0,2522,"fish","raw"
-"10.08.18",3,76,300,0,1106,"fish","raw"
-"10.08.18",3,76,300,0,1023,"fish","raw"
-"10.08.18",4,43,650,0,1023,"mbeku","0"
-"10.08.18",4,43,650,0,1121,"mbeku","ready-to-eat"
-"10.08.18",5,30,100,0,1023,"koko","with stem"
-"10.08.18",5,30,100,0,1121,"koko","with stem"
-"10.08.18",6,10,500,0,1120,"palm wine","0"
-"10.08.18",6,10,500,0,1119,"palm wine","0"
-"11.08.18",1,75,184.28,0,1032,"caterpillars","with guts"
-"11.08.18",1,75,184.28,0,1008,"caterpillars","with guts"
-"11.08.18",2,75,200,0,3041,"caterpillars","with guts"
-"11.08.18",2,75,200,0,1032,"caterpillars","with guts"
-"11.08.18",3,75,200,0,1032,"caterpillars","with guts"
-"11.08.18",3,75,200,0,1120,"caterpillars","with guts"
-"11.08.18",4,35,4100,0,1106,"mela","ready-to-eat"
-"11.08.18",4,35,4100,0,1028,"mela","ready-to-eat"
-"11.08.18",4,35,4100,0,1023,"mela","ready-to-eat"
-"11.08.18",5,71,1400,0,2039,"brush-tailed porcupine","with quills"
-"11.08.18",5,71,1400,0,2038,"brush-tailed porcupine","with quills"
-"11.08.18",6,75,1250,0,1116,"caterpillars","with guts"
-"11.08.18",6,75,1250,0,1124,"caterpillars","with guts"
-"12.08.18",1,8,9000,0,1103,"palm nut","fruit without bract or thorns"
-"12.08.18",1,8,9000,0,1102,"palm nut","fruit without bract or thorns"
-"12.08.18",2,5,4250,0,1103,"palm nut","without thorns"
-"12.08.18",2,5,4250,0,1035,"palm nut","without thorns"
-"12.08.18",3,5,6800,0,1103,"palm nut","without thorns"
-"12.08.18",3,5,6800,0,1121,"palm nut","without thorns"
-"12.08.18",4,75,1100,0,1023,"caterpillars","with guts"
-"12.08.18",4,75,1100,0,1106,"caterpillars","with guts"
-"12.08.18",5,35,4500,0,1116,"mela","ready-to-eat"
-"12.08.18",5,35,4500,0,2039,"mela","ready-to-eat"
-"12.08.18",5,35,4500,0,2522,"mela","ready-to-eat"
-"12.08.18",6,48,2100,0,1116,"matokodi","with husk"
-"12.08.18",6,48,2100,0,2039,"matokodi","with husk"
-"12.08.18",6,48,2100,0,2522,"matokodi","with husk"
-"12.08.18",7,35,900,0,3117,"mela","ready-to-eat"
-"12.08.18",7,35,900,0,3077,"mela","ready-to-eat"
-"12.08.18",8,47,300,0,1116,"matokodi","ready-to-eat"
-"12.08.18",8,47,300,0,2039,"matokodi","ready-to-eat"
-"12.08.18",8,47,300,0,2522,"matokodi","ready-to-eat"
-"13.08.18",1,2,800,0,1016,"maondo","with peel"
-"13.08.18",1,2,800,0,1031,"maondo","with peel"
-"13.08.18",1,2,800,0,3119,"maondo","with peel"
-"13.08.18",1,2,800,0,1008,"maondo","with peel"
-"13.08.18",2,2,400,0,1032,"maondo","with peel"
-"13.08.18",2,2,400,0,2544,"maondo","with peel"
-"13.08.18",2,2,400,0,1007,"maondo","with peel"
-"13.08.18",2,2,400,0,3118,"maondo","with peel"
-"13.08.18",3,91,4000,0,3040,"honey","ready-to-eat"
-"13.08.18",3,91,4000,0,3041,"honey","ready-to-eat"
-"13.08.18",4,91,3000,0,3040,"honey","ready-to-eat"
-"13.08.18",4,91,3000,0,3041,"honey","ready-to-eat"
-"13.08.18",5,35,6500,0,1023,"mela","ready-to-eat"
-"13.08.18",5,35,6500,0,1106,"mela","ready-to-eat"
-"13.08.18",5,35,6500,0,1028,"mela","ready-to-eat"
-"13.08.18",6,35,5850,0,2039,"mela","ready-to-eat"
-"13.08.18",6,35,5850,0,2522,"mela","ready-to-eat"
-"14.08.18",1,2,1100,0,1007,"maondo","with peel"
-"14.08.18",1,2,1100,0,1008,"maondo","with peel"
-"14.08.18",2,24,200,0,1009,"cassava leaves","with stem"
-"14.08.18",2,24,200,0,2538,"cassava leaves","with stem"
-"14.08.18",3,5,10400,0,2522,"palm nut","without thorns"
-"14.08.18",3,5,10400,0,2038,"palm nut","without thorns"
-"14.08.18",3,5,10400,0,1116,"palm nut","without thorns"
-"14.08.18",4,2,300,0,2513,"maondo","with peel"
-"14.08.18",4,2,300,0,2523,"maondo","with peel"
-"14.08.18",4,2,300,0,1036,"maondo","with peel"
-"14.08.18",4,2,300,0,3118,"maondo","with peel"
-"14.08.18",4,2,300,0,1011,"maondo","with peel"
-"14.08.18",4,2,300,0,2544,"maondo","with peel"
-"14.08.18",4,2,300,0,1007,"maondo","with peel"
-"14.08.18",4,2,300,0,1010,"maondo","with peel"
-"14.08.18",4,2,300,0,2539,"maondo","with peel"
-"14.08.18",5,6,11250,0,1028,"palm nut","with thorns"
-"14.08.18",5,6,11250,0,2055,"palm nut","with thorns"
-"14.08.18",6,2,2100,0,2055,"maondo","with peel"
-"14.08.18",6,2,2100,0,1028,"maondo","with peel"
-"14.08.18",7,75,250,0,1119,"caterpillars","with guts"
-"14.08.18",7,75,250,0,1120,"caterpillars","with guts"
-"15.08.18",1,53,500,0,2539,"mushooms","ready-to-eat"
-"15.08.18",1,53,500,0,3118,"mushooms","ready-to-eat"
-"15.08.18",1,53,500,0,1009,"mushooms","ready-to-eat"
-"15.08.18",1,53,500,0,1016,"mushooms","ready-to-eat"
-"15.08.18",1,53,500,0,1011,"mushooms","ready-to-eat"
-"15.08.18",2,91,2100,0,1116,"honey","ready-to-eat"
-"15.08.18",2,91,2100,0,1124,"honey","ready-to-eat"
-"15.08.18",3,5,3850,0.5,3134,"palm nut","without thorns"
-"15.08.18",3,5,3850,0.5,3077,"palm nut","without thorns"
-"15.08.18",4,5,8500,0.5,3134,"palm nut","without thorns"
-"15.08.18",4,5,8500,0.5,1035,"palm nut","without thorns"
-"15.08.18",5,5,8350,0.5,3117,"palm nut","without thorns"
-"15.08.18",5,5,8350,0.5,3134,"palm nut","without thorns"
-"16.08.18",1,75,1300,0,3118,"caterpillars","with guts"
-"16.08.18",1,75,1300,0,1007,"caterpillars","with guts"
-"16.08.18",1,75,1300,0,2523,"caterpillars","with guts"
-"16.08.18",1,75,1300,0,2544,"caterpillars","with guts"
-"16.08.18",1,75,1300,0,2513,"caterpillars","with guts"
-"16.08.18",2,53,200,0,1035,"mushooms","ready-to-eat"
-"16.08.18",2,53,200,0,3077,"mushooms","ready-to-eat"
-"16.08.18",2,53,200,0,1016,"mushooms","ready-to-eat"
-"16.08.18",2,53,200,0,3117,"mushooms","ready-to-eat"
-"16.08.18",3,76,800,0,1028,"fish","raw"
-"16.08.18",3,76,800,0,1106,"fish","raw"
-"16.08.18",4,35,1700,0,1116,"mela","ready-to-eat"
-"16.08.18",4,35,1700,0,2522,"mela","ready-to-eat"
-"16.08.18",5,91,1650,0,1006,"honey","ready-to-eat"
-"16.08.18",5,91,1650,0,1101,"honey","ready-to-eat"
-"16.08.18",6,91,5450,0,1101,"honey","ready-to-eat"
-"16.08.18",6,91,5450,0,1006,"honey","ready-to-eat"
-"17.08.18",1,53,100,0,1009,"mushooms","ready-to-eat"
-"17.08.18",1,53,100,0,1031,"mushooms","ready-to-eat"
-"17.08.18",10,64,2300,0,2031,"blue duiker","smoked"
-"17.08.18",10,64,2300,0,2539,"blue duiker","smoked"
-"17.08.18",2,55,400,0,2539,"ediki","with inedible"
-"17.08.18",2,55,400,0,2522,"ediki","with inedible"
-"17.08.18",2,55,400,0,3077,"ediki","with inedible"
-"17.08.18",2,55,400,0,1010,"ediki","with inedible"
-"17.08.18",3,76,500,0,1035,"fish","raw"
-"17.08.18",3,76,500,0,3117,"fish","raw"
-"17.08.18",4,76,400,0,3077,"fish","raw"
-"17.08.18",4,76,400,0,1016,"fish","raw"
-"17.08.18",5,6,5200,0,1032,"palm nut","with thorns"
-"17.08.18",5,6,5200,0,1006,"palm nut","with thorns"
-"17.08.18",6,6,6250,0,1006,"palm nut","with thorns"
-"17.08.18",6,6,6250,0,1032,"palm nut","with thorns"
-"17.08.18",7,30,250,0,1023,"koko","with stem"
-"17.08.18",7,30,250,0,1028,"koko","with stem"
-"17.08.18",8,76,300,0,1023,"fish","raw"
-"17.08.18",8,76,300,0,1028,"fish","raw"
-"17.08.18",9,36,1000,0,1028,"pusa","without skin"
-"17.08.18",9,36,1000,0,1023,"pusa","without skin"
-"18.08.18",1,10,1000,0,1006,"palm wine","0"
-"18.08.18",1,10,1000,0,1032,"palm wine","0"
-"18.08.18",10,24,2100,0,3117,"cassava leaves","with stem"
-"18.08.18",10,24,2100,0,3041,"cassava leaves","with stem"
-"18.08.18",11,22,750,0,3117,"cassava","with skin"
-"18.08.18",11,22,750,0,3041,"cassava","with skin"
-"18.08.18",12,35,3200,0,3117,"mela","ready-to-eat"
-"18.08.18",12,35,3200,0,3041,"mela","ready-to-eat"
-"18.08.18",13,30,100,0,3117,"koko","with stem"
-"18.08.18",13,30,100,0,3041,"koko","with stem"
-"18.08.18",14,39,500,0,1028,"banana","ready-to-eat"
-"18.08.18",14,39,500,0,1121,"banana","ready-to-eat"
-"18.08.18",15,38,800,0,1028,"banana","with peel"
-"18.08.18",15,38,800,0,1121,"banana","with peel"
-"18.08.18",16,38,1150,0,1121,"banana","with peel"
-"18.08.18",16,38,1150,0,1028,"banana","with peel"
-"18.08.18",2,24,200,0,1009,"cassava leaves","with stem"
-"18.08.18",2,24,200,0,2542,"cassava leaves","with stem"
-"18.08.18",2,24,200,0,2039,"cassava leaves","with stem"
-"18.08.18",2,24,200,0,1031,"cassava leaves","with stem"
-"18.08.18",2,24,200,0,2538,"cassava leaves","with stem"
-"18.08.18",3,2,1100,0,2523,"maondo","with peel"
-"18.08.18",3,2,1100,0,1007,"maondo","with peel"
-"18.08.18",4,75,1500,0,1032,"caterpillars","with guts"
-"18.08.18",4,75,1500,0,2523,"caterpillars","with guts"
-"18.08.18",5,25,300,0,1116,"kaso","with shell"
-"18.08.18",5,25,300,0,1016,"kaso","with shell"
-"18.08.18",6,53,500,0,1016,"mushooms","ready-to-eat"
-"18.08.18",6,53,500,0,1116,"mushooms","ready-to-eat"
-"18.08.18",7,35,4850,0,1016,"mela","ready-to-eat"
-"18.08.18",7,35,4850,0,1116,"mela","ready-to-eat"
-"18.08.18",8,22,1900,0,3117,"cassava","with skin"
-"18.08.18",8,22,1900,0,3041,"cassava","with skin"
-"18.08.18",9,35,2750,0,2544,"mela","ready-to-eat"
-"18.08.18",9,35,2750,0,2031,"mela","ready-to-eat"
-"18.08.18",9,35,2750,0,2539,"mela","ready-to-eat"
-"19.08.18",1,10,1000,0,1007,"palm wine","0"
-"19.08.18",1,10,1000,0,2523,"palm wine","0"
-"19.08.18",1,10,1000,0,3118,"palm wine","0"
-"19.08.18",2,24,198.45,0,2538,"cassava leaves","with stem"
-"19.08.18",2,24,198.45,0,1009,"cassava leaves","with stem"
-"19.08.18",3,36,500,0,3117,"pusa","without skin"
-"19.08.18",3,36,500,0,1023,"pusa","without skin"
-"19.08.18",4,24,6000,0,1115,"cassava leaves","with stem"
-"19.08.18",4,24,6000,0,1120,"cassava leaves","with stem"
-"19.08.18",4,24,6000,0,1031,"cassava leaves","with stem"
-"20.08.18",1,24,100,0,1009,"cassava leaves","with stem"
-"20.08.18",1,24,100,0,2538,"cassava leaves","with stem"
-"20.08.18",10,35,2350,0,1023,"mela","ready-to-eat"
-"20.08.18",10,35,2350,0,1106,"mela","ready-to-eat"
-"20.08.18",10,35,2350,0,1028,"mela","ready-to-eat"
-"20.08.18",2,64,7600,0,1103,"blue duiker","smoked"
-"20.08.18",2,64,7600,0,1119,"blue duiker","smoked"
-"20.08.18",3,35,4900,0,1119,"mela","ready-to-eat"
-"20.08.18",3,35,4900,0,1103,"mela","ready-to-eat"
-"20.08.18",4,18,1500,0,1028,"ndiki","ready-to-eat"
-"20.08.18",4,18,1500,0,1023,"ndiki","ready-to-eat"
-"20.08.18",4,18,1500,0,1106,"ndiki","ready-to-eat"
-"20.08.18",5,30,500,0,1028,"koko","with stem"
-"20.08.18",5,30,500,0,1106,"koko","with stem"
-"20.08.18",6,50,100,0,2522,"peppers","without stems"
-"20.08.18",6,50,100,0,1116,"peppers","without stems"
-"20.08.18",7,38,250,0,1102,"banana","with peel"
-"20.08.18",7,38,250,0,1121,"banana","with peel"
-"20.08.18",8,35,6500,0,2522,"mela","ready-to-eat"
-"20.08.18",8,35,6500,0,1116,"mela","ready-to-eat"
-"20.08.18",9,38,500,0,1121,"banana","with peel"
-"20.08.18",9,38,500,0,1102,"banana","with peel"
-"21.08.18",1,35,1750,0,1007,"mela","ready-to-eat"
-"21.08.18",1,35,1750,0,1016,"mela","ready-to-eat"
-"21.08.18",2,35,1000,0,2544,"mela","ready-to-eat"
-"21.08.18",2,35,1000,0,3118,"mela","ready-to-eat"
-"21.08.18",3,35,250,0,1010,"mela","ready-to-eat"
-"21.08.18",3,35,250,0,2513,"mela","ready-to-eat"
-"21.08.18",4,36,400,0,2513,"pusa","without skin"
-"21.08.18",4,36,400,0,1010,"pusa","without skin"
-"21.08.18",5,38,6500,0,1115,"banana","with peel"
-"21.08.18",5,38,6500,0,1104,"banana","with peel"
-"22.08.18",1,76,500,0,1028,"fish","raw"
-"22.08.18",1,76,500,0,2055,"fish","raw"
-"22.08.18",2,55,450,0,1010,"ediki","with inedible"
-"22.08.18",2,55,450,0,2539,"ediki","with inedible"
-"22.08.18",3,75,1600,0,1116,"caterpillars","with guts"
-"22.08.18",3,75,1600,0,1124,"caterpillars","with guts"
-"22.08.18",4,30,150,0,1010,"koko","with stem"
-"22.08.18",4,30,150,0,2539,"koko","with stem"
-"22.08.18",4,30,150,0,1008,"koko","with stem"
-"22.08.18",4,30,150,0,2538,"koko","with stem"
-"22.08.18",5,55,2100,0,1028,"ediki","with inedible"
-"22.08.18",5,55,2100,0,1106,"ediki","with inedible"
-"22.08.18",6,75,450,0,1030,"caterpillars","with guts"
-"22.08.18",6,75,450,0,1031,"caterpillars","with guts"
-"22.08.18",7,14,250,0,1030,"ekule","ready-to-eat"
-"22.08.18",7,14,250,0,1031,"ekule","ready-to-eat"
-"22.08.18",8,75,500,0,1016,"caterpillars","with guts"
-"22.08.18",8,75,500,0,2522,"caterpillars","with guts"
-"22.08.18",9,76,1550,0,1023,"fish","raw"
-"22.08.18",9,76,1550,0,3117,"fish","raw"
-"23.07.18",1,2,1100,0,1032,"maondo","with peel"
-"23.07.18",1,2,1100,0,1007,"maondo","with peel"
-"23.07.18",1,2,1100,0,1016,"maondo","with peel"
-"23.07.18",1,2,1100,0,3077,"maondo","with peel"
-"23.07.18",1,2,1100,0,1008,"maondo","with peel"
-"23.07.18",1,2,1100,0,1010,"maondo","with peel"
-"23.08.18",1,26,600,0,3041,"kaso","with husk"
-"23.08.18",1,26,600,0,3040,"kaso","with husk"
-"23.08.18",2,75,1650,0,2031,"caterpillars","with guts"
-"23.08.18",2,75,1650,0,2030,"caterpillars","with guts"
-"23.08.18",3,75,750,0,3118,"caterpillars","with guts"
-"23.08.18",3,75,750,0,3119,"caterpillars","with guts"
-"24.07.18",1,91,250,0,2523,"honey","ready-to-eat"
-"24.07.18",1,91,250,0,2513,"honey","ready-to-eat"
-"24.07.18",1,91,250,0,1007,"honey","ready-to-eat"
-"24.07.18",10,35,2750,0,3077,"mela","ready-to-eat"
-"24.07.18",10,35,2750,0,3041,"mela","ready-to-eat"
-"24.07.18",11,47,1000,0,1101,"matokodi","ready-to-eat"
-"24.07.18",11,47,1000,0,1102,"matokodi","ready-to-eat"
-"24.07.18",12,5,3600,0,1120,"palm nut","without thorns"
-"24.07.18",12,5,3600,0,1119,"palm nut","without thorns"
-"24.07.18",13,38,5500,0,1116,"banana","with peel"
-"24.07.18",13,38,5500,0,1124,"banana","with peel"
-"24.07.18",13,38,5500,0,1031,"banana","with peel"
-"24.07.18",14,71,3000,0,1124,"brush-tailed porcupine","with quills"
-"24.07.18",14,71,3000,0,1031,"brush-tailed porcupine","with quills"
-"24.07.18",14,71,3000,0,1116,"brush-tailed porcupine","with quills"
-"24.07.18",15,41,2000,0,1124,"corn","with husk"
-"24.07.18",15,41,2000,0,1031,"corn","with husk"
-"24.07.18",15,41,2000,0,1116,"corn","with husk"
-"24.07.18",16,24,2350,0,1124,"cassava leaves","with stem"
-"24.07.18",16,24,2350,0,1031,"cassava leaves","with stem"
-"24.07.18",16,24,2350,0,1116,"cassava leaves","with stem"
-"24.07.18",17,38,1000,0,1124,"banana","with peel"
-"24.07.18",17,38,1000,0,1031,"banana","with peel"
-"24.07.18",17,38,1000,0,1116,"banana","with peel"
-"24.07.18",18,41,900,0,1124,"corn","with husk"
-"24.07.18",18,41,900,0,1031,"corn","with husk"
-"24.07.18",18,41,900,0,1116,"corn","with husk"
-"24.07.18",2,2,4100,0,2544,"maondo","with peel"
-"24.07.18",2,2,4100,0,1008,"maondo","with peel"
-"24.07.18",2,2,4100,0,1007,"maondo","with peel"
-"24.07.18",2,2,4100,0,1011,"maondo","with peel"
-"24.07.18",2,2,4100,0,1016,"maondo","with peel"
-"24.07.18",2,2,4100,0,2523,"maondo","with peel"
-"24.07.18",2,2,4100,0,2513,"maondo","with peel"
-"24.07.18",2,2,4100,0,1009,"maondo","with peel"
-"24.07.18",3,32,600,0,1120,"payo","without husk"
-"24.07.18",3,32,600,0,1119,"payo","without husk"
-"24.07.18",4,33,1260,0,1119,"payo","with husk"
-"24.07.18",4,33,1260,0,1120,"payo","with husk"
-"24.07.18",5,1,2100,0,1103,"mobe","with seeds"
-"24.07.18",5,1,2100,0,1104,"mobe","with seeds"
-"24.07.18",6,44,400,0,1104,"lemon","with peel"
-"24.07.18",6,44,400,0,1103,"lemon","with peel"
-"24.07.18",7,53,1500,0,1104,"mushooms","ready-to-eat"
-"24.07.18",7,53,1500,0,1103,"mushooms","ready-to-eat"
-"24.07.18",8,36,1500,0,3077,"pusa","without skin"
-"24.07.18",8,36,1500,0,3040,"pusa","without skin"
-"24.07.18",8,36,1500,0,3041,"pusa","without skin"
-"24.07.18",9,36,900,0,3041,"pusa","without skin"
-"24.07.18",9,36,900,0,3077,"pusa","without skin"
-"24.07.18",9,36,900,0,3040,"pusa","without skin"
-"24.08.18",1,5,1600,0,1032,"palm nut","without thorns"
-"24.08.18",1,5,1600,0,1006,"palm nut","without thorns"
-"24.08.18",2,1,1850,0,1023,"mobe","with seeds"
-"24.08.18",2,1,1850,0,3117,"mobe","with seeds"
-"24.08.18",3,24,100,0,1031,"cassava leaves","with stem"
-"24.08.18",3,24,100,0,1009,"cassava leaves","with stem"
-"24.08.18",4,47,250,0,2522,"matokodi","ready-to-eat"
-"24.08.18",4,47,250,0,1028,"matokodi","ready-to-eat"
-"24.08.18",5,75,150,0,1028,"caterpillars","with guts"
-"24.08.18",5,75,150,0,2522,"caterpillars","with guts"
-"24.08.18",6,35,750,0,2522,"mela","ready-to-eat"
-"24.08.18",6,35,750,0,1028,"mela","ready-to-eat"
-"24.08.18",7,53,700,0,1106,"mushooms","ready-to-eat"
-"24.08.18",7,53,700,0,1023,"mushooms","ready-to-eat"
-"25.07.18",1,26,400,0,1007,"kaso","with husk"
-"25.07.18",1,26,400,0,1010,"kaso","with husk"
-"25.07.18",1,26,400,0,1030,"kaso","with husk"
-"25.07.18",2,25,99.23,0,1008,"kaso","with shell"
-"25.07.18",2,25,99.23,0,1030,"kaso","with shell"
-"25.07.18",2,25,99.23,0,1011,"kaso","with shell"
-"25.07.18",3,26,300,0,1008,"kaso","with husk"
-"25.07.18",3,26,300,0,1030,"kaso","with husk"
-"25.07.18",3,26,300,0,1011,"kaso","with husk"
-"25.07.18",4,38,2500,0,2513,"banana","with peel"
-"25.07.18",4,38,2500,0,2523,"banana","with peel"
-"25.07.18",5,38,8650,0,2523,"banana","with peel"
-"25.07.18",5,38,8650,0,2513,"banana","with peel"
-"25.07.18",6,42,524.48,0,2513,"corn","without husk"
-"25.07.18",6,42,524.48,0,2523,"corn","without husk"
-"25.07.18",7,6,3000,0,1104,"palm nut","with thorns"
-"25.07.18",7,6,3000,0,1102,"palm nut","with thorns"
-"25.07.18",7,6,3000,0,3077,"palm nut","with thorns"
-"25.07.18",8,6,27000,0,3077,"palm nut","with thorns"
-"25.07.18",8,6,27000,0,1102,"palm nut","with thorns"
-"25.07.18",8,6,27000,0,1104,"palm nut","with thorns"
-"25.07.18",9,76,4600,0,3040,"fish","raw"
-"25.07.18",9,76,4600,0,3117,"fish","raw"
-"25.08.18",1,47,300,0,2544,"matokodi","ready-to-eat"
-"25.08.18",1,47,300,0,1010,"matokodi","ready-to-eat"
-"25.08.18",1,47,300,0,2539,"matokodi","ready-to-eat"
-"25.08.18",1,47,300,0,1007,"matokodi","ready-to-eat"
-"25.08.18",2,35,200,0,1007,"mela","ready-to-eat"
-"25.08.18",2,35,200,0,2539,"mela","ready-to-eat"
-"25.08.18",3,20,1600,0,3117,"cassava","with water"
-"25.08.18",3,20,1600,0,1023,"cassava","with water"
-"25.08.18",4,6,10600,0,1121,"palm nut","with thorns"
-"25.08.18",4,6,10600,0,3041,"palm nut","with thorns"
-"25.08.18",4,6,10600,0,1102,"palm nut","with thorns"
-"25.08.18",5,5,8850,0,3041,"palm nut","without thorns"
-"25.08.18",5,5,8850,0,1102,"palm nut","without thorns"
-"25.08.18",5,5,8850,0,1121,"palm nut","without thorns"
-"25.08.18",6,6,11300,0,1102,"palm nut","with thorns"
-"25.08.18",6,6,11300,0,1121,"palm nut","with thorns"
-"25.08.18",6,6,11300,0,3041,"palm nut","with thorns"
-"26.07.18",1,10,250,0,1007,"palm wine","0"
-"26.07.18",1,10,250,0,3117,"palm wine","0"
-"26.07.18",2,26,400,0,1011,"kaso","with husk"
-"26.07.18",2,26,400,0,1032,"kaso","with husk"
-"26.07.18",2,26,400,0,1010,"kaso","with husk"
-"26.07.18",2,26,400,0,1006,"kaso","with husk"
-"26.07.18",2,26,400,0,2544,"kaso","with husk"
-"26.07.18",3,36,2900,0,1116,"pusa","without skin"
-"26.07.18",3,36,2900,0,1120,"pusa","without skin"
-"26.07.18",4,37,4000,0,1116,"pusa","with skin"
-"26.07.18",4,37,4000,0,1120,"pusa","with skin"
-"26.07.18",5,26,300,0,1007,"kaso","with husk"
-"26.07.18",5,26,300,0,2544,"kaso","with husk"
-"26.07.18",6,38,5850,0,2039,"banana","with peel"
-"26.07.18",6,38,5850,0,2038,"banana","with peel"
-"26.07.18",7,42,1000,0,2038,"corn","without husk"
-"26.07.18",7,42,1000,0,2039,"corn","without husk"
-"26.07.18",8,39,250,0,2039,"banana","ready-to-eat"
-"26.07.18",8,39,250,0,2038,"banana","ready-to-eat"
-"26.08.18",1,10,1000,0,1007,"palm wine","0"
-"26.08.18",1,10,1000,0,2523,"palm wine","0"
-"26.08.18",2,75,250,0,1011,"caterpillars","with guts"
-"26.08.18",2,75,250,0,1010,"caterpillars","with guts"
-"26.08.18",3,75,400,0,1011,"caterpillars","with guts"
-"26.08.18",3,75,400,0,2539,"caterpillars","with guts"
-"26.08.18",3,75,400,0,1010,"caterpillars","with guts"
-"26.08.18",4,91,1500,0,1103,"honey","ready-to-eat"
-"26.08.18",4,91,1500,0,1119,"honey","ready-to-eat"
-"26.08.18",5,24,150,0,1031,"cassava leaves","with stem"
-"26.08.18",5,24,150,0,2538,"cassava leaves","with stem"
-"26.08.18",5,24,150,0,1011,"cassava leaves","with stem"
-"26.08.18",6,75,2500,0,3040,"caterpillars","with guts"
-"26.08.18",6,75,2500,0,3041,"caterpillars","with guts"
-"26.08.18",7,35,2000,0,3117,"mela","ready-to-eat"
-"26.08.18",7,35,2000,0,1023,"mela","ready-to-eat"
-"26.08.18",8,75,250,0,1023,"caterpillars","with guts"
-"26.08.18",8,75,250,0,3117,"caterpillars","with guts"
-"26.08.18",9,4,500,0,3117,"taro leaves","ready-to-eat"
-"26.08.18",9,4,500,0,1023,"taro leaves","ready-to-eat"
-"27.07.18",1,26,2500,0,3077,"kaso","with husk"
-"27.07.18",1,26,2500,0,3041,"kaso","with husk"
-"27.07.18",1,26,2500,0,3040,"kaso","with husk"
-"27.07.18",2,25,100,0,3077,"kaso","with shell"
-"27.07.18",2,25,100,0,3041,"kaso","with shell"
-"27.07.18",2,25,100,0,3040,"kaso","with shell"
-"27.07.18",3,49,500,0,1031,"mondonge",NA
-"27.07.18",3,49,500,0,1030,"mondonge",NA
-"27.07.18",4,76,2000,0,1120,"fish","raw"
-"27.07.18",4,76,2000,0,3077,"fish","raw"
-"27.07.18",5,25,250,0,1120,"kaso","with shell"
-"27.07.18",5,25,250,0,3077,"kaso","with shell"
-"27.07.18",6,36,212.62,0,1116,"pusa","without skin"
-"27.07.18",6,36,212.62,0,1124,"pusa","without skin"
-"27.07.18",7,35,2000,0,1116,"mela","ready-to-eat"
-"27.07.18",7,35,2000,0,1124,"mela","ready-to-eat"
-"27.07.18",8,5,750,0,2038,"palm nut","without thorns"
-"27.07.18",8,5,750,0,2039,"palm nut","without thorns"
-"27.07.18",9,76,1750,0,1124,"fish","raw"
-"27.07.18",9,76,1750,0,1116,"fish","raw"
-"27.08.18",1,75,250,0,1010,"caterpillars","with guts"
-"27.08.18",1,75,250,0,1007,"caterpillars","with guts"
-"27.08.18",2,75,100,0,1102,"caterpillars","with guts"
-"27.08.18",2,75,100,0,1011,"caterpillars","with guts"
-"27.08.18",3,75,200,0,1010,"caterpillars","with guts"
-"27.08.18",3,75,200,0,2539,"caterpillars","with guts"
-"27.08.18",4,24,250,0,1009,"cassava leaves","with stem"
-"27.08.18",4,24,250,0,1031,"cassava leaves","with stem"
-"27.08.18",5,91,200,0,1007,"honey","ready-to-eat"
-"27.08.18",5,91,200,0,2513,"honey","ready-to-eat"
-"27.08.18",6,75,1250,0,1028,"caterpillars","with guts"
-"27.08.18",6,75,1250,0,1023,"caterpillars","with guts"
-"27.08.18",7,75,450,0,2522,"caterpillars","with guts"
-"27.08.18",7,75,450,0,2039,"caterpillars","with guts"
-"27.08.18",8,30,600,0,1028,"koko","with stem"
-"27.08.18",8,30,600,0,1023,"koko","with stem"
-"27.08.18",9,76,600,0,1016,"fish","raw"
-"27.08.18",9,76,600,0,2522,"fish","raw"
-"28.07.18",1,14,141.75,0,2523,"ekule","ready-to-eat"
-"28.07.18",1,14,141.75,0,1007,"ekule","ready-to-eat"
-"28.07.18",1,14,141.75,0,2513,"ekule","ready-to-eat"
-"28.07.18",10,6,12000,0,1121,"palm nut","with thorns"
-"28.07.18",10,6,12000,0,1122,"palm nut","with thorns"
-"28.07.18",11,6,14600,0,3077,"palm nut","with thorns"
-"28.07.18",11,6,14600,0,1122,"palm nut","with thorns"
-"28.07.18",12,5,3250,0,1103,"palm nut","without thorns"
-"28.07.18",12,5,3250,0,1104,"palm nut","without thorns"
-"28.07.18",13,76,127.58,0,1006,"fish","raw"
-"28.07.18",13,76,127.58,0,1032,"fish","raw"
-"28.07.18",2,79,200,0,3117,"grub","ready-to-eat"
-"28.07.18",2,79,200,0,1016,"grub","ready-to-eat"
-"28.07.18",3,52,1100,0,3117,"kango","ready-to-eat"
-"28.07.18",3,52,1100,0,1016,"kango","ready-to-eat"
-"28.07.18",4,76,300,0,1016,"fish","raw"
-"28.07.18",4,76,300,0,3117,"fish","raw"
-"28.07.18",5,53,42.52,0,1016,"mushooms","ready-to-eat"
-"28.07.18",5,53,42.52,0,3117,"mushooms","ready-to-eat"
-"28.07.18",6,2,1400,0,1016,"maondo","with peel"
-"28.07.18",6,2,1400,0,1007,"maondo","with peel"
-"28.07.18",6,2,1400,0,1009,"maondo","with peel"
-"28.07.18",6,2,1400,0,2513,"maondo","with peel"
-"28.07.18",6,2,1400,0,1008,"maondo","with peel"
-"28.07.18",6,2,1400,0,1031,"maondo","with peel"
-"28.07.18",6,2,1400,0,2523,"maondo","with peel"
-"28.07.18",6,2,1400,0,1011,"maondo","with peel"
-"28.07.18",6,2,1400,0,1010,"maondo","with peel"
-"28.07.18",6,2,1400,0,3117,"maondo","with peel"
-"28.07.18",7,76,800,0,1120,"fish","raw"
-"28.07.18",7,76,800,0,3076,"fish","raw"
-"28.07.18",8,6,3000,0,1121,"palm nut","with thorns"
-"28.07.18",8,6,3000,0,1122,"palm nut","with thorns"
-"28.07.18",9,6,9000,0,1122,"palm nut","with thorns"
-"28.07.18",9,6,9000,0,1121,"palm nut","with thorns"
-"28.08.18",1,75,2250,0,1106,"caterpillars","with guts"
-"28.08.18",1,75,2250,0,1023,"caterpillars","with guts"
-"28.08.18",2,35,2000,0,1106,"mela","ready-to-eat"
-"28.08.18",2,35,2000,0,1023,"mela","ready-to-eat"
-"28.08.18",3,35,5000,0,1016,"mela","ready-to-eat"
-"28.08.18",3,35,5000,0,2522,"mela","ready-to-eat"
-"28.08.18",4,6,14250,0,1122,"palm nut","with thorns"
-"28.08.18",4,6,14250,0,1103,"palm nut","with thorns"
-"28.08.18",5,75,3500,0,1103,"caterpillars","with guts"
-"28.08.18",5,75,3500,0,1104,"caterpillars","with guts"
-"28.08.18",6,35,3850,0,3077,"mela","ready-to-eat"
-"28.08.18",6,35,3850,0,3041,"mela","ready-to-eat"
-"28.08.18",7,36,1000,0,3041,"pusa","without skin"
-"28.08.18",7,36,1000,0,3077,"pusa","without skin"
-"28.08.18",8,75,750,0,3077,"caterpillars","with guts"
-"28.08.18",8,75,750,0,3041,"caterpillars","with guts"
-"29.07.18",1,5,42.52,0,1007,"palm nut","without thorns"
-"29.07.18",1,5,42.52,0,1008,"palm nut","without thorns"
-"29.07.18",1,5,42.52,0,1122,"palm nut","without thorns"
-"29.07.18",1,5,42.52,0,2523,"palm nut","without thorns"
-"29.07.18",2,7,11000,0,3040,"palm nut","head"
-"29.07.18",2,7,11000,0,3077,"palm nut","head"
-"29.07.18",2,7,11000,0,3041,"palm nut","head"
-"29.07.18",3,7,17750,0,3077,"palm nut","head"
-"29.07.18",3,7,17750,0,3040,"palm nut","head"
-"29.07.18",3,7,17750,0,3041,"palm nut","head"
-"29.07.18",4,35,1400,0,1120,"mela","ready-to-eat"
-"29.07.18",4,35,1400,0,1116,"mela","ready-to-eat"
-"29.07.18",5,91,1000,0,1104,"honey","ready-to-eat"
-"29.07.18",5,91,1000,0,1121,"honey","ready-to-eat"
-"29.07.18",5,91,1000,0,1122,"honey","ready-to-eat"
-"29.07.18",6,53,600,0,3040,"mushooms","ready-to-eat"
-"29.07.18",6,53,600,0,3041,"mushooms","ready-to-eat"
-"29.07.18",7,91,1500,0,1121,"honey","ready-to-eat"
-"29.07.18",7,91,1500,0,1122,"honey","ready-to-eat"
-"29.07.18",7,91,1500,0,1104,"honey","ready-to-eat"
-"29.07.18",8,2,2000,0,3041,"maondo","with peel"
-"29.07.18",8,2,2000,0,3077,"maondo","with peel"
-"29.07.18",8,2,2000,0,3040,"maondo","with peel"
-"29.07.18",9,38,300,0,3117,"banana","with peel"
-"29.07.18",9,38,300,0,1016,"banana","with peel"
-"29.08.18",1,24,100,0,1011,"cassava leaves","with stem"
-"29.08.18",1,24,100,0,1009,"cassava leaves","with stem"
-"29.08.18",10,35,1500,0,1023,"mela","ready-to-eat"
-"29.08.18",10,35,1500,0,1028,"mela","ready-to-eat"
-"29.08.18",11,35,6500,0,1028,"mela","ready-to-eat"
-"29.08.18",11,35,6500,0,1023,"mela","ready-to-eat"
-"29.08.18",12,14,400,0,1023,"ekule","ready-to-eat"
-"29.08.18",12,14,400,0,1028,"ekule","ready-to-eat"
-"29.08.18",13,75,850,0,1028,"caterpillars","with guts"
-"29.08.18",13,75,850,0,1023,"caterpillars","with guts"
-"29.08.18",2,2,600,0,2544,"maondo","with peel"
-"29.08.18",2,2,600,0,2523,"maondo","with peel"
-"29.08.18",3,75,900,0,2523,"caterpillars","with guts"
-"29.08.18",3,75,900,0,2513,"caterpillars","with guts"
-"29.08.18",4,75,1000,0,2039,"caterpillars","with guts"
-"29.08.18",4,75,1000,0,3061,"caterpillars","with guts"
-"29.08.18",5,35,3300,0,2522,"mela","ready-to-eat"
-"29.08.18",5,35,3300,0,1116,"mela","ready-to-eat"
-"29.08.18",6,24,600,0,2544,"cassava leaves","with stem"
-"29.08.18",6,24,600,0,1009,"cassava leaves","with stem"
-"29.08.18",6,24,600,0,1007,"cassava leaves","with stem"
-"29.08.18",6,24,600,0,1031,"cassava leaves","with stem"
-"29.08.18",7,35,2750,0,1104,"mela","ready-to-eat"
-"29.08.18",7,35,2750,0,1121,"mela","ready-to-eat"
-"29.08.18",8,53,350,0,3077,"mushooms","ready-to-eat"
-"29.08.18",8,53,350,0,2522,"mushooms","ready-to-eat"
-"29.08.18",9,75,1850,0,1104,"caterpillars","with guts"
-"29.08.18",9,75,1850,0,1121,"caterpillars","with guts"
-"30.07.18",1,91,800,1,1028,"honey","ready-to-eat"
-"30.07.18",1,91,800,1,2055,"honey","ready-to-eat"
-"30.07.18",10,6,6650,0,1103,"palm nut","with thorns"
-"30.07.18",10,6,6650,0,2523,"palm nut","with thorns"
-"30.07.18",10,6,6650,0,2544,"palm nut","with thorns"
-"30.07.18",10,6,6650,0,2513,"palm nut","with thorns"
-"30.07.18",10,6,6650,0,1007,"palm nut","with thorns"
-"30.07.18",10,6,6650,0,1035,"palm nut","with thorns"
-"30.07.18",11,6,6900,0,1103,"palm nut","with thorns"
-"30.07.18",11,6,6900,0,1007,"palm nut","with thorns"
-"30.07.18",11,6,6900,0,1035,"palm nut","with thorns"
-"30.07.18",11,6,6900,0,2513,"palm nut","with thorns"
-"30.07.18",11,6,6900,0,2523,"palm nut","with thorns"
-"30.07.18",11,6,6900,0,2544,"palm nut","with thorns"
-"30.07.18",12,6,10125,0,1035,"palm nut","with thorns"
-"30.07.18",12,6,10125,0,2544,"palm nut","with thorns"
-"30.07.18",12,6,10125,0,1103,"palm nut","with thorns"
-"30.07.18",12,6,10125,0,2513,"palm nut","with thorns"
-"30.07.18",12,6,10125,0,1007,"palm nut","with thorns"
-"30.07.18",12,6,10125,0,2523,"palm nut","with thorns"
-"30.07.18",13,7,8600,0,1103,"palm nut","head"
-"30.07.18",13,7,8600,0,1007,"palm nut","head"
-"30.07.18",13,7,8600,0,2513,"palm nut","head"
-"30.07.18",13,7,8600,0,2523,"palm nut","head"
-"30.07.18",13,7,8600,0,2544,"palm nut","head"
-"30.07.18",13,7,8600,0,1035,"palm nut","head"
-"30.07.18",14,6,14500,0,2513,"palm nut","with thorns"
-"30.07.18",14,6,14500,0,1007,"palm nut","with thorns"
-"30.07.18",14,6,14500,0,2523,"palm nut","with thorns"
-"30.07.18",14,6,14500,0,1035,"palm nut","with thorns"
-"30.07.18",14,6,14500,0,1103,"palm nut","with thorns"
-"30.07.18",14,6,14500,0,2544,"palm nut","with thorns"
-"30.07.18",15,6,18000,0,1035,"palm nut","with thorns"
-"30.07.18",15,6,18000,0,1007,"palm nut","with thorns"
-"30.07.18",15,6,18000,0,2544,"palm nut","with thorns"
-"30.07.18",15,6,18000,0,1103,"palm nut","with thorns"
-"30.07.18",15,6,18000,0,2523,"palm nut","with thorns"
-"30.07.18",15,6,18000,0,2513,"palm nut","with thorns"
-"30.07.18",16,35,4100,0,1115,"mela","ready-to-eat"
-"30.07.18",16,35,4100,0,1120,"mela","ready-to-eat"
-"30.07.18",2,91,453.6,1,2055,"honey","ready-to-eat"
-"30.07.18",2,91,453.6,1,1028,"honey","ready-to-eat"
-"30.07.18",3,2,85.05,0,2539,"maondo","with peel"
-"30.07.18",3,2,85.05,0,1031,"maondo","with peel"
-"30.07.18",3,2,85.05,0,1009,"maondo","with peel"
-"30.07.18",3,2,85.05,0,1011,"maondo","with peel"
-"30.07.18",3,2,85.05,0,1008,"maondo","with peel"
-"30.07.18",4,2,400,0,1031,"maondo","with peel"
-"30.07.18",4,2,400,0,1009,"maondo","with peel"
-"30.07.18",4,2,400,0,1011,"maondo","with peel"
-"30.07.18",4,2,400,0,1008,"maondo","with peel"
-"30.07.18",4,2,400,0,2539,"maondo","with peel"
-"30.07.18",5,5,1500,0,2539,"palm nut","without thorns"
-"30.07.18",5,5,1500,0,1011,"palm nut","without thorns"
-"30.07.18",5,5,1500,0,1010,"palm nut","without thorns"
-"30.07.18",5,5,1500,0,1101,"palm nut","without thorns"
-"30.07.18",6,7,4500,0,1101,"palm nut","head"
-"30.07.18",6,7,4500,0,1011,"palm nut","head"
-"30.07.18",6,7,4500,0,1010,"palm nut","head"
-"30.07.18",6,7,4500,0,2539,"palm nut","head"
-"30.07.18",7,64,500,1,2055,"blue duiker","smoked"
-"30.07.18",7,64,500,1,1028,"blue duiker","smoked"
-"30.07.18",8,87,2100,0,1116,"snake","with intestins"
-"30.07.18",8,87,2100,0,1124,"snake","with intestins"
-"30.07.18",9,6,3500,0,1035,"palm nut","with thorns"
-"30.07.18",9,6,3500,0,1103,"palm nut","with thorns"
-"30.07.18",9,6,3500,0,1007,"palm nut","with thorns"
-"30.07.18",9,6,3500,0,2513,"palm nut","with thorns"
-"30.07.18",9,6,3500,0,2544,"palm nut","with thorns"
-"30.07.18",9,6,3500,0,2523,"palm nut","with thorns"
-"30.08.18",1,53,250,0,3041,"mushooms","ready-to-eat"
-"30.08.18",1,53,250,0,3077,"mushooms","ready-to-eat"
-"30.08.18",2,75,1800,0,1106,"caterpillars","with guts"
-"30.08.18",2,75,1800,0,1023,"caterpillars","with guts"
-"30.08.18",3,53,1400,0,1030,"mushooms","ready-to-eat"
-"30.08.18",3,53,1400,0,1120,"mushooms","ready-to-eat"
-"30.08.18",4,75,1550,0,2038,"caterpillars","with guts"
-"30.08.18",4,75,1550,0,2039,"caterpillars","with guts"
-"31.07.18",1,47,28.35,0,1016,"matokodi","ready-to-eat"
-"31.07.18",1,47,28.35,0,3117,"matokodi","ready-to-eat"
-"31.07.18",2,53,85.05,1,1016,"mushooms","ready-to-eat"
-"31.07.18",2,53,85.05,1,3117,"mushooms","ready-to-eat"
-"31.07.18",3,55,1600,0,1030,"ediki","with inedible"
-"31.07.18",3,55,1600,0,1035,"ediki","with inedible"
-"31.07.18",3,55,1600,0,3117,"ediki","with inedible"
-"31.07.18",3,55,1600,0,3077,"ediki","with inedible"
-"31.07.18",4,91,2000,0,2030,"honey","ready-to-eat"
-"31.07.18",4,91,2000,0,2031,"honey","ready-to-eat"
-"31.08.18",1,75,800,0.5,2524,"caterpillars","with guts"
-"31.08.18",1,75,800,0.5,2513,"caterpillars","with guts"
-"31.08.18",2,91,2150,0,2055,"honey","ready-to-eat"
-"31.08.18",2,91,2150,0,1101,"honey","ready-to-eat"
-"31.08.18",2,91,2150,0,1006,"honey","ready-to-eat"
-"31.08.18",2,91,2150,0,1122,"honey","ready-to-eat"
-"31.08.18",3,75,1800,0,1106,"caterpillars","with guts"
-"31.08.18",3,75,1800,0,1023,"caterpillars","with guts"
-"31.08.18",4,91,2150,0,1101,"honey","ready-to-eat"
-"31.08.18",4,91,2150,0,1006,"honey","ready-to-eat"
-"31.08.18",4,91,2150,0,1122,"honey","ready-to-eat"
-"31.08.18",4,91,2150,0,2055,"honey","ready-to-eat"
-"31.08.18",5,35,1000,0,2055,"mela","ready-to-eat"
-"31.08.18",5,35,1000,0,1101,"mela","ready-to-eat"
-"31.08.18",5,35,1000,0,1006,"mela","ready-to-eat"
-"31.08.18",5,35,1000,0,1122,"mela","ready-to-eat"
-"31.08.18",6,14,600,0,2055,"ekule","ready-to-eat"
-"31.08.18",6,14,600,0,1122,"ekule","ready-to-eat"
-"31.08.18",6,14,600,0,1006,"ekule","ready-to-eat"
-"31.08.18",6,14,600,0,1101,"ekule","ready-to-eat"
-"31.08.18",7,35,4200,0,3041,"mela","ready-to-eat"
-"31.08.18",7,35,4200,0,3077,"mela","ready-to-eat"
-"31.08.18",8,35,2000,0,2030,"mela","ready-to-eat"
-"31.08.18",8,35,2000,0,2031,"mela","ready-to-eat"
-"23.07.18",NA,25,28.35,0,1032,"kaso","with shell"
-"23.07.18",NA,25,42.525,1,2544,"kaso","with shell"
-"23.07.18",NA,25,56.7,0,1009,"kaso","with shell"
-"23.07.18",NA,25,99.225,0,1006,"kaso","with shell"
-"23.07.18",NA,80,184.275,0,1116,"lemon","with peel"
-"23.07.18",NA,14,250,0,1102,"ekule","ready-to-eat"
-"23.07.18",NA,20,255.15,0,1116,"cassava","with water"
-"23.07.18",NA,26,255.15,0,1120,"kaso","with husk"
-"23.07.18",NA,26,354.375,0,1102,"kaso","with husk"
-"23.07.18",NA,2,500,0,1032,"maondo","with peel"
-"23.07.18",NA,25,609.525,0,3040,"kaso","with shell"
-"23.07.18",NA,9,1400,0,2039,"palm oil","liquid"
-"23.07.18",NA,35,1900,0,1102,"mela","ready-to-eat"
-"23.07.18",NA,5,2750,0,2039,"palm nut","without thorns"
-"23.07.18",NA,63,4100,0,2039,"blue duiker","rotten meat"
-"23.07.18",NA,5,8100,0,1102,"palm nut","without thorns"
-"24.07.18",NA,25,99.225,0,1032,"kaso","with shell"
-"24.07.18",NA,45,113.4,0,3041,"orange","with peel"
-"24.07.18",NA,30,127.575,0,3041,"koko","with stem"
-"24.07.18",NA,35,198.45,0,1104,"mela","ready-to-eat"
-"24.07.18",NA,5,226.8,0,1032,"palm nut","without thorns"
-"24.07.18",NA,53,750,0,1120,"mushooms","ready-to-eat"
-"24.07.18",NA,26,900,0,3040,"kaso","with husk"
-"24.07.18",NA,36,900,0,1120,"pusa","without skin"
-"24.07.18",NA,48,1000,0,1119,"matokodi","with husk"
-"24.07.18",NA,47,1000,0,3041,"matokodi","ready-to-eat"
-"24.07.18",NA,28,1100,0,1104,"mbala","without husk"
-"24.07.18",NA,35,1400,0,1120,"mela","ready-to-eat"
-"24.07.18",NA,16,1518.825,0,1016,"esaa","ready-to-eat"
-"24.07.18",NA,35,2500,0,1102,"mela","ready-to-eat"
-"25.07.18",NA,25,99.225,0,1032,"kaso","with shell"
-"25.07.18",NA,49,212.625,0,1121,"mondonge","entire fruit"
-"25.07.18",NA,76,250,0,1122,"fish","raw"
-"25.07.18",NA,76,255.15,0,1119,"fish","raw"
-"25.07.18",NA,9,311.85,0,1115,"palm oil","liquid"
-"25.07.18",NA,41,326.025,0,3077,"corn","with husk"
-"25.07.18",NA,48,439.425,0,3077,"matokodi","with husk"
-"25.07.18",NA,41,600,0,1121,"corn","with husk"
-"25.07.18",NA,76,600,0,1032,"fish","raw"
-"25.07.18",NA,76,600,0,1124,"fish","raw"
-"25.07.18",NA,49,751.275,0,1102,"mondonge",NA
-"25.07.18",NA,24,935.55,0,3076,"cassava leaves","with stem"
-"25.07.18",NA,92,1000,1,2000,"mead","0"
-"25.07.18",NA,76,1100,1,2007,"fish","raw"
-"25.07.18",NA,5,1400,0,1116,"palm nut","without thorns"
-"25.07.18",NA,76,1750,0,1103,"fish","raw"
-"25.07.18",NA,24,1900,0,3077,"cassava leaves","with stem"
-"25.07.18",NA,26,2000,0,1121,"kaso","with husk"
-"25.07.18",NA,21,2100,0,1121,"cassava","without skin"
-"25.07.18",NA,71,2250,0,1101,"brush-tailed porcupine","with quills"
-"25.07.18",NA,6,3000,0,1121,"palm nut","with thorns"
-"25.07.18",NA,71,3250,0,1119,"brush-tailed porcupine","with quills"
-"25.07.18",NA,24,3700,0,1104,"cassava leaves","with stem"
-"25.07.18",NA,38,3850,0,3076,"banana","with peel"
-"25.07.18",NA,76,4200,0,1119,"fish","raw"
-"25.07.18",NA,38,6000,0,1115,"banana","with peel"
-"25.07.18",NA,6,7100,0,3077,"palm nut","with thorns"
-"25.07.18",NA,22,11250,0,1102,"cassava","with skin"
-"25.07.18",NA,20,12000,0,3076,"cassava","with water"
-"25.07.18",NA,20,12750,0,1115,"cassava","with water"
-"25.07.18",NA,6,13850,0,1102,"palm nut","with thorns"
-"26.07.18",NA,26,28.35,0,1104,"kaso","with husk"
-"26.07.18",NA,49,56.7,0,1009,"mondonge",NA
-"26.07.18",NA,26,100,0,1016,"kaso","with husk"
-"26.07.18",NA,25,113.4,0,1103,"kaso","with shell"
-"26.07.18",NA,30,127.575,0,3117,"koko","with stem"
-"26.07.18",NA,30,198.45,0,1115,"koko","with stem"
-"26.07.18",NA,91,212.625,0,2513,"honey","ready-to-eat"
-"26.07.18",NA,39,250,0,1121,"banana","ready-to-eat"
-"26.07.18",NA,25,250,0,2039,"kaso","with shell"
-"26.07.18",NA,31,255.15,0,3117,"koko","ready-to-eat"
-"26.07.18",NA,31,283.5,0,1120,"koko","ready-to-eat"
-"26.07.18",NA,30,283.5,0,3076,"koko","with stem"
-"26.07.18",NA,36,340.2,0,1115,"pusa","without skin"
-"26.07.18",NA,26,500,0,2523,"kaso","with husk"
-"26.07.18",NA,30,500,0,1121,"koko","with stem"
-"26.07.18",NA,76,600,0,1104,"fish","raw"
-"26.07.18",NA,25,750,0,3040,"kaso","with shell"
-"26.07.18",NA,37,750,0,3076,"pusa","with skin"
-"26.07.18",NA,26,900,0,3040,"kaso","with husk"
-"26.07.18",NA,76,1000,0,1121,"fish","raw"
-"26.07.18",NA,47,1000,0,3117,"matokodi","ready-to-eat"
-"26.07.18",NA,36,1250,0,3076,"pusa","without skin"
-"26.07.18",NA,76,1300,0,1120,"fish","raw"
-"26.07.18",NA,76,1500,0,2038,"fish","raw"
-"26.07.18",NA,91,1500,0,1124,"honey","ready-to-eat"
-"26.07.18",NA,36,1500,0,1104,"pusa","without skin"
-"26.07.18",NA,47,1900,0,1115,"matokodi","ready-to-eat"
-"26.07.18",NA,48,2600,0,1122,"matokodi","with husk"
-"26.07.18",NA,71,2750,0,1101,"brush-tailed porcupine","with quills"
-"26.07.18",NA,37,5100,0,3076,"pusa","with skin"
-"26.07.18",NA,37,6850,0,1104,"pusa","with skin"
-"27.07.18",NA,26,28.35,0,1006,"kaso","with husk"
-"27.07.18",NA,30,42.525,0,2039,"koko","with stem"
-"27.07.18",NA,49,42.525,0,1009,"mondonge",NA
-"27.07.18",NA,25,100,0,1032,"kaso","with shell"
-"27.07.18",NA,28,155.925,0,3076,"mbala","without husk"
-"27.07.18",NA,26,200,0,1122,"kaso","with husk"
-"27.07.18",NA,49,200,0,1008,"mondonge",NA
-"27.07.18",NA,25,250,0,1006,"kaso","with shell"
-"27.07.18",NA,25,250,0,1006,"kaso","with shell"
-"27.07.18",NA,42,300,0,1121,"corn","without husk"
-"27.07.18",NA,76,326.025,1,2521,"fish","raw"
-"27.07.18",NA,36,350,0,1115,"pusa","without skin"
-"27.07.18",NA,42,400,0,2039,"corn","without husk"
-"27.07.18",NA,25,400,0,1122,"kaso","with shell"
-"27.07.18",NA,49,400,0,1010,"mondonge",NA
-"27.07.18",NA,49,500,0,1007,"mondonge",NA
-"27.07.18",NA,36,500,0,3076,"pusa","without skin"
-"27.07.18",NA,47,600,0,1006,"matokodi","ready-to-eat"
-"27.07.18",NA,77,750,1,2020,"fish","smoked"
-"27.07.18",NA,26,750,0,1006,"kaso","with husk"
-"27.07.18",NA,22,900,0,2039,"cassava","with skin"
-"27.07.18",NA,36,900,0,3076,"pusa","without skin"
-"27.07.18",NA,26,1100,0,1032,"kaso","with husk"
-"27.07.18",NA,76,1250,0,1101,"fish","raw"
-"27.07.18",NA,38,1500,0,2039,"banana","with peel"
-"27.07.18",NA,76,1850,0,3040,"fish","raw"
-"27.07.18",NA,61,2000,1,3075,"black-fronted duiker","skin"
-"27.07.18",NA,47,2000,0,1120,"matokodi","ready-to-eat"
-"27.07.18",NA,35,2000,0,3117,"mela","ready-to-eat"
-"27.07.18",NA,24,2100,0,2039,"cassava leaves","with stem"
-"27.07.18",NA,36,2500,0,1121,"pusa","without skin"
-"27.07.18",NA,36,2750,0,1102,"pusa","without skin"
-"27.07.18",NA,35,3900,0,1115,"mela","ready-to-eat"
-"27.07.18",NA,35,4000,0,3076,"mela","ready-to-eat"
-"27.07.18",NA,35,5500,0,1121,"mela","ready-to-eat"
-"27.07.18",NA,35,6350,0,1102,"mela","ready-to-eat"
-"28.07.18",NA,25,28.35,0,1102,"kaso","with shell"
-"28.07.18",NA,76,42.525,0,1102,"fish","raw"
-"28.07.18",NA,25,42.525,0,1121,"kaso","with shell"
-"28.07.18",NA,30,56.7,0,3076,"koko","with stem"
-"28.07.18",NA,25,70.875,0,1030,"kaso","with shell"
-"28.07.18",NA,25,99.225,0,1102,"kaso","with shell"
-"28.07.18",NA,47,113.4,0,1121,"matokodi","ready-to-eat"
-"28.07.18",NA,26,141.75,0,1121,"kaso","with husk"
-"28.07.18",NA,42,170.1,0,1121,"corn","without husk"
-"28.07.18",NA,55,200,0,1116,"ediki","with inedible"
-"28.07.18",NA,30,212.625,0,1102,"koko","with stem"
-"28.07.18",NA,26,250,0,1010,"kaso","with husk"
-"28.07.18",NA,2,250,0,3117,"maondo","with peel"
-"28.07.18",NA,42,283.5,0,1104,"corn","without husk"
-"28.07.18",NA,17,326.025,0,1121,"kobo","ready-to-eat"
-"28.07.18",NA,25,400,0,1032,"kaso","with shell"
-"28.07.18",NA,25,400,0,1006,"kaso","with shell"
-"28.07.18",NA,47,400,0,1103,"matokodi","ready-to-eat"
-"28.07.18",NA,41,425.25,0,3077,"corn","with husk"
-"28.07.18",NA,76,436.325,0,1115,"fish","raw"
-"28.07.18",NA,26,500,0,3040,"kaso","with husk"
-"28.07.18",NA,47,500,0,1103,"matokodi","ready-to-eat"
-"28.07.18",NA,48,500,0,1104,"matokodi","with husk"
-"28.07.18",NA,19,500,0,1102,"ngangi","ready-to-eat"
-"28.07.18",NA,50,500,0,1104,"peppers","without stems"
-"28.07.18",NA,25,600,0,1104,"kaso","with shell"
-"28.07.18",NA,36,600,0,1102,"pusa","without skin"
-"28.07.18",NA,14,750,0,1104,"ekule","ready-to-eat"
-"28.07.18",NA,26,750,0,2038,"kaso","with husk"
-"28.07.18",NA,53,800,0,1104,"mushooms","ready-to-eat"
-"28.07.18",NA,26,1100,0,1104,"kaso","with husk"
-"28.07.18",NA,48,1500,0,3040,"matokodi","with husk"
-"28.07.18",NA,38,1600,0,1121,"banana","with peel"
-"28.07.18",NA,11,1600,0,1104,"papaya","with peel"
-"28.07.18",NA,26,1700,0,1103,"kaso","with husk"
-"28.07.18",NA,91,1800,1,3004,"honey","ready-to-eat"
-"28.07.18",NA,1,2000,0,1121,"mobe","with seeds"
-"28.07.18",NA,38,2100,0,3077,"banana","with peel"
-"28.07.18",NA,91,2200,1,2055,"honey","ready-to-eat"
-"28.07.18",NA,26,2700,0,1104,"kaso","with husk"
-"28.07.18",NA,64,4000,0,1103,"blue duiker","smoked"
-"28.07.18",NA,21,4000,0,1121,"cassava","without skin"
-"28.07.18",NA,24,4000,0,1104,"cassava leaves","with stem"
-"28.07.18",NA,24,4000,0,3077,"cassava leaves","with stem"
-"28.07.18",NA,24,4500,0,1121,"cassava leaves","with stem"
-"29.07.18",NA,14,99.225,0,2031,"ekule","ready-to-eat"
-"29.07.18",NA,76,212.625,0,3077,"fish","raw"
-"29.07.18",NA,26,250,0,2539,"kaso","with husk"
-"29.07.18",NA,25,250,0,2544,"kaso","with shell"
-"29.07.18",NA,30,250,0,1102,"koko","with stem"
-"29.07.18",NA,25,300,0,1122,"kaso","with shell"
-"29.07.18",NA,26,300,0,3117,"kaso","with husk"
-"29.07.18",NA,26,500,0,3040,"kaso","with husk"
-"29.07.18",NA,48,700,0,1010,"matokodi","with husk"
-"29.07.18",NA,20,750,0,2039,"cassava","with water"
-"29.07.18",NA,36,750,0,2031,"pusa","without skin"
-"29.07.18",NA,65,1000,1,1110,"blue duiker","head"
-"29.07.18",NA,14,1000,0,1120,"ekule","ready-to-eat"
-"29.07.18",NA,26,1250,0,2031,"kaso","with husk"
-"29.07.18",NA,30,1400,0,1102,"koko","with stem"
-"29.07.18",NA,5,1400,0,2031,"palm nut","without thorns"
-"29.07.18",NA,48,1500,0,1010,"matokodi","with husk"
-"29.07.18",NA,17,1600,0,2039,"kobo","ready-to-eat"
-"29.07.18",NA,5,1600,0,2031,"palm nut","without thorns"
-"29.07.18",NA,38,2000,0,1016,"banana","with peel"
-"29.07.18",NA,20,2500,0,2031,"cassava","with water"
-"29.07.18",NA,30,3100,0,3041,"koko","with stem"
-"29.07.18",NA,26,3250,0,1121,"kaso","with husk"
-"29.07.18",NA,30,3500,0,3077,"koko","with stem"
-"29.07.18",NA,36,3500,0,1121,"pusa","without skin"
-"29.07.18",NA,24,4250,0,2039,"cassava leaves","with stem"
-"29.07.18",NA,71,4500,0,1101,"brush-tailed porcupine","with quills"
-"29.07.18",NA,22,7300,0,3117,"cassava","with skin"
-"29.07.18",NA,38,8800,0,2039,"banana","with peel"
-"29.07.18",NA,6,9650,0,1124,"palm nut","with thorns"
-"29.07.18",NA,6,11000,0,1101,"palm nut","with thorns"
-"30.07.18",NA,14,28.35,0,1121,"ekule","ready-to-eat"
-"30.07.18",NA,29,56.7,0,1115,"mbala","with husk"
-"30.07.18",NA,53,70.875,0,2500,"mushooms","ready-to-eat"
-"30.07.18",NA,47,200,0,3117,"matokodi","ready-to-eat"
-"30.07.18",NA,25,250,0,2031,"kaso","with shell"
-"30.07.18",NA,36,250,0,1121,"pusa","without skin"
-"30.07.18",NA,26,300,0,3077,"kaso","with husk"
-"30.07.18",NA,20,400,0,3117,"cassava","with water"
-"30.07.18",NA,25,400,0,1032,"kaso","with shell"
-"30.07.18",NA,82,400,1,3075,"monkey","smoked"
-"30.07.18",NA,58,500,0,1122,"bird","without feathers"
-"30.07.18",NA,25,500,0,1122,"kaso","with shell"
-"30.07.18",NA,48,500,0,2030,"matokodi","with husk"
-"30.07.18",NA,53,500,0,1121,"mushooms","ready-to-eat"
-"30.07.18",NA,53,500,0,1121,"mushooms","ready-to-eat"
-"30.07.18",NA,38,750,0,3041,"banana","with peel"
-"30.07.18",NA,26,750,0,1104,"kaso","with husk"
-"30.07.18",NA,36,750,0,1121,"pusa","without skin"
-"30.07.18",NA,47,800,0,3077,"matokodi","ready-to-eat"
-"30.07.18",NA,53,800,0,1102,"mushooms","ready-to-eat"
-"30.07.18",NA,36,800,0,1102,"pusa","without skin"
-"30.07.18",NA,41,900,0,3077,"corn","with husk"
-"30.07.18",NA,36,900,0,1115,"pusa","without skin"
-"30.07.18",NA,38,1000,0,3077,"banana","with peel"
-"30.07.18",NA,69,1000,1,3075,"blue duiker","smoked head"
-"30.07.18",NA,41,1000,0,3041,"corn","with husk"
-"30.07.18",NA,91,1000,0,2038,"honey","ready-to-eat"
-"30.07.18",NA,26,1000,0,3076,"kaso","with husk"
-"30.07.18",NA,36,1000,0,2039,"pusa","without skin"
-"30.07.18",NA,91,1250,0,2038,"honey","ready-to-eat"
-"30.07.18",NA,26,1250,0,1104,"kaso","with husk"
-"30.07.18",NA,36,1250,0,1120,"pusa","without skin"
-"30.07.18",NA,38,1300,0,3076,"banana","with peel"
-"30.07.18",NA,14,1400,0,1115,"ekule","ready-to-eat"
-"30.07.18",NA,36,1500,0,2031,"pusa","without skin"
-"30.07.18",NA,38,1600,0,3076,"banana","with peel"
-"30.07.18",NA,24,1600,0,3117,"cassava leaves","with stem"
-"30.07.18",NA,20,1750,1,1106,"cassava","with water"
-"30.07.18",NA,41,1750,0,3076,"corn","with husk"
-"30.07.18",NA,24,2250,0,2031,"cassava leaves","with stem"
-"30.07.18",NA,24,2400,0,3041,"cassava leaves","with stem"
-"30.07.18",NA,22,2500,0,1104,"cassava","with skin"
-"30.07.18",NA,24,2600,0,1035,"cassava leaves","with stem"
-"30.07.18",NA,35,3100,0,1121,"mela","ready-to-eat"
-"30.07.18",NA,91,3500,0,2038,"honey","ready-to-eat"
-"30.07.18",NA,35,3700,0,1102,"mela","ready-to-eat"
-"31.07.18",NA,52,28.35,0,1035,"kango","ready-to-eat"
-"31.07.18",NA,30,100,0,1121,"koko","with stem"
-"31.07.18",NA,17,113.4,0,1121,"kobo","ready-to-eat"
-"31.07.18",NA,26,184.275,0,3040,"kaso","with husk"
-"31.07.18",NA,53,200,0,3077,"mushooms","ready-to-eat"
-"31.07.18",NA,53,200,0,3117,"mushooms","ready-to-eat"
-"31.07.18",NA,26,226.8,0,1010,"kaso","with husk"
-"31.07.18",NA,25,250,0,3117,"kaso","with shell"
-"31.07.18",NA,30,250,0,3142,"koko","with stem"
-"31.07.18",NA,25,300,0,3077,"kaso","with shell"
-"31.07.18",NA,26,354.375,0,3041,"kaso","with husk"
-"31.07.18",NA,55,400,0,1016,"ediki","with inedible"
-"31.07.18",NA,76,400,0,1102,"fish","raw"
-"31.07.18",NA,47,400,0,1007,"matokodi","ready-to-eat"
-"31.07.18",NA,55,500,0,1102,"ediki","with inedible"
-"31.07.18",NA,30,500,0,1102,"koko","with stem"
-"31.07.18",NA,47,500,0,2523,"matokodi","ready-to-eat"
-"31.07.18",NA,36,500,0,3142,"pusa","without skin"
-"31.07.18",NA,26,700,0,3142,"kaso","with husk"
-"31.07.18",NA,76,918.825,0,1121,"fish","raw"
-"31.07.18",NA,35,1100,0,1035,"mela","ready-to-eat"
-"31.07.18",NA,55,1400,0,2539,"ediki","with inedible"
-"31.07.18",NA,35,1400,0,1121,"mela","ready-to-eat"
-"31.07.18",NA,35,1400,0,3041,"mela","ready-to-eat"
-"31.07.18",NA,5,1750,0,3142,"palm nut","without thorns"
-"31.07.18",NA,92,2000,1,2004,"mead","0"
-"31.07.18",NA,35,2300,0,1116,"mela","ready-to-eat"
-"31.07.18",NA,38,2600,0,2039,"banana","with peel"
-"31.07.18",NA,35,2650,0,1120,"mela","ready-to-eat"
-"31.07.18",NA,20,3500,1,3078,"cassava","with water"
-"31.07.18",NA,71,6750,0,3040,"brush-tailed porcupine","with quills"
-"01.08.18",NA,25,85.05,0,2513,"kaso","with shell"
-"01.08.18",NA,47,100,0,1009,"matokodi","ready-to-eat"
-"01.08.18",NA,26,113.4,0,2031,"kaso","with husk"
-"01.08.18",NA,30,127.575,0,1104,"koko","with stem"
-"01.08.18",NA,30,155.925,0,1120,"koko","with stem"
-"01.08.18",NA,53,198.45,0,2031,"mushooms","ready-to-eat"
-"01.08.18",NA,30,212.625,0,1116,"koko","with stem"
-"01.08.18",NA,26,250,0,1032,"kaso","with husk"
-"01.08.18",NA,25,250,0,2513,"kaso","with shell"
-"01.08.18",NA,26,250,0,2513,"kaso","with husk"
-"01.08.18",NA,53,255.15,0,1009,"mushooms","ready-to-eat"
-"01.08.18",NA,24,300,0,1031,"cassava leaves","with stem"
-"01.08.18",NA,30,300,0,2031,"koko","with stem"
-"01.08.18",NA,44,300,0,3041,"lemon","with peel"
-"01.08.18",NA,36,400,0,1102,"pusa","without skin"
-"01.08.18",NA,24,500,0,1008,"cassava leaves","with stem"
-"01.08.18",NA,55,500,0,1030,"ediki","with inedible"
-"01.08.18",NA,47,500,0,1104,"matokodi","ready-to-eat"
-"01.08.18",NA,19,500,0,2039,"ngangi","ready-to-eat"
-"01.08.18",NA,53,600,0,1115,"mushooms","ready-to-eat"
-"01.08.18",NA,53,600,0,1124,"mushooms","ready-to-eat"
-"01.08.18",NA,25,800,0,1102,"kaso","with shell"
-"01.08.18",NA,76,900,0,3040,"fish","raw"
-"01.08.18",NA,53,900,0,1104,"mushooms","ready-to-eat"
-"01.08.18",NA,42,1000,0,3041,"corn","without husk"
-"01.08.18",NA,36,1100,0,1102,"pusa","without skin"
-"01.08.18",NA,48,1600,0,1115,"matokodi","with husk"
-"01.08.18",NA,53,1700,0,2039,"mushooms","ready-to-eat"
-"01.08.18",NA,20,1750,0,2031,"cassava","with water"
-"01.08.18",NA,25,1750,0,2031,"kaso","with shell"
-"01.08.18",NA,26,2000,0,2039,"kaso","with husk"
-"01.08.18",NA,35,2400,0,1016,"mela","ready-to-eat"
-"01.08.18",NA,53,2800,0,3041,"mushooms","ready-to-eat"
-"01.08.18",NA,71,3600,0,1101,"brush-tailed porcupine","with quills"
-"01.08.18",NA,35,3700,0,1121,"mela","ready-to-eat"
-"01.08.18",NA,35,3750,0,1116,"mela","ready-to-eat"
-"01.08.18",NA,35,5200,0,1102,"mela","ready-to-eat"
-"01.08.18",NA,6,12750,0,2030,"palm nut","with thorns"
-"10.08.18",NA,26,56.7,0,1120,"kaso","with husk"
-"10.08.18",NA,30,100,0,1016,"koko","with stem"
-"10.08.18",NA,30,100,0,1116,"koko","with stem"
-"10.08.18",NA,30,100,0,2522,"koko","with stem"
-"10.08.18",NA,2,100,0,3118,"maondo","with peel"
-"10.08.18",NA,30,113.4,0,3117,"koko","with stem"
-"10.08.18",NA,78,141.75,0,1121,"frog","raw"
-"10.08.18",NA,30,170.1,0,1120,"koko","with stem"
-"10.08.18",NA,30,198.45,0,3077,"koko","with stem"
-"10.08.18",NA,19,200,0,1016,"ngangi","ready-to-eat"
-"10.08.18",NA,75,250,0,2030,"caterpillars","with guts"
-"10.08.18",NA,76,300,0,1121,"fish","raw"
-"10.08.18",NA,55,400,0,2544,"ediki","with inedible"
-"10.08.18",NA,30,400,0,2522,"koko","with stem"
-"10.08.18",NA,25,500,0,1023,"kaso","with shell"
-"10.08.18",NA,30,500,0,2031,"koko","with stem"
-"10.08.18",NA,55,600,0,2523,"ediki","with inedible"
-"10.08.18",NA,25,600,0,3117,"kaso","with shell"
-"10.08.18",NA,30,600,0,1035,"koko","with stem"
-"10.08.18",NA,30,600,0,3117,"koko","with stem"
-"10.08.18",NA,2,750,0,1122,"maondo","with peel"
-"10.08.18",NA,39,1500,0,2030,"banana","ready-to-eat"
-"10.08.18",NA,2,1500,0,1120,"maondo","with peel"
-"10.08.18",NA,1,1500,0,1016,"mobe","with seeds"
-"10.08.18",NA,88,2500,0,2030,"snake","without intestins"
-"10.08.18",NA,36,3750,0,3077,"pusa","without skin"
-"10.08.18",NA,6,20150,0,2030,"palm nut","with thorns"
-"11.08.18",NA,51,42.525,0,3119,"peppers","with stems"
-"11.08.18",NA,51,42.525,0,1023,"peppers","with stems"
-"11.08.18",NA,30,70.875,0,2522,"koko","with stem"
-"11.08.18",NA,51,70.875,0,1016,"peppers","with stems"
-"11.08.18",NA,26,99.225,0,1030,"kaso","with husk"
-"11.08.18",NA,75,100,0,1121,"caterpillars","with guts"
-"11.08.18",NA,90,150,0,1009,"egg","with shell"
-"11.08.18",NA,47,200,0,3119,"matokodi","ready-to-eat"
-"11.08.18",NA,35,200,0,3119,"mela","ready-to-eat"
-"11.08.18",NA,46,200,0,1121,"orange","without peel"
-"11.08.18",NA,30,212.625,0,3142,"koko","with stem"
-"11.08.18",NA,55,250,0,2544,"ediki","with inedible"
-"11.08.18",NA,46,250,0,2522,"orange","without peel"
-"11.08.18",NA,22,300,0,1106,"cassava","with skin"
-"11.08.18",NA,47,300,0,1121,"matokodi","ready-to-eat"
-"11.08.18",NA,14,500,0,1121,"ekule","ready-to-eat"
-"11.08.18",NA,14,500,0,2031,"ekule","ready-to-eat"
-"11.08.18",NA,25,500,0,2030,"kaso","with shell"
-"11.08.18",NA,47,500,0,1016,"matokodi","ready-to-eat"
-"11.08.18",NA,91,750,0,1119,"honey","ready-to-eat"
-"11.08.18",NA,75,800,1,3082,"caterpillars","with guts"
-"11.08.18",NA,91,800,0,1124,"honey","ready-to-eat"
-"11.08.18",NA,48,800,0,3119,"matokodi","with husk"
-"11.08.18",NA,30,850,0,1120,"koko","with stem"
-"11.08.18",NA,47,850,0,1106,"matokodi","ready-to-eat"
-"11.08.18",NA,47,1000,0,1104,"matokodi","ready-to-eat"
-"11.08.18",NA,1,1000,0,1102,"mobe","with seeds"
-"11.08.18",NA,45,1000,0,1035,"orange","with peel"
-"11.08.18",NA,24,1100,0,1028,"cassava leaves","with stem"
-"11.08.18",NA,35,1100,0,1116,"mela","ready-to-eat"
-"11.08.18",NA,2,1250,0,2030,"maondo","with peel"
-"11.08.18",NA,91,1650,0,1124,"honey","ready-to-eat"
-"11.08.18",NA,89,1700,0,2522,"turtle","with shell"
-"11.08.18",NA,1,2000,0,1115,"mobe","with seeds"
-"11.08.18",NA,35,2100,0,2031,"mela","ready-to-eat"
-"11.08.18",NA,35,2500,0,1035,"mela","ready-to-eat"
-"11.08.18",NA,35,2500,0,3119,"mela","ready-to-eat"
-"11.08.18",NA,2,2600,0,1103,"maondo","with peel"
-"11.08.18",NA,35,2600,0,3077,"mela","ready-to-eat"
-"11.08.18",NA,35,2900,0,1121,"mela","ready-to-eat"
-"11.08.18",NA,35,3250,0,2522,"mela","ready-to-eat"
-"11.08.18",NA,71,3400,0,3040,"brush-tailed porcupine","with quills"
-"11.08.18",NA,6,3750,0,1028,"palm nut","with thorns"
-"11.08.18",NA,35,4000,0,3142,"mela","ready-to-eat"
-"11.08.18",NA,35,5750,0,1102,"mela","ready-to-eat"
-"11.08.18",NA,35,6100,0,1115,"mela","ready-to-eat"
-"11.08.18",NA,35,6500,0,1104,"mela","ready-to-eat"
-"11.08.18",NA,91,9900,0,1124,"honey","ready-to-eat"
-"12.08.18",NA,59,70.875,0,3040,"bird","with feathers"
-"12.08.18",NA,53,100,0,1121,"mushooms","ready-to-eat"
-"12.08.18",NA,35,200,0,2522,"mela","ready-to-eat"
-"12.08.18",NA,36,200,0,2522,"pusa","without skin"
-"12.08.18",NA,41,250,0,1028,"corn","with husk"
-"12.08.18",NA,30,300,0,3117,"koko","with stem"
-"12.08.18",NA,22,400,0,1121,"cassava","with skin"
-"12.08.18",NA,25,400,0,2038,"kaso","with shell"
-"12.08.18",NA,75,500,0,1028,"caterpillars","with guts"
-"12.08.18",NA,53,500,0,1102,"mushooms","ready-to-eat"
-"12.08.18",NA,39,600,0,1121,"banana","ready-to-eat"
-"12.08.18",NA,91,600,0,3040,"honey","ready-to-eat"
-"12.08.18",NA,30,600,0,1120,"koko","with stem"
-"12.08.18",NA,42,700,0,1028,"corn","without husk"
-"12.08.18",NA,39,750,0,1102,"banana","ready-to-eat"
-"12.08.18",NA,22,750,0,1102,"cassava","with skin"
-"12.08.18",NA,75,750,0,2031,"caterpillars","with guts"
-"12.08.18",NA,86,750,1,3075,"red river hog","smoked"
-"12.08.18",NA,20,800,0,1035,"cassava","with water"
-"12.08.18",NA,22,900,0,1121,"cassava","with skin"
-"12.08.18",NA,36,1000,0,2031,"pusa","without skin"
-"12.08.18",NA,36,1100,0,1023,"pusa","without skin"
-"12.08.18",NA,22,1200,0,2031,"cassava","with skin"
-"12.08.18",NA,24,1250,0,2031,"cassava leaves","with stem"
-"12.08.18",NA,24,1300,0,1035,"cassava leaves","with stem"
-"12.08.18",NA,55,1400,0,1115,"ediki","with inedible"
-"12.08.18",NA,41,1500,0,1035,"corn","with husk"
-"12.08.18",NA,24,1600,0,1023,"cassava leaves","with stem"
-"12.08.18",NA,22,1700,0,1028,"cassava","with skin"
-"12.08.18",NA,75,1700,0,1122,"caterpillars","with guts"
-"12.08.18",NA,24,1750,0,1028,"cassava leaves","with stem"
-"12.08.18",NA,91,1750,0,3040,"honey","ready-to-eat"
-"12.08.18",NA,36,2250,0,1115,"pusa","without skin"
-"12.08.18",NA,71,2600,0,3040,"brush-tailed porcupine","with quills"
-"12.08.18",NA,35,2750,0,1120,"mela","ready-to-eat"
-"12.08.18",NA,37,3100,0,1028,"pusa","with skin"
-"12.08.18",NA,26,3500,0,2038,"kaso","with husk"
-"12.08.18",NA,24,3600,0,1102,"cassava leaves","with stem"
-"12.08.18",NA,24,3600,0,1121,"cassava leaves","with stem"
-"12.08.18",NA,5,4750,0,2030,"palm nut","without thorns"
-"13.08.18",NA,75,28.35,0,1121,"caterpillars","with guts"
-"13.08.18",NA,59,42.525,0,1006,"bird","with feathers"
-"13.08.18",NA,25,56.7,0,1011,"kaso","with shell"
-"13.08.18",NA,30,56.7,0,2031,"koko","with stem"
-"13.08.18",NA,32,56.7,0,1106,"payo","without husk"
-"13.08.18",NA,50,56.7,0,1106,"peppers","without stems"
-"13.08.18",NA,26,70.875,0,1032,"kaso","with husk"
-"13.08.18",NA,32,70.875,0,1121,"payo","without husk"
-"13.08.18",NA,26,100,0,1115,"kaso","with husk"
-"13.08.18",NA,66,200,1,1108,"blue duiker","smoked organs"
-"13.08.18",NA,67,300,1,1108,"blue duiker","smoked heart"
-"13.08.18",NA,47,400,0,1104,"matokodi","ready-to-eat"
-"13.08.18",NA,35,400,0,1104,"mela","ready-to-eat"
-"13.08.18",NA,25,500,0,1124,"kaso","with shell"
-"13.08.18",NA,48,500,0,1016,"matokodi","with husk"
-"13.08.18",NA,36,600,0,1104,"pusa","without skin"
-"13.08.18",NA,36,600,0,1115,"pusa","without skin"
-"13.08.18",NA,35,800,0,1102,"mela","ready-to-eat"
-"13.08.18",NA,69,1000,1,1108,"blue duiker","smoked head"
-"13.08.18",NA,25,1100,0,1115,"kaso","with shell"
-"13.08.18",NA,22,1200,0,2039,"cassava","with skin"
-"13.08.18",NA,25,1200,0,1104,"kaso","with shell"
-"13.08.18",NA,39,1300,0,2039,"banana","ready-to-eat"
-"13.08.18",NA,75,1500,0,1115,"caterpillars","with guts"
-"13.08.18",NA,36,1500,0,2031,"pusa","without skin"
-"13.08.18",NA,38,1600,0,2039,"banana","with peel"
-"13.08.18",NA,38,2100,0,3077,"banana","with peel"
-"13.08.18",NA,26,2300,0,1104,"kaso","with husk"
-"13.08.18",NA,24,2750,0,2039,"cassava leaves","with stem"
-"13.08.18",NA,38,3000,0,2039,"banana","with peel"
-"13.08.18",NA,71,3250,0,1119,"brush-tailed porcupine","with quills"
-"13.08.18",NA,83,4200,0,1124,"monkey","with intestins and hair"
-"13.08.18",NA,35,4350,0,1121,"mela","ready-to-eat"
-"13.08.18",NA,35,4500,0,1116,"mela","ready-to-eat"
-"13.08.18",NA,37,5050,0,1120,"pusa","with skin"
-"13.08.18",NA,35,5500,0,2031,"mela","ready-to-eat"
-"13.08.18",NA,26,8100,0,2038,"kaso","with husk"
-"14.08.18",NA,59,28.35,0,1122,"bird","with feathers"
-"14.08.18",NA,30,56.7,0,1115,"koko","with stem"
-"14.08.18",NA,59,85.05,0,3040,"bird","with feathers"
-"14.08.18",NA,91,168.825,0,1119,"honey","ready-to-eat"
-"14.08.18",NA,22,200,0,1031,"cassava","with skin"
-"14.08.18",NA,24,200,0,1008,"cassava leaves","with stem"
-"14.08.18",NA,30,200,0,2031,"koko","with stem"
-"14.08.18",NA,36,200,0,3119,"pusa","without skin"
-"14.08.18",NA,35,300,0,1120,"mela","ready-to-eat"
-"14.08.18",NA,11,400,0,1121,"papaya","with peel"
-"14.08.18",NA,75,500,1,3115,"caterpillars","with guts"
-"14.08.18",NA,55,500,0,1010,"ediki","with inedible"
-"14.08.18",NA,2,500,0,1121,"maondo","with peel"
-"14.08.18",NA,14,600,0,2030,"ekule","ready-to-eat"
-"14.08.18",NA,58,800,0,1115,"bird","without feathers"
-"14.08.18",NA,35,800,0,3119,"mela","ready-to-eat"
-"14.08.18",NA,55,1250,1,1108,"ediki","with inedible"
-"14.08.18",NA,75,1400,0,3040,"caterpillars","with guts"
-"14.08.18",NA,93,1400,1,1113,"pangolin","with intestins"
-"14.08.18",NA,24,1500,0,1121,"cassava leaves","with stem"
-"14.08.18",NA,24,1500,0,1023,"cassava leaves","with stem"
-"14.08.18",NA,24,1600,0,1120,"cassava leaves","with stem"
-"14.08.18",NA,36,1900,0,1102,"pusa","without skin"
-"14.08.18",NA,1,2000,0,1104,"mobe","with seeds"
-"14.08.18",NA,35,2350,0,1035,"mela","ready-to-eat"
-"14.08.18",NA,35,2700,0,1016,"mela","ready-to-eat"
-"14.08.18",NA,35,3800,0,3117,"mela","ready-to-eat"
-"14.08.18",NA,35,4250,0,3077,"mela","ready-to-eat"
-"14.08.18",NA,20,5000,0,2031,"cassava","with water"
-"14.08.18",NA,35,7700,0,1102,"mela","ready-to-eat"
-"14.08.18",NA,37,9250,0,1122,"pusa","with skin"
-"15.08.18",NA,30,28.35,0,3119,"koko","with stem"
-"15.08.18",NA,30,56.7,0,1016,"koko","with stem"
-"15.08.18",NA,30,100,0,2031,"koko","with stem"
-"15.08.18",NA,75,200,0,2031,"caterpillars","with guts"
-"15.08.18",NA,30,200,0,1120,"koko","with stem"
-"15.08.18",NA,30,200,0,3041,"koko","with stem"
-"15.08.18",NA,47,200,0,1016,"matokodi","ready-to-eat"
-"15.08.18",NA,2,250,0,3077,"maondo","with peel"
-"15.08.18",NA,42,400,0,3117,"corn","without husk"
-"15.08.18",NA,14,400,0,1032,"ekule","ready-to-eat"
-"15.08.18",NA,91,400,0,2055,"honey","ready-to-eat"
-"15.08.18",NA,47,400,0,2030,"matokodi","ready-to-eat"
-"15.08.18",NA,2,500,0,3117,"maondo","with peel"
-"15.08.18",NA,26,600,0,2031,"kaso","with husk"
-"15.08.18",NA,2,600,0,1035,"maondo","with peel"
-"15.08.18",NA,53,600,0,2522,"mushooms","ready-to-eat"
-"15.08.18",NA,75,700,0,3041,"caterpillars","with guts"
-"15.08.18",NA,35,700,0,1116,"mela","ready-to-eat"
-"15.08.18",NA,55,750,0,1008,"ediki","with inedible"
-"15.08.18",NA,84,800,0,2522,"rat","without intestins"
-"15.08.18",NA,2,900,0,1101,"maondo","with peel"
-"15.08.18",NA,26,950,0,3041,"kaso","with husk"
-"15.08.18",NA,35,1050,0,2522,"mela","ready-to-eat"
-"15.08.18",NA,38,1100,0,2039,"banana","with peel"
-"15.08.18",NA,53,1250,0,1028,"mushooms","ready-to-eat"
-"15.08.18",NA,91,1500,0,2055,"honey","ready-to-eat"
-"15.08.18",NA,25,1500,0,2030,"kaso","with shell"
-"15.08.18",NA,36,1750,0,1106,"pusa","without skin"
-"15.08.18",NA,47,1900,0,3041,"matokodi","ready-to-eat"
-"15.08.18",NA,24,2200,0,1028,"cassava leaves","with stem"
-"15.08.18",NA,22,2250,0,1103,"cassava","with skin"
-"15.08.18",NA,22,3000,0,2039,"cassava","with skin"
-"15.08.18",NA,20,3350,0,1121,"cassava","with water"
-"15.08.18",NA,14,3900,0,1101,"ekule","ready-to-eat"
-"15.08.18",NA,91,4250,0,2055,"honey","ready-to-eat"
-"15.08.18",NA,26,4250,0,2039,"kaso","with husk"
-"15.08.18",NA,91,4318.825,0,1119,"honey","ready-to-eat"
-"15.08.18",NA,91,4400,0,2055,"honey","ready-to-eat"
-"15.08.18",NA,1,4500,0,3117,"mobe","with seeds"
-"15.08.18",NA,5,4800,0,2030,"palm nut","without thorns"
-"15.08.18",NA,24,5250,0,2522,"cassava leaves","with stem"
-"15.08.18",NA,20,10350,0,1102,"cassava","with water"
-"15.08.18",NA,20,10750,0,1106,"cassava","with water"
-"16.08.18",NA,53,0.9,0,1102,"mushooms","ready-to-eat"
-"16.08.18",NA,50,56.7,0,1120,"peppers","without stems"
-"16.08.18",NA,14,100,0,1120,"ekule","ready-to-eat"
-"16.08.18",NA,11,100,0,1124,"papaya","with peel"
-"16.08.18",NA,90,141.75,0,1104,"egg","with shell"
-"16.08.18",NA,30,141.75,0,1028,"koko","with stem"
-"16.08.18",NA,75,150,0,1121,"caterpillars","with guts"
-"16.08.18",NA,30,200,0,2031,"koko","with stem"
-"16.08.18",NA,48,200,0,1016,"matokodi","with husk"
-"16.08.18",NA,48,200,0,2538,"matokodi","with husk"
-"16.08.18",NA,30,212.625,0,3142,"koko","with stem"
-"16.08.18",NA,55,250,0,1030,"ediki","with inedible"
-"16.08.18",NA,45,250,0,3119,"orange","with peel"
-"16.08.18",NA,51,250,0,1116,"peppers","with stems"
-"16.08.18",NA,30,300,0,1104,"koko","with stem"
-"16.08.18",NA,30,300,0,1106,"koko","with stem"
-"16.08.18",NA,51,350,0,1120,"peppers","with stems"
-"16.08.18",NA,75,400,0,1121,"caterpillars","with guts"
-"16.08.18",NA,55,400,0,2539,"ediki","with inedible"
-"16.08.18",NA,30,400,0,2039,"koko","with stem"
-"16.08.18",NA,47,400,0,1121,"matokodi","ready-to-eat"
-"16.08.18",NA,45,400,0,1007,"orange","with peel"
-"16.08.18",NA,45,400,0,1016,"orange","with peel"
-"16.08.18",NA,45,400,0,3118,"orange","with peel"
-"16.08.18",NA,55,450,0,2523,"ediki","with inedible"
-"16.08.18",NA,24,500,0,1121,"cassava leaves","with stem"
-"16.08.18",NA,47,500,0,1023,"matokodi","ready-to-eat"
-"16.08.18",NA,36,500,0,2031,"pusa","without skin"
-"16.08.18",NA,14,600,0,1121,"ekule","ready-to-eat"
-"16.08.18",NA,14,650,0,1023,"ekule","ready-to-eat"
-"16.08.18",NA,47,700,0,1120,"matokodi","ready-to-eat"
-"16.08.18",NA,75,900,0,1023,"caterpillars","with guts"
-"16.08.18",NA,55,1000,0,1104,"ediki","with inedible"
-"16.08.18",NA,24,1350,0,2522,"cassava leaves","with stem"
-"16.08.18",NA,11,1400,0,1120,"papaya","with peel"
-"16.08.18",NA,35,1500,0,3142,"mela","ready-to-eat"
-"16.08.18",NA,6,1750,0,2039,"palm nut","with thorns"
-"16.08.18",NA,20,2200,0,2031,"cassava","with water"
-"16.08.18",NA,37,2250,0,1124,"pusa","with skin"
-"16.08.18",NA,36,2750,0,1006,"pusa","without skin"
-"16.08.18",NA,75,3100,0,1124,"caterpillars","with guts"
-"16.08.18",NA,75,3400,0,2030,"caterpillars","with guts"
-"16.08.18",NA,6,12650,0,1122,"palm nut","with thorns"
-"17.08.18",NA,2,100,0,3118,"maondo","with peel"
-"17.08.18",NA,53,100,0,3041,"mushooms","ready-to-eat"
-"17.08.18",NA,36,100,0,3117,"pusa","without skin"
-"17.08.18",NA,76,150,0,2522,"fish","raw"
-"17.08.18",NA,30,150,0,1120,"koko","with stem"
-"17.08.18",NA,51,150,0,2039,"peppers","with stems"
-"17.08.18",NA,14,200,0,3117,"ekule","ready-to-eat"
-"17.08.18",NA,30,200,0,3041,"koko","with stem"
-"17.08.18",NA,30,200,0,3117,"koko","with stem"
-"17.08.18",NA,30,250,0,2522,"koko","with stem"
-"17.08.18",NA,53,250,0,1120,"mushooms","ready-to-eat"
-"17.08.18",NA,30,300,0,2031,"koko","with stem"
-"17.08.18",NA,76,500,0,2522,"fish","raw"
-"17.08.18",NA,30,500,0,2522,"koko","with stem"
-"17.08.18",NA,55,600,0,1016,"ediki","with inedible"
-"17.08.18",NA,55,600,0,1035,"ediki","with inedible"
-"17.08.18",NA,55,600,0,2544,"ediki","with inedible"
-"17.08.18",NA,55,700,0,1007,"ediki","with inedible"
-"17.08.18",NA,55,700,0,1116,"ediki","with inedible"
-"17.08.18",NA,55,750,0,1008,"ediki","with inedible"
-"17.08.18",NA,55,900,0,1120,"ediki","with inedible"
-"17.08.18",NA,11,1000,0,2039,"papaya","with peel"
-"17.08.18",NA,36,1200,0,2522,"pusa","without skin"
-"17.08.18",NA,20,1300,0,2039,"cassava","with water"
-"17.08.18",NA,75,1300,0,2523,"caterpillars","with guts"
-"17.08.18",NA,35,1500,0,1104,"mela","ready-to-eat"
-"17.08.18",NA,48,1900,0,2539,"matokodi","with husk"
-"17.08.18",NA,22,2750,0,2031,"cassava","with skin"
-"17.08.18",NA,6,4300,0,2039,"palm nut","with thorns"
-"17.08.18",NA,38,9250,0,2039,"banana","with peel"
-"17.08.18",NA,6,20000,0,2030,"palm nut","with thorns"
-"17.08.18",NA,6,22250,0,1124,"palm nut","with thorns"
-"18.08.18",NA,75,28.35,0,3117,"caterpillars","with guts"
-"18.08.18",NA,75,56.7,0,1010,"caterpillars","with guts"
-"18.08.18",NA,43,56.7,0,1121,"mbeku","0"
-"18.08.18",NA,30,85.05,0,3077,"koko","with stem"
-"18.08.18",NA,72,100,0,3040,"brush-tailed porcupine","foot"
-"18.08.18",NA,43,100,0,1010,"mbeku","0"
-"18.08.18",NA,47,150,0,3117,"matokodi","ready-to-eat"
-"18.08.18",NA,24,200,0,3077,"cassava leaves","with stem"
-"18.08.18",NA,41,200,1,3123,"corn","with husk"
-"18.08.18",NA,26,200,0,1010,"kaso","with husk"
-"18.08.18",NA,2,200,0,2523,"maondo","with peel"
-"18.08.18",NA,35,200,0,1010,"mela","ready-to-eat"
-"18.08.18",NA,14,250,0,2031,"ekule","ready-to-eat"
-"18.08.18",NA,48,250,0,1007,"matokodi","with husk"
-"18.08.18",NA,30,300,0,3117,"koko","with stem"
-"18.08.18",NA,2,400,0,3118,"maondo","with peel"
-"18.08.18",NA,45,400,0,2544,"orange","with peel"
-"18.08.18",NA,24,500,0,1016,"cassava leaves","with stem"
-"18.08.18",NA,75,500,0,2544,"caterpillars","with guts"
-"18.08.18",NA,30,500,0,2039,"koko","with stem"
-"18.08.18",NA,2,500,0,1007,"maondo","with peel"
-"18.08.18",NA,48,500,0,1007,"matokodi","with husk"
-"18.08.18",NA,53,500,0,1010,"mushooms","ready-to-eat"
-"18.08.18",NA,53,750,0,2039,"mushooms","ready-to-eat"
-"18.08.18",NA,24,900,0,2031,"cassava leaves","with stem"
-"18.08.18",NA,24,900,0,2522,"cassava leaves","with stem"
-"18.08.18",NA,42,900,1,3123,"corn","without husk"
-"18.08.18",NA,47,950,0,2539,"matokodi","ready-to-eat"
-"18.08.18",NA,20,1100,0,2522,"cassava","with water"
-"18.08.18",NA,24,1500,0,1023,"cassava leaves","with stem"
-"18.08.18",NA,24,2200,0,1121,"cassava leaves","with stem"
-"18.08.18",NA,6,2500,0,1028,"palm nut","with thorns"
-"18.08.18",NA,8,4000,0,1121,"palm nut","fruit without bract or thorns"
-"18.08.18",NA,6,4150,0,1121,"palm nut","with thorns"
-"18.08.18",NA,6,4750,0,1028,"palm nut","with thorns"
-"18.08.18",NA,6,6350,0,1121,"palm nut","with thorns"
-"18.08.18",NA,35,6850,0,1010,"mela","ready-to-eat"
-"19.08.18",NA,36,100,0,1121,"pusa","without skin"
-"19.08.18",NA,57,300,0,2031,"bat","raw"
-"19.08.18",NA,47,400,0,1035,"matokodi","ready-to-eat"
-"19.08.18",NA,35,400,0,3077,"mela","ready-to-eat"
-"19.08.18",NA,53,500,0,1120,"mushooms","ready-to-eat"
-"19.08.18",NA,30,800,0,2039,"koko","with stem"
-"19.08.18",NA,47,1300,0,2031,"matokodi","ready-to-eat"
-"19.08.18",NA,35,2100,0,1035,"mela","ready-to-eat"
-"19.08.18",NA,14,2400,0,2031,"ekule","ready-to-eat"
-"19.08.18",NA,81,2500,0,2038,"long-snouted mongoose","with intestins"
-"19.08.18",NA,35,2650,0,1121,"mela","ready-to-eat"
-"19.08.18",NA,35,2850,0,3041,"mela","ready-to-eat"
-"19.08.18",NA,35,3200,0,1028,"mela","ready-to-eat"
-"19.08.18",NA,22,3700,0,2039,"cassava","with skin"
-"19.08.18",NA,38,4250,0,2039,"banana","with peel"
-"19.08.18",NA,24,5150,0,2522,"cassava leaves","with stem"
-"02.08.18",NA,30,28.35,0,3142,"koko","with stem"
-"02.08.18",NA,53,28.35,0,3142,"mushooms","ready-to-eat"
-"02.08.18",NA,26,42.525,0,3076,"kaso","with husk"
-"02.08.18",NA,30,56.7,0,1016,"koko","with stem"
-"02.08.18",NA,25,70.875,0,3040,"kaso","with shell"
-"02.08.18",NA,30,85.05,0,1120,"koko","with stem"
-"02.08.18",NA,42,100,1,2007,"corn","without husk"
-"02.08.18",NA,53,100,0,2031,"mushooms","ready-to-eat"
-"02.08.18",NA,76,113.4,0,1116,"fish","raw"
-"02.08.18",NA,51,113.4,0,1106,"peppers","with stems"
-"02.08.18",NA,26,127.575,0,3040,"kaso","with husk"
-"02.08.18",NA,27,170.1,0,3040,"kaso","ready-to-eat"
-"02.08.18",NA,14,200,0,1120,"ekule","ready-to-eat"
-"02.08.18",NA,53,200,0,1102,"mushooms","ready-to-eat"
-"02.08.18",NA,41,250,1,2007,"corn","with husk"
-"02.08.18",NA,30,250,0,2031,"koko","with stem"
-"02.08.18",NA,53,250,0,1121,"mushooms","ready-to-eat"
-"02.08.18",NA,36,250,0,1115,"pusa","without skin"
-"02.08.18",NA,36,250,0,1121,"pusa","without skin"
-"02.08.18",NA,30,300,0,3117,"koko","with stem"
-"02.08.18",NA,53,300,0,3117,"mushooms","ready-to-eat"
-"02.08.18",NA,26,350,0,3142,"kaso","with husk"
-"02.08.18",NA,26,400,0,1120,"kaso","with husk"
-"02.08.18",NA,47,400,0,1116,"matokodi","ready-to-eat"
-"02.08.18",NA,25,500,1,2521,"kaso","with shell"
-"02.08.18",NA,30,500,0,1102,"koko","with stem"
-"02.08.18",NA,53,500,0,2039,"mushooms","ready-to-eat"
-"02.08.18",NA,41,600,1,2007,"corn","with husk"
-"02.08.18",NA,55,600,0,1010,"ediki","with inedible"
-"02.08.18",NA,55,600,0,1011,"ediki","with inedible"
-"02.08.18",NA,47,700,0,1116,"matokodi","ready-to-eat"
-"02.08.18",NA,36,750,0,1116,"pusa","without skin"
-"02.08.18",NA,48,800,0,1121,"matokodi","with husk"
-"02.08.18",NA,47,1000,0,1121,"matokodi","ready-to-eat"
-"02.08.18",NA,1,1000,0,1104,"mobe","with seeds"
-"02.08.18",NA,19,1150,0,1121,"ngangi","ready-to-eat"
-"02.08.18",NA,20,1250,0,3119,"cassava","with water"
-"02.08.18",NA,48,1400,0,1121,"matokodi","with husk"
-"02.08.18",NA,35,1400,0,3142,"mela","ready-to-eat"
-"02.08.18",NA,1,1500,0,1007,"mobe","with seeds"
-"02.08.18",NA,19,1500,0,3076,"ngangi","ready-to-eat"
-"02.08.18",NA,5,1500,1,2521,"palm nut","without thorns"
-"02.08.18",NA,36,1500,0,2039,"pusa","without skin"
-"02.08.18",NA,20,1700,1,2521,"cassava","with water"
-"02.08.18",NA,39,2250,0,2039,"banana","ready-to-eat"
-"02.08.18",NA,24,2250,0,1116,"cassava leaves","with stem"
-"02.08.18",NA,38,2600,0,2039,"banana","with peel"
-"02.08.18",NA,9,2750,0,1106,"palm oil","liquid"
-"02.08.18",NA,19,3018.825,0,1120,"ngangi","ready-to-eat"
-"02.08.18",NA,5,3900,0,2039,"palm nut","without thorns"
-"02.08.18",NA,37,4000,0,3076,"pusa","with skin"
-"02.08.18",NA,38,6250,0,2039,"banana","with peel"
-"02.08.18",NA,20,9750,0,1106,"cassava","with water"
-"02.08.18",NA,20,10100,0,1121,"cassava","with water"
-"02.08.18",NA,20,10850,0,3077,"cassava","with water"
-"02.08.18",NA,20,15250,0,3041,"cassava","with water"
-"02.08.18",NA,39,24600,0,1116,"banana","ready-to-eat"
-"02.08.18",NA,38,25250,0,1116,"banana","with peel"
-"20.08.18",NA,60,100,0,1124,"bird","smoked"
-"20.08.18",NA,75,100,0,1006,"caterpillars","with guts"
-"20.08.18",NA,50,100,0,3041,"peppers","without stems"
-"20.08.18",NA,47,200,0,1016,"matokodi","ready-to-eat"
-"20.08.18",NA,68,250,0,1124,"blue duiker","smoked intestins"
-"20.08.18",NA,75,250,0,1035,"caterpillars","with guts"
-"20.08.18",NA,47,250,0,1035,"matokodi","ready-to-eat"
-"20.08.18",NA,68,300,0,2030,"blue duiker","smoked intestins"
-"20.08.18",NA,22,300,0,2522,"cassava","with skin"
-"20.08.18",NA,85,500,0,1124,"rat","smoked"
-"20.08.18",NA,55,700,0,3118,"ediki","with inedible"
-"20.08.18",NA,55,1000,0,2544,"ediki","with inedible"
-"20.08.18",NA,24,1100,0,1121,"cassava leaves","with stem"
-"20.08.18",NA,14,1250,0,1016,"ekule","ready-to-eat"
-"20.08.18",NA,35,1250,0,1016,"mela","ready-to-eat"
-"20.08.18",NA,14,1400,0,3077,"ekule","ready-to-eat"
-"20.08.18",NA,64,1500,0,1122,"blue duiker","smoked"
-"20.08.18",NA,73,1500,0,3040,"brush-tailed porcupine","smoked"
-"20.08.18",NA,55,1500,0,2523,"ediki","with inedible"
-"20.08.18",NA,35,1600,0,3142,"mela","ready-to-eat"
-"20.08.18",NA,91,1700,0,1006,"honey","ready-to-eat"
-"20.08.18",NA,64,1900,0,2038,"blue duiker","smoked"
-"20.08.18",NA,35,1900,0,1035,"mela","ready-to-eat"
-"20.08.18",NA,35,1900,0,3077,"mela","ready-to-eat"
-"20.08.18",NA,36,2000,0,3142,"pusa","without skin"
-"20.08.18",NA,64,2100,0,2030,"blue duiker","smoked"
-"20.08.18",NA,64,2250,0,1101,"blue duiker","smoked"
-"20.08.18",NA,80,2500,0,2523,"lizard","with intestins"
-"20.08.18",NA,37,3000,0,1121,"pusa","with skin"
-"20.08.18",NA,64,3750,0,3040,"blue duiker","smoked"
-"20.08.18",NA,64,4100,0,1124,"blue duiker","smoked"
-"20.08.18",NA,35,4100,0,3041,"mela","ready-to-eat"
-"20.08.18",NA,35,5200,0,1121,"mela","ready-to-eat"
-"20.08.18",NA,35,5500,0,1102,"mela","ready-to-eat"
-"21.08.18",NA,51,85.05,0,2031,"peppers","with stems"
-"21.08.18",NA,22,100,0,2039,"cassava","with skin"
-"21.08.18",NA,24,100,0,1009,"cassava leaves","with stem"
-"21.08.18",NA,43,113.4,0,1120,"mbeku","0"
-"21.08.18",NA,36,150,0,1008,"pusa","without skin"
-"21.08.18",NA,75,200,0,1120,"caterpillars","with guts"
-"21.08.18",NA,14,200,0,2039,"ekule","ready-to-eat"
-"21.08.18",NA,53,200,0,3077,"mushooms","ready-to-eat"
-"21.08.18",NA,11,250,0,1104,"papaya","with peel"
-"21.08.18",NA,36,250,0,3119,"pusa","without skin"
-"21.08.18",NA,40,300,0,1101,"kana","without husk"
-"21.08.18",NA,25,300,0,1116,"kaso","with shell"
-"21.08.18",NA,47,400,0,1116,"matokodi","ready-to-eat"
-"21.08.18",NA,36,400,0,1116,"pusa","without skin"
-"21.08.18",NA,30,500,0,1120,"koko","with stem"
-"21.08.18",NA,2,500,0,3040,"maondo","with peel"
-"21.08.18",NA,10,500,0,1121,"palm wine","0"
-"21.08.18",NA,24,600,0,1101,"cassava leaves","with stem"
-"21.08.18",NA,53,600,0,1115,"mushooms","ready-to-eat"
-"21.08.18",NA,5,600,0,3040,"palm nut","without thorns"
-"21.08.18",NA,38,650,0,3077,"banana","with peel"
-"21.08.18",NA,35,750,0,1120,"mela","ready-to-eat"
-"21.08.18",NA,4,900,0,3077,"taro leaves","ready-to-eat"
-"21.08.18",NA,22,1000,0,2031,"cassava","with skin"
-"21.08.18",NA,2,1000,0,2030,"maondo","with peel"
-"21.08.18",NA,2,1000,0,2038,"maondo","with peel"
-"21.08.18",NA,30,1250,0,2522,"koko","with stem"
-"21.08.18",NA,55,1400,0,2522,"ediki","with inedible"
-"21.08.18",NA,24,1500,0,2031,"cassava leaves","with stem"
-"21.08.18",NA,35,1600,0,2039,"mela","ready-to-eat"
-"21.08.18",NA,5,1750,0,1116,"palm nut","without thorns"
-"21.08.18",NA,11,1850,0,2031,"papaya","with peel"
-"21.08.18",NA,11,2250,0,1121,"papaya","with peel"
-"21.08.18",NA,22,2750,0,1115,"cassava","with skin"
-"21.08.18",NA,22,3100,0,1104,"cassava","with skin"
-"21.08.18",NA,38,3250,0,2039,"banana","with peel"
-"21.08.18",NA,6,3600,0,3040,"palm nut","with thorns"
-"21.08.18",NA,24,4000,0,3041,"cassava leaves","with stem"
-"21.08.18",NA,22,4250,0,3077,"cassava","with skin"
-"21.08.18",NA,5,5250,0,2038,"palm nut","without thorns"
-"21.08.18",NA,6,11000,0,3041,"palm nut","with thorns"
-"21.08.18",NA,38,11350,0,1104,"banana","with peel"
-"21.08.18",NA,7,15000,0,3040,"palm nut","head"
-"21.08.18",NA,6,21200,0,1101,"palm nut","with thorns"
-"21.08.18",NA,6,22250,0,2030,"palm nut","with thorns"
-"22.08.18",NA,24,28.35,0,1009,"cassava leaves","with stem"
-"22.08.18",NA,75,28.35,0,1116,"caterpillars","with guts"
-"22.08.18",NA,24,42.525,0,1008,"cassava leaves","with stem"
-"22.08.18",NA,43,56.7,0,1035,"mbeku","0"
-"22.08.18",NA,24,85.05,0,2538,"cassava leaves","with stem"
-"22.08.18",NA,51,99.225,0,1124,"peppers","with stems"
-"22.08.18",NA,30,100,0,1116,"koko","with stem"
-"22.08.18",NA,36,100,0,2031,"pusa","without skin"
-"22.08.18",NA,30,150,0,1035,"koko","with stem"
-"22.08.18",NA,30,200,0,1016,"koko","with stem"
-"22.08.18",NA,75,250,0,2030,"caterpillars","with guts"
-"22.08.18",NA,30,250,0,1104,"koko","with stem"
-"22.08.18",NA,30,250,0,1120,"koko","with stem"
-"22.08.18",NA,47,250,0,1035,"matokodi","ready-to-eat"
-"22.08.18",NA,36,300,0,1116,"pusa","without skin"
-"22.08.18",NA,75,350,0,2522,"caterpillars","with guts"
-"22.08.18",NA,75,400,0,3077,"caterpillars","with guts"
-"22.08.18",NA,36,400,0,1122,"pusa","without skin"
-"22.08.18",NA,55,600,0,1011,"ediki","with inedible"
-"22.08.18",NA,55,600,0,1030,"ediki","with inedible"
-"22.08.18",NA,75,700,0,1023,"caterpillars","with guts"
-"22.08.18",NA,35,750,0,3077,"mela","ready-to-eat"
-"22.08.18",NA,75,800,0,3117,"caterpillars","with guts"
-"22.08.18",NA,30,800,0,1102,"koko","with stem"
-"22.08.18",NA,75,850,0,1016,"caterpillars","with guts"
-"22.08.18",NA,75,900,0,1035,"caterpillars","with guts"
-"22.08.18",NA,75,1150,0,1102,"caterpillars","with guts"
-"22.08.18",NA,38,1250,1,2021,"banana","with peel"
-"22.08.18",NA,75,1400,0,1121,"caterpillars","with guts"
-"22.08.18",NA,93,1700,0,2055,"pangolin","with intestins"
-"22.08.18",NA,35,1900,0,1120,"mela","ready-to-eat"
-"22.08.18",NA,35,2100,0,1116,"mela","ready-to-eat"
-"22.08.18",NA,35,2100,0,2031,"mela","ready-to-eat"
-"22.08.18",NA,6,3100,1,2021,"palm nut","with thorns"
-"22.08.18",NA,2,3500,0,2030,"maondo","with peel"
-"22.08.18",NA,5,4200,0,1124,"palm nut","without thorns"
-"23.08.18",NA,30,70.875,0,1016,"koko","with stem"
-"23.08.18",NA,51,100,0,2039,"peppers","with stems"
-"23.08.18",NA,75,200,0,1028,"caterpillars","with guts"
-"23.08.18",NA,75,200,0,2522,"caterpillars","with guts"
-"23.08.18",NA,24,250,0,1009,"cassava leaves","with stem"
-"23.08.18",NA,47,250,0,1028,"matokodi","ready-to-eat"
-"23.08.18",NA,75,300,0,1030,"caterpillars","with guts"
-"23.08.18",NA,34,400,0,3040,"cacao","with husk"
-"23.08.18",NA,75,500,0,1016,"caterpillars","with guts"
-"23.08.18",NA,75,500,0,2513,"caterpillars","with guts"
-"23.08.18",NA,75,500,0,2544,"caterpillars","with guts"
-"23.08.18",NA,76,500,0,1032,"fish","raw"
-"23.08.18",NA,75,600,0,1010,"caterpillars","with guts"
-"23.08.18",NA,75,600,0,1035,"caterpillars","with guts"
-"23.08.18",NA,75,600,0,1023,"caterpillars","with guts"
-"23.08.18",NA,14,600,0,2055,"ekule","ready-to-eat"
-"23.08.18",NA,26,600,0,2039,"kaso","with husk"
-"23.08.18",NA,75,750,0,1007,"caterpillars","with guts"
-"23.08.18",NA,55,750,0,2523,"ediki","with inedible"
-"23.08.18",NA,38,800,0,1104,"banana","with peel"
-"23.08.18",NA,39,900,0,2031,"banana","ready-to-eat"
-"23.08.18",NA,47,1100,0,2031,"matokodi","ready-to-eat"
-"23.08.18",NA,6,1100,0,2055,"palm nut","with thorns"
-"23.08.18",NA,91,1250,0,1101,"honey","ready-to-eat"
-"23.08.18",NA,35,1250,0,3077,"mela","ready-to-eat"
-"23.08.18",NA,76,1350,0,3040,"fish","raw"
-"23.08.18",NA,24,1500,0,2522,"cassava leaves","with stem"
-"23.08.18",NA,38,1600,0,2522,"banana","with peel"
-"23.08.18",NA,6,1700,0,2055,"palm nut","with thorns"
-"23.08.18",NA,38,1800,0,1028,"banana","with peel"
-"23.08.18",NA,55,1800,0,1121,"ediki","with inedible"
-"23.08.18",NA,55,1818.825,0,1116,"ediki","with inedible"
-"23.08.18",NA,5,2100,0,1122,"palm nut","without thorns"
-"23.08.18",NA,75,2200,0,1121,"caterpillars","with guts"
-"23.08.18",NA,91,2250,0,1101,"honey","ready-to-eat"
-"23.08.18",NA,38,2400,0,2522,"banana","with peel"
-"23.08.18",NA,6,2500,0,2055,"palm nut","with thorns"
-"23.08.18",NA,24,3000,0,2031,"cassava leaves","with stem"
-"23.08.18",NA,35,3000,0,1102,"mela","ready-to-eat"
-"23.08.18",NA,24,3200,0,2039,"cassava leaves","with stem"
-"23.08.18",NA,38,4100,0,2039,"banana","with peel"
-"23.08.18",NA,5,4600,0,1122,"palm nut","without thorns"
-"23.08.18",NA,6,4600,0,2055,"palm nut","with thorns"
-"23.08.18",NA,22,4750,0,2031,"cassava","with skin"
-"23.08.18",NA,20,6000,0,3077,"cassava","with water"
-"23.08.18",NA,20,6850,0,1102,"cassava","with water"
-"23.08.18",NA,20,7100,0,1116,"cassava","with water"
-"23.08.18",NA,6,7500,0,3040,"palm nut","with thorns"
-"23.08.18",NA,20,12750,0,1104,"cassava","with water"
-"24.08.18",NA,24,100,0,2538,"cassava leaves","with stem"
-"24.08.18",NA,14,100,0,3077,"ekule","ready-to-eat"
-"24.08.18",NA,30,100,0,2522,"koko","with stem"
-"24.08.18",NA,75,150,0,1120,"caterpillars","with guts"
-"24.08.18",NA,30,150,0,1104,"koko","with stem"
-"24.08.18",NA,2,150,0,1124,"maondo","with peel"
-"24.08.18",NA,30,200,0,1102,"koko","with stem"
-"24.08.18",NA,35,200,0,1035,"mela","ready-to-eat"
-"24.08.18",NA,2,250,0,1122,"maondo","with peel"
-"24.08.18",NA,35,250,0,3077,"mela","ready-to-eat"
-"24.08.18",NA,53,250,0,1006,"mushooms","ready-to-eat"
-"24.08.18",NA,39,300,0,9999,"banana","ready-to-eat"
-"24.08.18",NA,35,300,0,1116,"mela","ready-to-eat"
-"24.08.18",NA,55,400,0,2523,"ediki","with inedible"
-"24.08.18",NA,25,400,0,2523,"kaso","with shell"
-"24.08.18",NA,30,400,0,3041,"koko","with stem"
-"24.08.18",NA,53,400,0,1121,"mushooms","ready-to-eat"
-"24.08.18",NA,53,400,0,3077,"mushooms","ready-to-eat"
-"24.08.18",NA,45,400,0,2039,"orange","with peel"
-"24.08.18",NA,55,500,0,1016,"ediki","with inedible"
-"24.08.18",NA,55,500,0,1030,"ediki","with inedible"
-"24.08.18",NA,53,500,0,1028,"mushooms","ready-to-eat"
-"24.08.18",NA,69,600,1,1107,"blue duiker","smoked head"
-"24.08.18",NA,55,600,0,2523,"ediki","with inedible"
-"24.08.18",NA,11,600,0,1035,"papaya","with peel"
-"24.08.18",NA,2,800,0,3118,"maondo","with peel"
-"24.08.18",NA,5,800,1,3115,"palm nut","without thorns"
-"24.08.18",NA,24,1000,1,9999,"cassava leaves","with stem"
-"24.08.18",NA,2,1000,0,1122,"maondo","with peel"
-"24.08.18",NA,53,1000,0,1120,"mushooms","ready-to-eat"
-"24.08.18",NA,53,1100,0,3040,"mushooms","ready-to-eat"
-"24.08.18",NA,14,1300,0,1035,"ekule","ready-to-eat"
-"24.08.18",NA,35,1300,0,2039,"mela","ready-to-eat"
-"24.08.18",NA,35,1400,0,1102,"mela","ready-to-eat"
-"24.08.18",NA,75,1600,0,3040,"caterpillars","with guts"
-"24.08.18",NA,6,1700,0,9999,"palm nut","with thorns"
-"24.08.18",NA,5,1800,1,1108,"palm nut","without thorns"
-"24.08.18",NA,35,2000,0,1104,"mela","ready-to-eat"
-"24.08.18",NA,35,2250,0,1115,"mela","ready-to-eat"
-"24.08.18",NA,23,2700,0,2031,"cassava","with water and skin"
-"24.08.18",NA,24,2850,0,1115,"cassava leaves","with stem"
-"24.08.18",NA,2,4000,0,2030,"maondo","with peel"
-"24.08.18",NA,6,10100,0,2038,"palm nut","with thorns"
-"25.08.18",NA,51,42.525,0,1121,"peppers","with stems"
-"25.08.18",NA,42,100,0,1119,"corn","without husk"
-"25.08.18",NA,30,100,0,2031,"koko","with stem"
-"25.08.18",NA,11,200,0,3142,"papaya","with peel"
-"25.08.18",NA,22,250,0,3142,"cassava","with skin"
-"25.08.18",NA,50,250,0,1106,"peppers","without stems"
-"25.08.18",NA,39,300,0,1121,"banana","ready-to-eat"
-"25.08.18",NA,30,300,0,1104,"koko","with stem"
-"25.08.18",NA,24,400,0,2522,"cassava leaves","with stem"
-"25.08.18",NA,75,400,1,1009,"caterpillars","with guts"
-"25.08.18",NA,35,450,0,3077,"mela","ready-to-eat"
-"25.08.18",NA,39,600,0,1121,"banana","ready-to-eat"
-"25.08.18",NA,20,600,0,2039,"cassava","with water"
-"25.08.18",NA,36,600,0,3077,"pusa","without skin"
-"25.08.18",NA,55,750,0,1104,"ediki","with inedible"
-"25.08.18",NA,75,800,0,1104,"caterpillars","with guts"
-"25.08.18",NA,55,800,0,2539,"ediki","with inedible"
-"25.08.18",NA,55,800,0,2544,"ediki","with inedible"
-"25.08.18",NA,35,800,0,1007,"mela","ready-to-eat"
-"25.08.18",NA,35,800,0,3142,"mela","ready-to-eat"
-"25.08.18",NA,36,900,0,1016,"pusa","without skin"
-"25.08.18",NA,4,900,0,1102,"taro leaves","ready-to-eat"
-"25.08.18",NA,35,950,0,2523,"mela","ready-to-eat"
-"25.08.18",NA,75,1000,0,1102,"caterpillars","with guts"
-"25.08.18",NA,5,1000,0,1106,"palm nut","without thorns"
-"25.08.18",NA,38,1100,0,1115,"banana","with peel"
-"25.08.18",NA,41,1100,0,3041,"corn","with husk"
-"25.08.18",NA,3,1100,0,2522,"taro","ready-to-eat"
-"25.08.18",NA,38,1150,0,1121,"banana","with peel"
-"25.08.18",NA,42,1200,0,3041,"corn","without husk"
-"25.08.18",NA,35,1200,0,1120,"mela","ready-to-eat"
-"25.08.18",NA,39,1250,0,1102,"banana","ready-to-eat"
-"25.08.18",NA,75,1250,0,1121,"caterpillars","with guts"
-"25.08.18",NA,42,1250,0,1121,"corn","without husk"
-"25.08.18",NA,35,1250,0,2544,"mela","ready-to-eat"
-"25.08.18",NA,38,1300,0,1121,"banana","with peel"
-"25.08.18",NA,35,1400,0,1016,"mela","ready-to-eat"
-"25.08.18",NA,35,1400,0,1104,"mela","ready-to-eat"
-"25.08.18",NA,35,1450,0,3077,"mela","ready-to-eat"
-"25.08.18",NA,75,1600,0,1103,"caterpillars","with guts"
-"25.08.18",NA,22,1800,0,1115,"cassava","with skin"
-"25.08.18",NA,38,2200,0,1121,"banana","with peel"
-"25.08.18",NA,24,2250,0,3041,"cassava leaves","with stem"
-"25.08.18",NA,24,2300,0,1102,"cassava leaves","with stem"
-"25.08.18",NA,30,2300,0,1104,"koko","with stem"
-"25.08.18",NA,5,2500,0,2038,"palm nut","without thorns"
-"25.08.18",NA,24,2600,0,1121,"cassava leaves","with stem"
-"25.08.18",NA,35,2600,0,1106,"mela","ready-to-eat"
-"25.08.18",NA,22,2800,0,2039,"cassava","with skin"
-"25.08.18",NA,38,3500,0,2039,"banana","with peel"
-"25.08.18",NA,6,3600,0,3040,"palm nut","with thorns"
-"25.08.18",NA,35,4000,0,2031,"mela","ready-to-eat"
-"25.08.18",NA,24,4750,0,2039,"cassava leaves","with stem"
-"25.08.18",NA,6,5000,0,1119,"palm nut","with thorns"
-"25.08.18",NA,6,5000,0,3040,"palm nut","with thorns"
-"25.08.18",NA,6,9250,0,1122,"palm nut","with thorns"
-"25.08.18",NA,6,9750,0,2038,"palm nut","with thorns"
-"25.08.18",NA,6,14150,0,1122,"palm nut","with thorns"
-"25.08.18",NA,6,21000,0,2030,"palm nut","with thorns"
-"26.08.18",NA,75,70.875,0,2544,"caterpillars","with guts"
-"26.08.18",NA,30,100,0,1116,"koko","with stem"
-"26.08.18",NA,30,100,0,2031,"koko","with stem"
-"26.08.18",NA,80,100,0,1115,"lizard","with intestins"
-"26.08.18",NA,30,113.4,0,3142,"koko","with stem"
-"26.08.18",NA,75,127.575,0,1031,"caterpillars","with guts"
-"26.08.18",NA,75,150,0,2538,"caterpillars","with guts"
-"26.08.18",NA,75,200,0,1122,"caterpillars","with guts"
-"26.08.18",NA,75,200,0,3142,"caterpillars","with guts"
-"26.08.18",NA,30,200,0,3041,"koko","with stem"
-"26.08.18",NA,36,250,0,3041,"pusa","without skin"
-"26.08.18",NA,75,500,0,1115,"caterpillars","with guts"
-"26.08.18",NA,53,700,0,1120,"mushooms","ready-to-eat"
-"26.08.18",NA,75,750,0,1106,"caterpillars","with guts"
-"26.08.18",NA,38,800,0,1028,"banana","with peel"
-"26.08.18",NA,75,800,0,1116,"caterpillars","with guts"
-"26.08.18",NA,75,800,0,1120,"caterpillars","with guts"
-"26.08.18",NA,55,800,0,1103,"ediki","with inedible"
-"26.08.18",NA,35,800,0,1115,"mela","ready-to-eat"
-"26.08.18",NA,36,800,0,1115,"pusa","without skin"
-"26.08.18",NA,47,900,0,2031,"matokodi","ready-to-eat"
-"26.08.18",NA,24,1000,0,1028,"cassava leaves","with stem"
-"26.08.18",NA,75,1200,0,1119,"caterpillars","with guts"
-"26.08.18",NA,35,1400,0,1116,"mela","ready-to-eat"
-"26.08.18",NA,71,1500,0,3040,"brush-tailed porcupine","with quills"
-"26.08.18",NA,75,1500,0,1016,"caterpillars","with guts"
-"26.08.18",NA,75,1600,0,1104,"caterpillars","with guts"
-"26.08.18",NA,35,1600,0,1035,"mela","ready-to-eat"
-"26.08.18",NA,75,1668.825,0,1102,"caterpillars","with guts"
-"26.08.18",NA,35,1750,0,1104,"mela","ready-to-eat"
-"26.08.18",NA,35,1850,0,3077,"mela","ready-to-eat"
-"26.08.18",NA,35,2100,0,2039,"mela","ready-to-eat"
-"26.08.18",NA,75,2500,0,1028,"caterpillars","with guts"
-"26.08.18",NA,20,3600,0,1120,"cassava","with water"
-"26.08.18",NA,75,4000,0,2031,"caterpillars","with guts"
-"26.08.18",NA,35,4000,0,2031,"mela","ready-to-eat"
-"26.08.18",NA,35,4750,0,2522,"mela","ready-to-eat"
-"26.08.18",NA,91,5000,0,1124,"honey","ready-to-eat"
-"26.08.18",NA,6,6500,0,1006,"palm nut","with thorns"
-"27.08.18",NA,43,85.05,0,3117,"mbeku","0"
-"27.08.18",NA,24,100,0,2538,"cassava leaves","with stem"
-"27.08.18",NA,30,100,0,1016,"koko","with stem"
-"27.08.18",NA,30,100,0,3077,"koko","with stem"
-"27.08.18",NA,18,100,0,3077,"ndiki","ready-to-eat"
-"27.08.18",NA,75,200,0,1119,"caterpillars","with guts"
-"27.08.18",NA,30,200,0,1102,"koko","with stem"
-"27.08.18",NA,30,200,0,3117,"koko","with stem"
-"27.08.18",NA,35,200,0,1035,"mela","ready-to-eat"
-"27.08.18",NA,24,400,0,2522,"cassava leaves","with stem"
-"27.08.18",NA,76,400,0,3117,"fish","raw"
-"27.08.18",NA,20,500,1,3058,"cassava","with water"
-"27.08.18",NA,30,500,0,1121,"koko","with stem"
-"27.08.18",NA,47,500,0,2031,"matokodi","ready-to-eat"
-"27.08.18",NA,30,550,0,3041,"koko","with stem"
-"27.08.18",NA,34,600,0,2522,"cacao","with husk"
-"27.08.18",NA,20,600,0,3041,"cassava","with water"
-"27.08.18",NA,35,700,0,3077,"mela","ready-to-eat"
-"27.08.18",NA,75,750,0,1121,"caterpillars","with guts"
-"27.08.18",NA,30,750,0,1035,"koko","with stem"
-"27.08.18",NA,42,800,1,2521,"corn","without husk"
-"27.08.18",NA,11,800,0,2039,"papaya","with peel"
-"27.08.18",NA,2,900,0,1119,"maondo","with peel"
-"27.08.18",NA,36,1100,0,1120,"pusa","without skin"
-"27.08.18",NA,14,1250,0,3041,"ekule","ready-to-eat"
-"27.08.18",NA,75,1500,0,2031,"caterpillars","with guts"
-"27.08.18",NA,14,1500,0,1119,"ekule","ready-to-eat"
-"27.08.18",NA,75,1800,0,1016,"caterpillars","with guts"
-"27.08.18",NA,75,1850,0,3077,"caterpillars","with guts"
-"27.08.18",NA,75,2100,0,1035,"caterpillars","with guts"
-"27.08.18",NA,75,2150,0,3117,"caterpillars","with guts"
-"27.08.18",NA,75,3300,0,1121,"caterpillars","with guts"
-"27.08.18",NA,35,3600,0,1102,"mela","ready-to-eat"
-"27.08.18",NA,6,9900,1,3135,"palm nut","with thorns"
-"27.08.18",NA,38,10000,0,2039,"banana","with peel"
-"28.08.18",NA,30,70.875,0,1023,"koko","with stem"
-"28.08.18",NA,14,100,0,3077,"ekule","ready-to-eat"
-"28.08.18",NA,30,100,0,2031,"koko","with stem"
-"28.08.18",NA,50,100,0,1103,"peppers","without stems"
-"28.08.18",NA,14,113.4,0,1023,"ekule","ready-to-eat"
-"28.08.18",NA,22,200,0,3077,"cassava","with skin"
-"28.08.18",NA,14,200,0,1121,"ekule","ready-to-eat"
-"28.08.18",NA,2,200,0,1007,"maondo","with peel"
-"28.08.18",NA,13,200,0,3077,"sweet potato","with skin"
-"28.08.18",NA,2,250,0,2544,"maondo","with peel"
-"28.08.18",NA,75,300,0,2031,"caterpillars","with guts"
-"28.08.18",NA,36,300,0,1116,"pusa","without skin"
-"28.08.18",NA,75,400,0,2031,"caterpillars","with guts"
-"28.08.18",NA,75,400,0,2544,"caterpillars","with guts"
-"28.08.18",NA,75,500,0,2539,"caterpillars","with guts"
-"28.08.18",NA,35,500,0,1120,"mela","ready-to-eat"
-"28.08.18",NA,75,600,0,1007,"caterpillars","with guts"
-"28.08.18",NA,75,600,0,1010,"caterpillars","with guts"
-"28.08.18",NA,75,600,0,1032,"caterpillars","with guts"
-"28.08.18",NA,55,600,0,1011,"ediki","with inedible"
-"28.08.18",NA,3,600,0,3077,"taro","ready-to-eat"
-"28.08.18",NA,5,750,0,1035,"palm nut","without thorns"
-"28.08.18",NA,36,750,0,2031,"pusa","without skin"
-"28.08.18",NA,75,800,0,2523,"caterpillars","with guts"
-"28.08.18",NA,11,800,0,1009,"papaya","with peel"
-"28.08.18",NA,34,900,0,1008,"cacao","with husk"
-"28.08.18",NA,55,900,0,2538,"ediki","with inedible"
-"28.08.18",NA,14,950,0,1120,"ekule","ready-to-eat"
-"28.08.18",NA,20,1000,0,2522,"cassava","with water"
-"28.08.18",NA,55,1000,0,2538,"ediki","with inedible"
-"28.08.18",NA,36,1000,0,1102,"pusa","without skin"
-"28.08.18",NA,4,1000,0,3041,"taro leaves","ready-to-eat"
-"28.08.18",NA,24,1250,0,2031,"cassava leaves","with stem"
-"28.08.18",NA,35,1500,0,1104,"mela","ready-to-eat"
-"28.08.18",NA,5,1518.825,0,1124,"palm nut","without thorns"
-"28.08.18",NA,53,1550,0,2038,"mushooms","ready-to-eat"
-"28.08.18",NA,6,1900,1,1108,"palm nut","with thorns"
-"28.08.18",NA,75,1950,0,1102,"caterpillars","with guts"
-"28.08.18",NA,11,2100,0,1104,"papaya","with peel"
-"28.08.18",NA,37,2250,0,1115,"pusa","with skin"
-"28.08.18",NA,75,2300,0,1115,"caterpillars","with guts"
-"28.08.18",NA,35,2400,0,1035,"mela","ready-to-eat"
-"28.08.18",NA,71,2600,0,3040,"brush-tailed porcupine","with quills"
-"28.08.18",NA,35,2850,0,1115,"mela","ready-to-eat"
-"28.08.18",NA,35,3100,0,3117,"mela","ready-to-eat"
-"28.08.18",NA,35,3350,0,2031,"mela","ready-to-eat"
-"28.08.18",NA,35,3350,0,2039,"mela","ready-to-eat"
-"28.08.18",NA,35,3700,0,1121,"mela","ready-to-eat"
-"28.08.18",NA,35,4050,0,1116,"mela","ready-to-eat"
-"28.08.18",NA,75,4250,0,2544,"caterpillars","with guts"
-"28.08.18",NA,35,5100,0,1028,"mela","ready-to-eat"
-"28.08.18",NA,35,5300,0,1102,"mela","ready-to-eat"
-"28.08.18",NA,6,8450,0,1122,"palm nut","with thorns"
-"29.08.18",NA,39,100,0,1115,"banana","ready-to-eat"
-"29.08.18",NA,75,100,0,3077,"caterpillars","with guts"
-"29.08.18",NA,30,100,0,1102,"koko","with stem"
-"29.08.18",NA,30,100,0,1115,"koko","with stem"
-"29.08.18",NA,75,150,0,1102,"caterpillars","with guts"
-"29.08.18",NA,47,200,0,2522,"matokodi","ready-to-eat"
-"29.08.18",NA,51,200,0,1104,"peppers","with stems"
-"29.08.18",NA,20,250,0,2522,"cassava","with water"
-"29.08.18",NA,75,250,0,2539,"caterpillars","with guts"
-"29.08.18",NA,75,400,0,1030,"caterpillars","with guts"
-"29.08.18",NA,75,400,0,2031,"caterpillars","with guts"
-"29.08.18",NA,75,500,0,1016,"caterpillars","with guts"
-"29.08.18",NA,75,500,0,1035,"caterpillars","with guts"
-"29.08.18",NA,2,500,0,1035,"maondo","with peel"
-"29.08.18",NA,53,500,0,1115,"mushooms","ready-to-eat"
-"29.08.18",NA,45,500,0,1010,"orange","with peel"
-"29.08.18",NA,12,500,0,1102,"papaya","without peel"
-"29.08.18",NA,34,600,0,2522,"cacao","with husk"
-"29.08.18",NA,75,600,0,1121,"caterpillars","with guts"
-"29.08.18",NA,75,600,0,2544,"caterpillars","with guts"
-"29.08.18",NA,75,600,0,1106,"caterpillars","with guts"
-"29.08.18",NA,75,600,1,1127,"caterpillars","with guts"
-"29.08.18",NA,35,600,0,1121,"mela","ready-to-eat"
-"29.08.18",NA,11,700,0,1121,"papaya","with peel"
-"29.08.18",NA,75,750,0,3142,"caterpillars","with guts"
-"29.08.18",NA,47,850,0,1102,"matokodi","ready-to-eat"
-"29.08.18",NA,14,900,0,1121,"ekule","ready-to-eat"
-"29.08.18",NA,75,1100,0,1010,"caterpillars","with guts"
-"29.08.18",NA,19,1100,0,1119,"ngangi","ready-to-eat"
-"29.08.18",NA,75,1168.825,0,1115,"caterpillars","with guts"
-"29.08.18",NA,35,1300,0,3142,"mela","ready-to-eat"
-"29.08.18",NA,75,1400,0,2522,"caterpillars","with guts"
-"29.08.18",NA,5,1500,0,1121,"palm nut","without thorns"
-"29.08.18",NA,11,1500,0,1121,"papaya","with peel"
-"29.08.18",NA,75,1550,0,1116,"caterpillars","with guts"
-"29.08.18",NA,5,1600,0,1121,"palm nut","without thorns"
-"29.08.18",NA,35,1750,0,1115,"mela","ready-to-eat"
-"29.08.18",NA,8,1750,0,1121,"palm nut","fruit without bract or thorns"
-"29.08.18",NA,7,2950,0,2523,"palm nut","head"
-"29.08.18",NA,6,3700,0,2055,"palm nut","with thorns"
-"29.08.18",NA,35,4100,0,1102,"mela","ready-to-eat"
-"29.08.18",NA,5,4850,0,1124,"palm nut","without thorns"
-"29.08.18",NA,35,5850,0,3041,"mela","ready-to-eat"
-"29.08.18",NA,35,6750,0,1121,"mela","ready-to-eat"
-"03.08.18",NA,18,14.175,0,1116,"ndiki","ready-to-eat"
-"03.08.18",NA,47,28.35,0,1031,"matokodi","ready-to-eat"
-"03.08.18",NA,30,42.525,0,1031,"koko","with stem"
-"03.08.18",NA,30,56.7,0,1009,"koko","with stem"
-"03.08.18",NA,15,70.875,0,1116,"epangi","ready-to-eat"
-"03.08.18",NA,25,100,0,1122,"kaso","with shell"
-"03.08.18",NA,25,100,0,3077,"kaso","with shell"
-"03.08.18",NA,25,100,0,3117,"kaso","with shell"
-"03.08.18",NA,30,100,0,1121,"koko","with stem"
-"03.08.18",NA,18,100,0,3077,"ndiki","ready-to-eat"
-"03.08.18",NA,53,113.4,0,3077,"mushooms","ready-to-eat"
-"03.08.18",NA,51,127.575,0,2030,"peppers","with stems"
-"03.08.18",NA,25,141.75,0,1116,"kaso","with shell"
-"03.08.18",NA,22,200,0,3077,"cassava","with skin"
-"03.08.18",NA,30,200,0,1016,"koko","with stem"
-"03.08.18",NA,30,200,0,1116,"koko","with stem"
-"03.08.18",NA,30,200,0,3119,"koko","with stem"
-"03.08.18",NA,53,240.975,0,3077,"mushooms","ready-to-eat"
-"03.08.18",NA,26,250,0,2030,"kaso","with husk"
-"03.08.18",NA,36,250,0,1121,"pusa","without skin"
-"03.08.18",NA,36,250,0,2039,"pusa","without skin"
-"03.08.18",NA,4,250,0,3077,"taro leaves","ready-to-eat"
-"03.08.18",NA,14,300,0,3077,"ekule","ready-to-eat"
-"03.08.18",NA,53,400,0,1035,"mushooms","ready-to-eat"
-"03.08.18",NA,24,500,0,2538,"cassava leaves","with stem"
-"03.08.18",NA,30,500,0,3117,"koko","with stem"
-"03.08.18",NA,47,500,0,1116,"matokodi","ready-to-eat"
-"03.08.18",NA,48,500,0,1120,"matokodi","with husk"
-"03.08.18",NA,47,500,0,1121,"matokodi","ready-to-eat"
-"03.08.18",NA,48,500,0,3077,"matokodi","with husk"
-"03.08.18",NA,53,500,0,1121,"mushooms","ready-to-eat"
-"03.08.18",NA,39,600,0,2031,"banana","ready-to-eat"
-"03.08.18",NA,53,600,0,1120,"mushooms","ready-to-eat"
-"03.08.18",NA,53,750,0,1102,"mushooms","ready-to-eat"
-"03.08.18",NA,24,1100,0,3142,"cassava leaves","with stem"
-"03.08.18",NA,35,1150,0,1035,"mela","ready-to-eat"
-"03.08.18",NA,55,1250,0,3117,"ediki","with inedible"
-"03.08.18",NA,2,1300,0,3040,"maondo","with peel"
-"03.08.18",NA,26,1400,0,2030,"kaso","with husk"
-"03.08.18",NA,55,1500,0,1121,"ediki","with inedible"
-"03.08.18",NA,21,1600,0,2031,"cassava","without skin"
-"03.08.18",NA,24,1850,0,2031,"cassava leaves","with stem"
-"03.08.18",NA,35,1850,0,3077,"mela","ready-to-eat"
-"03.08.18",NA,38,2000,0,2031,"banana","with peel"
-"03.08.18",NA,36,2000,0,1106,"pusa","without skin"
-"03.08.18",NA,2,2300,0,3117,"maondo","with peel"
-"03.08.18",NA,24,2500,0,3077,"cassava leaves","with stem"
-"03.08.18",NA,35,2900,0,1104,"mela","ready-to-eat"
-"03.08.18",NA,35,3850,0,1102,"mela","ready-to-eat"
-"03.08.18",NA,35,3850,0,1120,"mela","ready-to-eat"
-"03.08.18",NA,71,4000,0,1124,"brush-tailed porcupine","with quills"
-"03.08.18",NA,37,4180,0,1104,"pusa","with skin"
-"03.08.18",NA,6,7400,0,2030,"palm nut","with thorns"
-"30.08.18",NA,24,56.7,0,1011,"cassava leaves","with stem"
-"30.08.18",NA,31,56.7,0,1009,"koko","ready-to-eat"
-"30.08.18",NA,24,85.05,0,1008,"cassava leaves","with stem"
-"30.08.18",NA,24,100,0,1031,"cassava leaves","with stem"
-"30.08.18",NA,24,100,0,2538,"cassava leaves","with stem"
-"30.08.18",NA,75,100,0,1007,"caterpillars","with guts"
-"30.08.18",NA,75,100,0,1030,"caterpillars","with guts"
-"30.08.18",NA,35,100,0,3077,"mela","ready-to-eat"
-"30.08.18",NA,75,150,0,2523,"caterpillars","with guts"
-"30.08.18",NA,75,150,0,3077,"caterpillars","with guts"
-"30.08.18",NA,90,150,0,1011,"egg","with shell"
-"30.08.18",NA,75,200,0,1010,"caterpillars","with guts"
-"30.08.18",NA,75,200,0,2544,"caterpillars","with guts"
-"30.08.18",NA,75,250,0,1121,"caterpillars","with guts"
-"30.08.18",NA,75,250,0,2544,"caterpillars","with guts"
-"30.08.18",NA,75,350,0,1016,"caterpillars","with guts"
-"30.08.18",NA,75,400,0,1007,"caterpillars","with guts"
-"30.08.18",NA,75,400,0,1016,"caterpillars","with guts"
-"30.08.18",NA,75,400,0,2522,"caterpillars","with guts"
-"30.08.18",NA,75,400,0,3117,"caterpillars","with guts"
-"30.08.18",NA,75,450,0,2523,"caterpillars","with guts"
-"30.08.18",NA,30,500,0,1030,"koko","with stem"
-"30.08.18",NA,36,500,0,1102,"pusa","without skin"
-"30.08.18",NA,75,600,0,2544,"caterpillars","with guts"
-"30.08.18",NA,75,1000,0,2031,"caterpillars","with guts"
-"30.08.18",NA,24,1100,0,1102,"cassava leaves","with stem"
-"30.08.18",NA,34,1250,0,3117,"cacao","with husk"
-"30.08.18",NA,20,1300,0,1121,"cassava","with water"
-"30.08.18",NA,24,1400,0,2031,"cassava leaves","with stem"
-"30.08.18",NA,91,1400,1,2609,"honey","ready-to-eat"
-"30.08.18",NA,34,1550,0,2522,"cacao","with husk"
-"30.08.18",NA,75,1600,0,1102,"caterpillars","with guts"
-"30.08.18",NA,50,2250,0,1124,"peppers","without stems"
-"30.08.18",NA,74,2300,0,3040,"brush-tailed porcupine","without quills"
-"30.08.18",NA,24,3000,0,3117,"cassava leaves","with stem"
-"30.08.18",NA,24,3100,0,2522,"cassava leaves","with stem"
-"30.08.18",NA,20,5000,0,1028,"cassava","with water"
-"30.08.18",NA,6,8650,0,1119,"palm nut","with thorns"
-"31.08.18",NA,75,100,0,3041,"caterpillars","with guts"
-"31.08.18",NA,14,100,0,3117,"ekule","ready-to-eat"
-"31.08.18",NA,25,100,0,1028,"kaso","with shell"
-"31.08.18",NA,31,100,0,1121,"koko","ready-to-eat"
-"31.08.18",NA,21,200,0,3142,"cassava","without skin"
-"31.08.18",NA,30,200,0,3142,"koko","with stem"
-"31.08.18",NA,47,250,0,3077,"matokodi","ready-to-eat"
-"31.08.18",NA,30,300,0,1028,"koko","with stem"
-"31.08.18",NA,47,500,0,1116,"matokodi","ready-to-eat"
-"31.08.18",NA,47,500,0,1023,"matokodi","ready-to-eat"
-"31.08.18",NA,75,550,0,2523,"caterpillars","with guts"
-"31.08.18",NA,55,600,0,1009,"ediki","with inedible"
-"31.08.18",NA,47,600,0,3117,"matokodi","ready-to-eat"
-"31.08.18",NA,35,600,0,1120,"mela","ready-to-eat"
-"31.08.18",NA,75,700,0,1007,"caterpillars","with guts"
-"31.08.18",NA,47,700,0,2031,"matokodi","ready-to-eat"
-"31.08.18",NA,75,750,0,2544,"caterpillars","with guts"
-"31.08.18",NA,75,800,0,1030,"caterpillars","with guts"
-"31.08.18",NA,14,850,0,1120,"ekule","ready-to-eat"
-"31.08.18",NA,75,1000,0,1016,"caterpillars","with guts"
-"31.08.18",NA,6,1700,1,2009,"palm nut","with thorns"
-"31.08.18",NA,22,1750,0,2039,"cassava","with skin"
-"31.08.18",NA,35,1750,0,1102,"mela","ready-to-eat"
-"31.08.18",NA,75,1800,0,1103,"caterpillars","with guts"
-"31.08.18",NA,75,1950,0,2522,"caterpillars","with guts"
-"31.08.18",NA,22,2000,0,2031,"cassava","with skin"
-"31.08.18",NA,3,2000,0,2039,"taro","ready-to-eat"
-"31.08.18",NA,35,2200,0,1035,"mela","ready-to-eat"
-"31.08.18",NA,14,2350,0,2031,"ekule","ready-to-eat"
-"31.08.18",NA,35,2500,0,1116,"mela","ready-to-eat"
-"31.08.18",NA,35,2850,0,3117,"mela","ready-to-eat"
-"31.08.18",NA,35,3200,0,1016,"mela","ready-to-eat"
-"31.08.18",NA,37,3300,0,1116,"pusa","with skin"
-"31.08.18",NA,35,3750,0,1121,"mela","ready-to-eat"
-"31.08.18",NA,75,4100,0,3142,"caterpillars","with guts"
-"31.08.18",NA,35,4500,0,1028,"mela","ready-to-eat"
-"31.08.18",NA,5,4700,0,1103,"palm nut","without thorns"
-"31.08.18",NA,24,6450,0,2039,"cassava leaves","with stem"
-"31.08.18",NA,5,7100,0,1103,"palm nut","without thorns"
-"31.08.18",NA,6,12600,0,1124,"palm nut","with thorns"
-"31.08.18",NA,38,12750,0,2039,"banana","with peel"
-"31.08.18",NA,6,12800,0,1124,"palm nut","with thorns"
-"04.08.18",NA,90,42.525,0,3077,"egg","with shell"
-"04.08.18",NA,26,42.525,0,3077,"kaso","with husk"
-"04.08.18",NA,56,56.7,0,1104,"ngai ngai","with peel"
-"04.08.18",NA,25,155.925,0,3117,"kaso","with shell"
-"04.08.18",NA,76,200,0,3077,"fish","raw"
-"04.08.18",NA,55,250,0,3077,"ediki","with inedible"
-"04.08.18",NA,25,250,0,1116,"kaso","with shell"
-"04.08.18",NA,30,250,0,2031,"koko","with stem"
-"04.08.18",NA,47,300,0,2030,"matokodi","ready-to-eat"
-"04.08.18",NA,76,500,0,1121,"fish","raw"
-"04.08.18",NA,25,500,0,1032,"kaso","with shell"
-"04.08.18",NA,53,500,0,2039,"mushooms","ready-to-eat"
-"04.08.18",NA,55,600,0,1120,"ediki","with inedible"
-"04.08.18",NA,76,600,0,1101,"fish","raw"
-"04.08.18",NA,76,750,0,3041,"fish","raw"
-"04.08.18",NA,20,900,0,1102,"cassava","with water"
-"04.08.18",NA,76,900,0,2030,"fish","raw"
-"04.08.18",NA,47,1250,0,1102,"matokodi","ready-to-eat"
-"04.08.18",NA,47,1250,0,1104,"matokodi","ready-to-eat"
-"04.08.18",NA,47,1250,0,1116,"matokodi","ready-to-eat"
-"04.08.18",NA,71,1400,0,1032,"brush-tailed porcupine","with quills"
-"04.08.18",NA,76,1400,0,1124,"fish","raw"
-"04.08.18",NA,20,1500,1,1110,"cassava","with water"
-"04.08.18",NA,91,1500,0,1124,"honey","ready-to-eat"
-"04.08.18",NA,35,1900,0,1120,"mela","ready-to-eat"
-"04.08.18",NA,76,2000,0,1119,"fish","raw"
-"04.08.18",NA,25,2000,0,2030,"kaso","with shell"
-"04.08.18",NA,5,2100,0,2038,"palm nut","without thorns"
-"04.08.18",NA,6,2750,0,3040,"palm nut","with thorns"
-"04.08.18",NA,38,2800,1,2899,"banana","with peel"
-"04.08.18",NA,24,3000,0,1102,"cassava leaves","with stem"
-"04.08.18",NA,24,3600,0,1104,"cassava leaves","with stem"
-"04.08.18",NA,6,9500,0,1122,"palm nut","with thorns"
-"04.08.18",NA,6,12100,0,1104,"palm nut","with thorns"
-"04.08.18",NA,6,12200,0,1102,"palm nut","with thorns"
-"04.08.18",NA,6,20625,0,1119,"palm nut","with thorns"
-"05.08.18",NA,51,70.875,0,1028,"peppers","with stems"
-"05.08.18",NA,30,85.05,0,3077,"koko","with stem"
-"05.08.18",NA,74,100,1,3135,"brush-tailed porcupine","without quills"
-"05.08.18",NA,51,100,0,1120,"peppers","with stems"
-"05.08.18",NA,2,200,0,1032,"maondo","with peel"
-"05.08.18",NA,2,200,0,1006,"maondo","with peel"
-"05.08.18",NA,47,200,0,3117,"matokodi","ready-to-eat"
-"05.08.18",NA,35,200,0,3077,"mela","ready-to-eat"
-"05.08.18",NA,3,200,0,1120,"taro","ready-to-eat"
-"05.08.18",NA,14,250,0,3117,"ekule","ready-to-eat"
-"05.08.18",NA,30,250,0,1028,"koko","with stem"
-"05.08.18",NA,30,250,0,1120,"koko","with stem"
-"05.08.18",NA,44,250,0,1028,"lemon","with peel"
-"05.08.18",NA,48,250,0,1116,"matokodi","with husk"
-"05.08.18",NA,51,300,0,1116,"peppers","with stems"
-"05.08.18",NA,24,400,0,1120,"cassava leaves","with stem"
-"05.08.18",NA,24,400,0,3142,"cassava leaves","with stem"
-"05.08.18",NA,25,400,0,1102,"kaso","with shell"
-"05.08.18",NA,24,500,0,2031,"cassava leaves","with stem"
-"05.08.18",NA,55,500,0,3119,"ediki","with inedible"
-"05.08.18",NA,14,600,0,1122,"ekule","ready-to-eat"
-"05.08.18",NA,91,600,0,3040,"honey","ready-to-eat"
-"05.08.18",NA,35,900,0,1102,"mela","ready-to-eat"
-"05.08.18",NA,64,1000,0,1028,"blue duiker","smoked"
-"05.08.18",NA,25,1000,0,1102,"kaso","with shell"
-"05.08.18",NA,91,1200,0,1122,"honey","ready-to-eat"
-"05.08.18",NA,91,1218.825,0,3040,"honey","ready-to-eat"
-"05.08.18",NA,35,1850,0,1106,"mela","ready-to-eat"
-"05.08.18",NA,36,1900,0,3077,"pusa","without skin"
-"05.08.18",NA,35,2100,0,2039,"mela","ready-to-eat"
-"05.08.18",NA,24,2500,0,1116,"cassava leaves","with stem"
-"05.08.18",NA,71,3600,0,1103,"brush-tailed porcupine","with quills"
-"05.08.18",NA,35,4500,0,1104,"mela","ready-to-eat"
-"05.08.18",NA,35,5800,0,1102,"mela","ready-to-eat"
-"05.08.18",NA,26,7600,0,1106,"kaso","with husk"
-"05.08.18",NA,26,7700,0,1104,"kaso","with husk"
-"05.08.18",NA,5,7750,0,3142,"palm nut","without thorns"
-"06.08.18",NA,75,56.7,0,1106,"caterpillars","with guts"
-"06.08.18",NA,76,100,0,3117,"fish","raw"
-"06.08.18",NA,30,100,0,2039,"koko","with stem"
-"06.08.18",NA,49,113.4,0,1106,"mondonge",NA
-"06.08.18",NA,76,200,0,2522,"fish","raw"
-"06.08.18",NA,76,250,0,1102,"fish","raw"
-"06.08.18",NA,30,250,0,1102,"koko","with stem"
-"06.08.18",NA,76,300,0,2522,"fish","raw"
-"06.08.18",NA,35,300,0,1016,"mela","ready-to-eat"
-"06.08.18",NA,76,400,0,1032,"fish","raw"
-"06.08.18",NA,76,400,0,1121,"fish","raw"
-"06.08.18",NA,30,400,0,1120,"koko","with stem"
-"06.08.18",NA,30,400,0,2031,"koko","with stem"
-"06.08.18",NA,35,400,0,3077,"mela","ready-to-eat"
-"06.08.18",NA,76,500,0,3117,"fish","raw"
-"06.08.18",NA,25,500,0,1102,"kaso","with shell"
-"06.08.18",NA,20,600,0,3040,"cassava","with water"
-"06.08.18",NA,47,600,0,2030,"matokodi","ready-to-eat"
-"06.08.18",NA,48,700,0,1106,"matokodi","with husk"
-"06.08.18",NA,5,700,1,3065,"palm nut","without thorns"
-"06.08.18",NA,2,750,0,2030,"maondo","with peel"
-"06.08.18",NA,55,800,0,1104,"ediki","with inedible"
-"06.08.18",NA,35,900,0,1035,"mela","ready-to-eat"
-"06.08.18",NA,53,900,0,1119,"mushooms","ready-to-eat"
-"06.08.18",NA,20,1250,0,1102,"cassava","with water"
-"06.08.18",NA,20,1300,1,3002,"cassava","with water"
-"06.08.18",NA,54,1750,0,1103,"mushooms","smoked"
-"06.08.18",NA,24,1850,0,1104,"cassava leaves","with stem"
-"06.08.18",NA,35,1900,0,1116,"mela","ready-to-eat"
-"06.08.18",NA,57,2000,0,2039,"bat","raw"
-"06.08.18",NA,25,2000,0,2030,"kaso","with shell"
-"06.08.18",NA,76,2100,0,1124,"fish","raw"
-"06.08.18",NA,76,2250,0,1101,"fish","raw"
-"06.08.18",NA,1,2500,0,1106,"mobe","with seeds"
-"06.08.18",NA,64,2600,0,1103,"blue duiker","smoked"
-"06.08.18",NA,76,2750,0,3040,"fish","raw"
-"06.08.18",NA,53,2750,0,1103,"mushooms","ready-to-eat"
-"06.08.18",NA,76,4100,0,1119,"fish","raw"
-"06.08.18",NA,35,6600,0,2039,"mela","ready-to-eat"
-"07.08.18",NA,50,99.225,0,1115,"peppers","without stems"
-"07.08.18",NA,76,100,0,1032,"fish","raw"
-"07.08.18",NA,30,100,0,1120,"koko","with stem"
-"07.08.18",NA,30,200,0,3142,"koko","with stem"
-"07.08.18",NA,30,250,0,1006,"koko","with stem"
-"07.08.18",NA,2,250,0,1028,"maondo","with peel"
-"07.08.18",NA,48,250,0,1032,"matokodi","with husk"
-"07.08.18",NA,47,250,0,1023,"matokodi","ready-to-eat"
-"07.08.18",NA,35,250,0,3117,"mela","ready-to-eat"
-"07.08.18",NA,26,300,0,1116,"kaso","with husk"
-"07.08.18",NA,48,300,0,1028,"matokodi","with husk"
-"07.08.18",NA,53,300,0,1104,"mushooms","ready-to-eat"
-"07.08.18",NA,65,400,1,2039,"blue duiker","head"
-"07.08.18",NA,14,400,0,1028,"ekule","ready-to-eat"
-"07.08.18",NA,26,400,0,3142,"kaso","with husk"
-"07.08.18",NA,30,400,0,1035,"koko","with stem"
-"07.08.18",NA,47,400,0,3117,"matokodi","ready-to-eat"
-"07.08.18",NA,45,400,0,1115,"orange","with peel"
-"07.08.18",NA,24,500,0,3076,"cassava leaves","with stem"
-"07.08.18",NA,76,500,0,1122,"fish","raw"
-"07.08.18",NA,76,500,0,2523,"fish","raw"
-"07.08.18",NA,76,500,0,1006,"fish","raw"
-"07.08.18",NA,30,500,0,3117,"koko","with stem"
-"07.08.18",NA,47,500,0,1115,"matokodi","ready-to-eat"
-"07.08.18",NA,45,500,0,3076,"orange","with peel"
-"07.08.18",NA,35,518.825,0,1010,"mela","ready-to-eat"
-"07.08.18",NA,91,600,0,1124,"honey","ready-to-eat"
-"07.08.18",NA,25,600,0,2030,"kaso","with shell"
-"07.08.18",NA,47,600,0,1116,"matokodi","ready-to-eat"
-"07.08.18",NA,35,600,0,1120,"mela","ready-to-eat"
-"07.08.18",NA,36,600,0,1028,"pusa","without skin"
-"07.08.18",NA,36,600,0,1120,"pusa","without skin"
-"07.08.18",NA,15,650,0,2030,"epangi","ready-to-eat"
-"07.08.18",NA,48,750,0,1006,"matokodi","with husk"
-"07.08.18",NA,22,900,0,2039,"cassava","with skin"
-"07.08.18",NA,25,900,0,1032,"kaso","with shell"
-"07.08.18",NA,2,1000,1,1108,"maondo","with peel"
-"07.08.18",NA,35,1000,0,3142,"mela","ready-to-eat"
-"07.08.18",NA,25,1100,0,1102,"kaso","with shell"
-"07.08.18",NA,76,1200,0,2055,"fish","raw"
-"07.08.18",NA,91,1250,0,2055,"honey","ready-to-eat"
-"07.08.18",NA,25,1250,0,1006,"kaso","with shell"
-"07.08.18",NA,74,1500,0,3040,"brush-tailed porcupine","without quills"
-"07.08.18",NA,26,2000,0,1104,"kaso","with husk"
-"07.08.18",NA,76,2100,0,1119,"fish","raw"
-"07.08.18",NA,51,2500,0,3076,"peppers","with stems"
-"07.08.18",NA,71,2750,0,2030,"brush-tailed porcupine","with quills"
-"07.08.18",NA,5,5250,0,3142,"palm nut","without thorns"
-"07.08.18",NA,35,6100,0,1102,"mela","ready-to-eat"
-"07.08.18",NA,35,8250,0,1104,"mela","ready-to-eat"
-"07.08.18",NA,6,10100,0,1115,"palm nut","with thorns"
-"07.08.18",NA,6,10375,0,3040,"palm nut","with thorns"
-"07.08.18",NA,6,11250,0,3076,"palm nut","with thorns"
-"07.08.18",NA,6,11600,0,1122,"palm nut","with thorns"
-"07.08.18",NA,6,14100,0,2038,"palm nut","with thorns"
-"08.08.18",NA,20,150,0,3119,"cassava","with water"
-"08.08.18",NA,30,200,0,1120,"koko","with stem"
-"08.08.18",NA,44,200,0,3119,"lemon","with peel"
-"08.08.18",NA,47,200,0,2522,"matokodi","ready-to-eat"
-"08.08.18",NA,35,250,0,1121,"mela","ready-to-eat"
-"08.08.18",NA,36,250,0,2522,"pusa","without skin"
-"08.08.18",NA,36,250,0,3117,"pusa","without skin"
-"08.08.18",NA,55,300,0,1016,"ediki","with inedible"
-"08.08.18",NA,30,500,0,1116,"koko","with stem"
-"08.08.18",NA,24,1400,0,1102,"cassava leaves","with stem"
-"08.08.18",NA,42,1600,1,3078,"corn","without husk"
-"08.08.18",NA,35,1700,0,2522,"mela","ready-to-eat"
-"08.08.18",NA,35,1900,0,3117,"mela","ready-to-eat"
-"08.08.18",NA,2,3100,0,2038,"maondo","with peel"
-"09.08.18",NA,24,28.35,0,1009,"cassava leaves","with stem"
-"09.08.18",NA,38,100,0,1115,"banana","with peel"
-"09.08.18",NA,26,100,0,2539,"kaso","with husk"
-"09.08.18",NA,30,100,0,1120,"koko","with stem"
-"09.08.18",NA,2,100,0,1023,"maondo","with peel"
-"09.08.18",NA,36,100,0,1031,"pusa","without skin"
-"09.08.18",NA,30,200,0,2522,"koko","with stem"
-"09.08.18",NA,44,200,0,1104,"lemon","with peel"
-"09.08.18",NA,43,200,0,2031,"mbeku","0"
-"09.08.18",NA,24,250,0,3119,"cassava leaves","with stem"
-"09.08.18",NA,76,250,0,3117,"fish","raw"
-"09.08.18",NA,26,250,0,1120,"kaso","with husk"
-"09.08.18",NA,44,250,0,1023,"lemon","with peel"
-"09.08.18",NA,47,250,0,1031,"matokodi","ready-to-eat"
-"09.08.18",NA,35,250,0,3142,"mela","ready-to-eat"
-"09.08.18",NA,51,250,0,1104,"peppers","with stems"
-"09.08.18",NA,22,300,0,1104,"cassava","with skin"
-"09.08.18",NA,41,300,1,3075,"corn","with husk"
-"09.08.18",NA,25,400,0,1103,"kaso","with shell"
-"09.08.18",NA,17,400,0,3142,"kobo","ready-to-eat"
-"09.08.18",NA,2,400,0,1032,"maondo","with peel"
-"09.08.18",NA,48,400,0,3117,"matokodi","with husk"
-"09.08.18",NA,53,400,0,1120,"mushooms","ready-to-eat"
-"09.08.18",NA,24,500,0,3142,"cassava leaves","with stem"
-"09.08.18",NA,41,500,1,9999,"corn","with husk"
-"09.08.18",NA,30,500,0,1120,"koko","with stem"
-"09.08.18",NA,48,500,0,1028,"matokodi","with husk"
-"09.08.18",NA,35,500,0,2523,"mela","ready-to-eat"
-"09.08.18",NA,22,600,0,2039,"cassava","with skin"
-"09.08.18",NA,26,600,0,2030,"kaso","with husk"
-"09.08.18",NA,55,750,0,2523,"ediki","with inedible"
-"09.08.18",NA,55,750,0,2544,"ediki","with inedible"
-"09.08.18",NA,48,750,0,1121,"matokodi","with husk"
-"09.08.18",NA,42,900,1,9999,"corn","without husk"
-"09.08.18",NA,48,900,0,1119,"matokodi","with husk"
-"09.08.18",NA,48,900,0,2055,"matokodi","with husk"
-"09.08.18",NA,75,1000,1,9999,"caterpillars","with guts"
-"09.08.18",NA,70,1300,1,1110,"blue duiker","intestins"
-"09.08.18",NA,36,1450,0,3142,"pusa","without skin"
-"09.08.18",NA,39,1500,0,1104,"banana","ready-to-eat"
-"09.08.18",NA,62,1500,1,3075,"black-fronted duiker","raw"
-"09.08.18",NA,5,1500,0,1115,"palm nut","without thorns"
-"09.08.18",NA,24,2100,0,1115,"cassava leaves","with stem"
-"09.08.18",NA,2,2400,0,2030,"maondo","with peel"
-"09.08.18",NA,20,2750,1,3078,"cassava","with water"
-"09.08.18",NA,6,3150,0,2038,"palm nut","with thorns"
-"09.08.18",NA,36,3150,0,1120,"pusa","without skin"
-"09.08.18",NA,62,3450,1,3075,"black-fronted duiker","raw"
-"09.08.18",NA,35,3600,0,2031,"mela","ready-to-eat"
-"09.08.18",NA,35,3600,0,3117,"mela","ready-to-eat"
-"09.08.18",NA,6,4100,0,2038,"palm nut","with thorns"
-"09.08.18",NA,24,4200,0,1104,"cassava leaves","with stem"
-"09.08.18",NA,35,4350,0,1028,"mela","ready-to-eat"
-"09.08.18",NA,35,5000,0,1121,"mela","ready-to-eat"
-"09.08.18",NA,35,8500,0,1102,"mela","ready-to-eat"
-"09.08.18",NA,6,9050,0,1035,"palm nut","with thorns"
-"09.08.18",NA,6,13350,0,2038,"palm nut","with thorns"
-"09.08.18",NA,6,17700,0,1115,"palm nut","with thorns"
-"01.09.18",NA,75,100,0,2513,"caterpillars","with guts"
-"01.09.18",NA,30,100,0,1104,"koko","with stem"
-"01.09.18",NA,35,100,0,1016,"mela","ready-to-eat"
-"01.09.18",NA,75,150,0,1007,"caterpillars","with guts"
-"01.09.18",NA,75,150,0,1035,"caterpillars","with guts"
-"01.09.18",NA,75,200,0,1115,"caterpillars","with guts"
-"01.09.18",NA,30,200,0,1116,"koko","with stem"
-"01.09.18",NA,30,200,0,2031,"koko","with stem"
-"01.09.18",NA,30,200,0,2523,"koko","with stem"
-"01.09.18",NA,75,250,0,1007,"caterpillars","with guts"
-"01.09.18",NA,75,250,0,1010,"caterpillars","with guts"
-"01.09.18",NA,75,250,0,2513,"caterpillars","with guts"
-"01.09.18",NA,35,250,0,1035,"mela","ready-to-eat"
-"01.09.18",NA,47,300,0,1119,"matokodi","ready-to-eat"
-"01.09.18",NA,35,300,0,3077,"mela","ready-to-eat"
-"01.09.18",NA,75,350,0,1016,"caterpillars","with guts"
-"01.09.18",NA,75,350,0,2544,"caterpillars","with guts"
-"01.09.18",NA,75,400,0,3041,"caterpillars","with guts"
-"01.09.18",NA,30,450,0,2522,"koko","with stem"
-"01.09.18",NA,59,500,0,1124,"bird","with feathers"
-"01.09.18",NA,75,500,0,1120,"caterpillars","with guts"
-"01.09.18",NA,47,500,0,1104,"matokodi","ready-to-eat"
-"01.09.18",NA,36,500,0,3041,"pusa","without skin"
-"01.09.18",NA,75,600,0,1016,"caterpillars","with guts"
-"01.09.18",NA,75,600,0,1028,"caterpillars","with guts"
-"01.09.18",NA,75,600,0,1102,"caterpillars","with guts"
-"01.09.18",NA,30,600,0,1102,"koko","with stem"
-"01.09.18",NA,30,600,0,1121,"koko","with stem"
-"01.09.18",NA,35,600,0,2522,"mela","ready-to-eat"
-"01.09.18",NA,75,750,0,2513,"caterpillars","with guts"
-"01.09.18",NA,75,800,0,1007,"caterpillars","with guts"
-"01.09.18",NA,75,800,0,1010,"caterpillars","with guts"
-"01.09.18",NA,75,800,0,1121,"caterpillars","with guts"
-"01.09.18",NA,75,800,0,2544,"caterpillars","with guts"
-"01.09.18",NA,75,900,0,2523,"caterpillars","with guts"
-"01.09.18",NA,75,950,0,2522,"caterpillars","with guts"
-"01.09.18",NA,75,1000,0,2031,"caterpillars","with guts"
-"01.09.18",NA,75,1250,0,1116,"caterpillars","with guts"
-"01.09.18",NA,35,2000,0,2523,"mela","ready-to-eat"
-"01.09.18",NA,35,2250,0,1104,"mela","ready-to-eat"
-"01.09.18",NA,6,3250,0,2055,"palm nut","with thorns"
-"01.09.18",NA,6,8500,0,1124,"palm nut","with thorns"
-"02.09.18",NA,30,99.225,0,1031,"koko","with stem"
-"02.09.18",NA,30,100,0,1115,"koko","with stem"
-"02.09.18",NA,50,100,0,1103,"peppers","without stems"
-"02.09.18",NA,51,100,0,1120,"peppers","with stems"
-"02.09.18",NA,30,150,0,2538,"koko","with stem"
-"02.09.18",NA,51,200,0,2039,"peppers","with stems"
-"02.09.18",NA,75,300,0,2523,"caterpillars","with guts"
-"02.09.18",NA,75,300,0,2539,"caterpillars","with guts"
-"02.09.18",NA,75,350,0,1010,"caterpillars","with guts"
-"02.09.18",NA,75,500,0,2538,"caterpillars","with guts"
-"02.09.18",NA,2,600,0,3117,"maondo","with peel"
-"02.09.18",NA,75,650,0,1016,"caterpillars","with guts"
-"02.09.18",NA,55,750,0,1030,"ediki","with inedible"
-"02.09.18",NA,75,900,0,3142,"caterpillars","with guts"
-"02.09.18",NA,20,1250,0,1101,"cassava","with water"
-"02.09.18",NA,75,1600,0,1103,"caterpillars","with guts"
-"02.09.18",NA,76,1900,0,1103,"fish","raw"
-"02.09.18",NA,35,2500,0,3117,"mela","ready-to-eat"
-"02.09.18",NA,75,3000,0,2030,"caterpillars","with guts"
-"02.09.18",NA,7,3000,0,2513,"palm nut","head"
-"02.09.18",NA,35,3900,0,1035,"mela","ready-to-eat"
-"02.09.18",NA,35,4300,0,2522,"mela","ready-to-eat"
-"02.09.18",NA,35,6100,0,1102,"mela","ready-to-eat"
-"02.09.18",NA,35,6500,0,2039,"mela","ready-to-eat"
-"02.09.18",NA,35,7100,0,1115,"mela","ready-to-eat"
-"02.09.18",NA,35,8000,0,1116,"mela","ready-to-eat"
-"02.09.18",NA,6,9375,0,2038,"palm nut","with thorns"
-"02.09.18",NA,35,9500,0,1120,"mela","ready-to-eat"
-"02.09.18",NA,6,12000,0,2030,"palm nut","with thorns"
+group_id,total.minutes,kcal
+2018-07-23_1,29.714285714285715,247.24999970000002
+2018-07-23_10,35.166666666666664,0.0
+2018-07-23_1101,14.0,0.0
+2018-07-23_1102,35.0,6742.603384592969
+2018-07-23_1119,67.0,0.0
+2018-07-23_2,38.0,0.0
+2018-07-23_3,19.8,0.0
+2018-07-23_3040,84.0,1211.364270703125
+2018-07-23_6,269.3333333333333,0.0
+2018-07-23_7,179.0,0.0
+2018-07-23_8,56.666666666666664,0.0
+2018-07-23_9,73.5,0.0
+2018-07-24_1,11.0,777.5
+2018-07-24_10,56.25,3272.5
+2018-07-24_1032,28.0,435.39741738281253
+2018-07-24_11,375.0,7377.0
+2018-07-24_1101,37.0,0.0
+2018-07-24_1103,31.0,0.0
+2018-07-24_1119,47.0,5269.285714
+2018-07-24_12,499.0,10692.0
+2018-07-24_13,118.0,2887.5
+2018-07-24_16,25.0,1238.45
+2018-07-24_2,6.0,921.5681807
+2018-07-24_3,136.0,3577.8
+2018-07-24_3040,92.0,901.3677165000001
+2018-07-24_4,34.833333333333336,464.31
+2018-07-24_5,483.0,1255.5000003
+2018-07-24_7,90.0,465.0
+2018-07-24_8,491.0,2214.0
+2018-07-24_9,552.6666666666666,1328.4
+2018-07-25_1,307.0,400.60787400000004
+2018-07-25_10,17.0,0.0
+2018-07-25_1032,23.0,248.15241738281247
+2018-07-25_11,33.0,0.0
+2018-07-25_1101,334.0,3408.6600000000003
+2018-07-25_1119,21.0,2381.518942166667
+2018-07-25_14,209.5,0.0
+2018-07-25_2,179.0,197.20877171875
+2018-07-25_3,25.0,300.45590550000003
+2018-07-25_5,29.0,4541.25
+2018-07-25_6,104.0,466.78720000000004
+2018-07-25_7,97.8,5832.0
+2018-07-25_8,193.0,52488.0
+2018-07-25_9,26.0,2293.146
+2018-07-26_1,21.0,85.0
+2018-07-26_10,64.0,0.0
+2018-07-26_1009,12.0,0.0
+2018-07-26_1016,9.0,100.15196850000001
+2018-07-26_11,417.5,0.0
+2018-07-26_1101,181.0,4166.14
+2018-07-26_1103,207.0,225.370096875
+2018-07-26_1115,57.0,4878.41240002835
+2018-07-26_1121,197.0,351.7652381666667
+2018-07-26_12,17.8,0.0
+2018-07-26_13,21.0,0.0
+2018-07-26_14,8.2,0.0
+2018-07-26_15,58.0,0.0
+2018-07-26_16,9.0,0.0
+2018-07-26_18,63.0,0.0
+2018-07-26_19,466.0,0.0
+2018-07-26_2,1.0,400.60787400000004
+2018-07-26_3,28.0,4280.4
+2018-07-26_3040,127.0,1195.955342625
+2018-07-26_4,52.0,1017.9310360000001
+2018-07-26_5,77.0,300.45590550000003
+2018-07-26_6,299.75,3071.25
+2018-07-26_7,84.0,890.0
+2018-07-26_8,18.0,262.5
+2018-07-26_9,44.333333333333336,0.0
+2018-07-27_1,72.0,2503.7992125
+2018-07-27_10,19.0,0.0
+2018-07-27_11,227.0,0.0
+2018-07-27_1101,154.5,623.1375
+2018-07-27_1116,487.0,0.0
+2018-07-27_1120,61.0,14754.0
+2018-07-27_1124,456.0,0.0
+2018-07-27_14,182.0,0.0
+2018-07-27_4,97.0,997.02
+2018-07-27_5,480.6666666666667,496.84765625
+2018-07-27_6,295.0,313.82712
+2018-07-27_8,385.8,2227.5
+2018-07-27_9,247.0,872.3925
+2018-07-28_1,29.0,168.6825
+2018-07-28_10,186.0,23328.0
+2018-07-28_11,239.0,28382.399999999998
+2018-07-28_1101,117.0,0.0
+2018-07-28_1102,165.0,313.4142494709167
+2018-07-28_12,38.3,9652.5
+2018-07-28_14,55.5,0.0
+2018-07-28_2,446.0,172.0
+2018-07-28_2038,255.0,751.13976375
+2018-07-28_3,22.0,0.0
+2018-07-28_3040,152.0,4202.34420675
+2018-07-28_4,197.0,149.553
+2018-07-28_5,4.5,13.1812
+2018-07-28_7,122.0,398.808
+2018-07-28_8,6.0,5832.0
+2018-07-28_9,108.0,17496.0
+2018-07-29_10,102.0,0.0
+2018-07-29_11,343.6666666666667,0.0
+2018-07-29_1103,85.0,0.0
+2018-07-29_13,252.75,0.0
+2018-07-29_14,41.0,0.0
+2018-07-29_15,89.0,0.0
+2018-07-29_16,85.33333333333333,0.0
+2018-07-29_2,519.0,19602.0
+2018-07-29_2030,88.0,0.0
+2018-07-29_3,91.0,31630.5
+2018-07-29_5,1.0,3110.0
+2018-07-29_6,3.0,186.0
+2018-07-29_7,546.3333333333334,4665.0
+2018-07-29_8,10.0,449.545454
+2018-07-29_9,144.5,157.5
+2018-07-30_1,23.0,0.0
+2018-07-30_10,401.5,12927.6
+2018-07-30_11,309.0,13413.6
+2018-07-30_1101,163.0,0.0
+2018-07-30_12,366.5,19683.0
+2018-07-30_13,40.833333333333336,15325.200000000003
+2018-07-30_14,26.75,28188.0
+2018-07-30_15,63.0,34992.0
+2018-07-30_2038,114.0,5960.833333333333
+2018-07-30_3,673.0,19.11692043135
+2018-07-30_4,24.0,89.9090908
+2018-07-30_7,556.3333333333334,0.0
+2018-07-30_9,523.5,6804.0
+2018-07-31_10,43.0,0.0
+2018-07-31_11,31.0,0.0
+2018-07-31_1103,109.0,0.0
+2018-07-31_1124,13.0,0.0
+2018-07-31_12,98.0,0.0
+2018-07-31_13,91.0,0.0
+2018-07-31_2,104.0,0.0
+2018-07-31_2038,63.0,0.0
+2018-07-31_2523,69.0,3688.5
+2018-07-31_3,25.0,196.0
+2018-07-31_3076,2.0,0.0
+2018-07-31_4,307.0,6220.0
+2018-07-31_5,22.0,0.0
+2018-07-31_6,31.0,0.0
+2018-07-31_8,238.5,0.0
+2018-08-01_10,16.0,119.0
+2018-08-01_11,326.0,1904.0
+2018-08-01_1101,153.0,5453.856000000001
+2018-08-01_1103,35.0,0.0
+2018-08-01_1122,240.0,0.0
+2018-08-01_1124,74.5,186.0
+2018-08-01_12,2.0,0.0
+2018-08-01_14,1.0,0.0
+2018-08-01_15,23.0,0.0
+2018-08-01_17,53.0,0.0
+2018-08-01_18,19.0,0.0
+2018-08-01_2,21.0,632.4
+2018-08-01_2030,421.0,24786.0
+2018-08-01_3,22.0,1476.0
+2018-08-01_3040,359.0,448.659
+2018-08-01_4,25.0,222.5
+2018-08-01_5,437.0,885.6
+2018-08-01_6,16.0,6069.0
+2018-08-01_8,391.0,224.772727
+2018-08-01_9,561.6666666666666,605.0
+2018-08-02_1,17.0,899.090908
+2018-08-02_10,463.5,0.0
+2018-08-02_1006,16.0,0.0
+2018-08-02_11,334.5,0.0
+2018-08-02_1101,76.0,0.0
+2018-08-02_1124,95.5,0.0
+2018-08-02_12,51.30769230769231,0.0
+2018-08-02_14,24.11111111111111,0.0
+2018-08-02_3,58.0,561.9318175
+2018-08-02_3040,65.0,205.86177812024997
+2018-08-02_4,27.0,4009.5000000000005
+2018-08-02_5,475.0,2214.0
+2018-08-02_7,78.0,0.0
+2018-08-02_8,410.2,0.0
+2018-08-02_9,280.2,0.0
+2018-08-03_1,82.0,3688.5
+2018-08-03_11,347.0,0.0
+2018-08-03_1101,118.5,0.0
+2018-08-03_1103,243.0,0.0
+2018-08-03_1124,32.0,6059.84
+2018-08-03_12,6.0,0.0
+2018-08-03_13,99.0,0.0
+2018-08-03_14,390.0,0.0
+2018-08-03_15,153.66666666666666,0.0
+2018-08-03_16,96.0,0.0
+2018-08-03_18,359.0,0.0
+2018-08-03_2,94.33333333333333,217.0
+2018-08-03_20,13.0,0.0
+2018-08-03_2038,81.0,0.0
+2018-08-03_24,9.5,0.0
+2018-08-03_3,1.5,224.772727
+2018-08-03_3040,213.5,292.2045451
+2018-08-03_5,113.0909090909091,674.318181
+2018-08-03_6,102.0,200.30393700000002
+2018-08-03_7,145.6,9221.25
+2018-08-03_8,296.0,0.0
+2018-08-03_9,9.0,0.0
+2018-08-04_1,18.0,280.96590875
+2018-08-04_10,271.0,0.0
+2018-08-04_1032,15.0,1557.31965625
+2018-08-04_11,15.333333333333334,0.0
+2018-08-04_1101,182.5,299.106
+2018-08-04_1103,162.0,0.0
+2018-08-04_1124,4.0,2681.457
+2018-08-04_12,2.0,0.0
+2018-08-04_14,100.5,0.0
+2018-08-04_2,462.5,561.9318175
+2018-08-04_2030,191.0,2212.180083333333
+2018-08-04_3,133.44444444444446,606.8863629
+2018-08-04_5,614.5,2672.0689695
+2018-08-04_6,535.0,199.404
+2018-08-04_7,268.25,1328.4
+2018-08-04_8,261.0,341.0
+2018-08-04_9,14.0,0.0
+2018-08-05_10,2.0,0.0
+2018-08-05_11,12.0,0.0
+2018-08-05_1101,139.0,0.0
+2018-08-05_1106,541.0,4906.524803
+2018-08-05_1119,58.0,0.0
+2018-08-05_1124,29.0,0.0
+2018-08-05_12,74.0,0.0
+2018-08-05_13,60.666666666666664,0.0
+2018-08-05_14,143.0,0.0
+2018-08-05_15,24.0,0.0
+2018-08-05_16,15.0,0.0
+2018-08-05_17,27.88888888888889,0.0
+2018-08-05_2038,108.0,0.0
+2018-08-05_2039,187.0,2499.0
+2018-08-05_2513,27.0,0.0
+2018-08-05_3,538.0,91.875
+2018-08-05_5,113.0,22.4772727
+2018-08-05_6,80.0,5236.0
+2018-08-05_7,432.0,0.0
+2018-08-05_8,42.0,0.0
+2018-08-05_9,382.0,0.0
+2018-08-06_1,89.0,500.75984250000005
+2018-08-06_10,189.0,797.616
+2018-08-06_1032,13.0,199.404
+2018-08-06_11,226.66666666666666,28767.5
+2018-08-06_1101,142.0,1121.6475
+2018-08-06_1119,5.0,1161.4455
+2018-08-06_1122,157.0,0.0
+2018-08-06_1124,54.0,1046.871
+2018-08-06_12,440.5,0.0
+2018-08-06_13,365.25,0.0
+2018-08-06_14,75.0,0.0
+2018-08-06_15,6.0,0.0
+2018-08-06_16,23.0,0.0
+2018-08-06_17,15.0,0.0
+2018-08-06_18,293.0,0.0
+2018-08-06_19,3.0,0.0
+2018-08-06_2,31.0,2673.0
+2018-08-06_20,92.8,0.0
+2018-08-06_2030,202.0,2856.520265083333
+2018-08-06_2031,151.0,235.42857160000003
+2018-08-06_21,190.0,0.0
+2018-08-06_22,158.0,0.0
+2018-08-06_23,166.66666666666666,0.0
+2018-08-06_24,62.0,0.0
+2018-08-06_25,174.4,0.0
+2018-08-06_3,48.0,6586.607142499999
+2018-08-06_3076,104.0,0.0
+2018-08-06_4,62.0,61.25
+2018-08-06_5,9.0,117.71428580000001
+2018-08-06_7,192.5,299.106
+2018-08-06_8,145.0,174.47850000000003
+2018-08-06_9,122.0,408.18995820000004
+2018-08-07_1,37.0,714.0
+2018-08-07_10,508.3333333333333,3018.75
+2018-08-07_11,4.2,262.5
+2018-08-07_1101,60.0,0.0
+2018-08-07_1103,64.0,0.0
+2018-08-07_1115,351.0,5871.013802174999
+2018-08-07_1124,37.0,1866.0
+2018-08-07_12,351.0,0.0
+2018-08-07_15,42.0,0.0
+2018-08-07_16,51.0,0.0
+2018-08-07_17,51.0,0.0
+2018-08-07_18,1.0,0.0
+2018-08-07_19,108.5,0.0
+2018-08-07_2,185.0,353.1428574
+2018-08-07_20,45.666666666666664,0.0
+2018-08-07_2030,423.0,2044.0247916666667
+2018-08-07_3,32.0,112.3863635
+2018-08-07_3076,335.0,5656.40387725
+2018-08-07_3142,211.0,4325.2055399500005
+2018-08-07_4,87.0,2709.344
+2018-08-07_7,377.4,5236.0
+2018-08-07_8,53.75,10885.0
+2018-08-07_9,434.0,5442.5
+2018-08-08_1,40.0,147.14285725000002
+2018-08-08_10,79.0,0.0
+2018-08-08_11,29.0,0.0
+2018-08-08_1101,75.0,0.0
+2018-08-08_1116,17.0,294.28571450000004
+2018-08-08_1124,45.0,0.0
+2018-08-08_12,24.0,0.0
+2018-08-08_13,41.0,0.0
+2018-08-08_14,9.0,0.0
+2018-08-08_2038,141.5,696.7954537
+2018-08-08_3,32.0,39.96
+2018-08-08_4,53.0,1190.0
+2018-08-08_5,74.0,0.0
+2018-08-08_6,12.0,0.0
+2018-08-08_7,13.0,0.0
+2018-08-08_8,168.0,0.0
+2018-08-08_9,195.0,0.0
+2018-08-09_1,17.0,395.25
+2018-08-09_1030,41.0,0.0
+2018-08-09_1032,13.0,89.9090908
+2018-08-09_11,174.0,0.0
+2018-08-09_1119,28.0,4742.3571426
+2018-08-09_1124,138.5,0.0
+2018-08-09_12,28.0,0.0
+2018-08-09_13,25.333333333333332,0.0
+2018-08-09_14,49.125,0.0
+2018-08-09_16,34.7,0.0
+2018-08-09_17,52.0,0.0
+2018-08-09_18,14.0,0.0
+2018-08-09_19,85.0,0.0
+2018-08-09_2,46.0,44712.0
+2018-08-09_2030,365.0,570.1831779
+2018-08-09_2055,15.0,4742.3571426
+2018-08-09_2523,13.0,343.4375
+2018-08-09_3142,427.0,794.3
+2018-08-09_5,133.0,2103.1913385000003
+2018-08-09_6,19.0,0.0
+2018-08-09_7,68.0,0.0
+2018-08-09_8,245.0,0.0
+2018-08-09_9,455.85714285714283,0.0
+2018-08-10_10,36.0,0.0
+2018-08-10_1006,40.5,0.0
+2018-08-10_1010,10.0,0.0
+2018-08-10_1101,54.0,0.0
+2018-08-10_1102,18.0,0.0
+2018-08-10_1103,163.5,0.0
+2018-08-10_1119,41.0,0.0
+2018-08-10_1120,61.0,164.6870855708
+2018-08-10_1122,128.0,168.57954525
+2018-08-10_1124,133.5,0.0
+2018-08-10_12,232.0,0.0
+2018-08-10_13,102.0,0.0
+2018-08-10_14,243.0,0.0
+2018-08-10_15,34.333333333333336,0.0
+2018-08-10_16,28.5,0.0
+2018-08-10_17,65.0,0.0
+2018-08-10_18,53.6,0.0
+2018-08-10_19,27.0,0.0
+2018-08-10_2030,382.0,10817.15
+2018-08-10_2031,62.0,294.28571450000004
+2018-08-10_2038,83.0,0.0
+2018-08-10_2522,86.5,147.14285725000002
+2018-08-10_2539,2.0,0.0
+2018-08-10_3040,54.5,0.0
+2018-08-10_3077,77.0,2825.901000042525
+2018-08-10_4,306.0,0.0
+2018-08-10_5,62.0,58.85714290000001
+2018-08-10_7,74.6,0.0
+2018-08-10_8,135.5,0.0
+2018-08-10_9,129.5,0.0
+2018-08-11_1,397.0,126.78464
+2018-08-11_10,522.0,0.0
+2018-08-11_11,9.0,0.0
+2018-08-11_1103,154.0,584.4090902
+2018-08-11_1124,298.0,12802.833333333334
+2018-08-11_12,61.0,0.0
+2018-08-11_13,11.333333333333334,0.0
+2018-08-11_14,10.625,0.0
+2018-08-11_15,47.0,0.0
+2018-08-11_16,16.0,0.0
+2018-08-11_17,21.0,0.0
+2018-08-11_20,494.5,0.0
+2018-08-11_2030,448.0,637.330610625
+2018-08-11_21,13.0,0.0
+2018-08-11_3,89.0,137.6
+2018-08-11_4,338.0,4879.0
+2018-08-11_5,464.0,2120.944
+2018-08-11_6,508.0,859.9999999999999
+2018-08-11_7,1.5,0.0
+2018-08-11_8,441.0,0.0
+2018-08-11_9,137.11111111111111,0.0
+2018-08-12_1,419.0,29160.000000000004
+2018-08-12_10,125.0,0.0
+2018-08-12_1032,4.0,0.0
+2018-08-12_11,371.5,0.0
+2018-08-12_1103,362.0,0.0
+2018-08-12_1124,236.0,0.0
+2018-08-12_12,175.0,0.0
+2018-08-12_14,141.0,0.0
+2018-08-12_16,17.0,0.0
+2018-08-12_17,53.0,0.0
+2018-08-12_2038,292.0,2150.1375737500002
+2018-08-12_3,235.0,20196.0
+2018-08-12_4,126.0,756.8
+2018-08-12_5,23.5,5355.0
+2018-08-12_7,265.0,1071.0
+2018-08-12_9,155.66666666666666,0.0
+2018-08-13_1,9.0,179.8181816
+2018-08-13_10,412.5,0.0
+2018-08-13_1032,61.0,70.982707674375
+2018-08-13_11,217.0,0.0
+2018-08-13_1103,242.5,0.0
+2018-08-13_1116,448.0,5355.0
+2018-08-13_1119,203.5,4923.62
+2018-08-13_1120,111.0,1285.13793295
+2018-08-13_1122,118.5,0.0
+2018-08-13_1124,93.0,2393.14765625
+2018-08-13_12,45.0,0.0
+2018-08-13_13,33.4,0.0
+2018-08-13_15,78.83333333333333,0.0
+2018-08-13_18,69.0,0.0
+2018-08-13_19,32.0,0.0
+2018-08-13_2030,408.0,0.0
+2018-08-13_2031,399.0,2930.790666674767
+2018-08-13_2544,37.0,0.0
+2018-08-13_3,77.0,12440.0
+2018-08-13_3040,47.0,0.0
+2018-08-13_4,76.5,9330.0
+2018-08-13_5,29.0,7735.0
+2018-08-13_6,557.6666666666666,6961.5
+2018-08-13_7,43.0,0.0
+2018-08-13_8,343.0,0.0
+2018-08-13_9,454.0,0.0
+2018-08-14_1,500.8333333333333,247.24999970000002
+2018-08-14_10,90.0,0.0
+2018-08-14_1008,22.0,105.4
+2018-08-14_11,65.0,0.0
+2018-08-14_1101,306.0,0.0
+2018-08-14_1122,353.5,1194.845528375
+2018-08-14_1124,192.5,0.0
+2018-08-14_12,72.0,0.0
+2018-08-14_15,108.0,0.0
+2018-08-14_16,65.44444444444444,0.0
+2018-08-14_19,78.66666666666667,0.0
+2018-08-14_2038,1.0,0.0
+2018-08-14_22,241.0,0.0
+2018-08-14_3,78.0,30888.000000000004
+2018-08-14_5,316.0,21870.0
+2018-08-14_6,323.5,472.0227267
+2018-08-14_7,184.0,172.0
+2018-08-14_8,1.0,0.0
+2018-08-14_9,3.0,0.0
+2018-08-15_10,185.0,0.0
+2018-08-15_1032,5.0,476.0
+2018-08-15_11,78.0,0.0
+2018-08-15_1101,78.0,2421.64772715
+2018-08-15_1120,89.0,117.71428580000001
+2018-08-15_1122,44.0,0.0
+2018-08-15_1124,78.0,0.0
+2018-08-15_12,386.0,0.0
+2018-08-15_14,166.0,0.0
+2018-08-15_16,78.0,0.0
+2018-08-15_3,482.0,0.0
+2018-08-15_3040,146.5,0.0
+2018-08-15_5,567.3333333333334,0.0
+2018-08-15_6,47.5,0.0
+2018-08-15_7,433.5,0.0
+2018-08-15_8,509.0,0.0
+2018-08-15_9,147.75,0.0
+2018-08-16_1,93.0,894.4
+2018-08-16_10,235.75,0.0
+2018-08-16_1032,34.0,0.0
+2018-08-16_11,67.0,0.0
+2018-08-16_1103,101.0,0.0
+2018-08-16_1121,469.0,861.3399999999999
+2018-08-16_12,91.33333333333333,0.0
+2018-08-16_13,15.0,0.0
+2018-08-16_15,225.0,0.0
+2018-08-16_16,406.85714285714283,0.0
+2018-08-16_17,121.5,0.0
+2018-08-16_18,48.0,0.0
+2018-08-16_2,597.0,62.0
+2018-08-16_2030,122.0,2339.2
+2018-08-16_2038,116.0,0.0
+2018-08-16_2039,61.5,1818.7142858
+2018-08-16_2523,3.0,55.125
+2018-08-16_3142,385.0,955.0725000455625
+2018-08-16_4,83.0,2023.0
+2018-08-16_5,237.0,5131.5
+2018-08-16_6,480.0,16949.5
+2018-08-16_7,31.25,0.0
+2018-08-16_8,291.3333333333333,0.0
+2018-08-16_9,427.0,0.0
+2018-08-17_1006,34.0,0.0
+2018-08-17_11,2368.6666666666665,0.0
+2018-08-17_12,245.4,0.0
+2018-08-17_14,1.0,0.0
+2018-08-17_15,302.0,0.0
+2018-08-17_16,7.0,0.0
+2018-08-17_17,64.0,0.0
+2018-08-17_20,43.0,0.0
+2018-08-17_2038,259.0,0.0
+2018-08-17_2513,17.0,0.0
+2018-08-17_4,3.0,199.404
+2018-08-17_5,569.6666666666666,10108.8
+2018-08-17_6,49.0,12150.0
+2018-08-17_8,19.0,149.553
+2018-08-17_9,34.0,1476.0
+2018-08-18_1,44.0,340.0
+2018-08-18_10,46.25,1106.7
+2018-08-18_11,43.666666666666664,685.86
+2018-08-18_1106,451.0,0.0
+2018-08-18_2,43.0,105.4
+2018-08-18_2522,2.0,902.65
+2018-08-18_2523,33.0,44.9545454
+2018-08-18_3,15.5,247.24999970000002
+2018-08-18_4,1913.5714285714287,1032.0
+2018-08-18_7,458.4,5771.5
+2018-08-18_8,86.2,1737.512
+2018-08-18_9,158.0,3272.5
+2018-08-19_1,65.0,340.0
+2018-08-19_1008,32.0,0.0
+2018-08-19_11,203.33333333333334,0.0
+2018-08-19_1102,16.0,0.0
+2018-08-19_12,197.0,0.0
+2018-08-19_13,245.0,0.0
+2018-08-19_14,88.0,0.0
+2018-08-19_2,147.0,104.58315
+2018-08-19_2031,322.0,4410.1140000000005
+2018-08-19_2522,12.0,2714.05
+2018-08-19_3,64.0,738.0
+2018-08-19_3077,51.0,476.0
+2018-08-19_5,288.5,0.0
+2018-08-19_7,42.5,0.0
+2018-08-19_8,196.3,0.0
+2018-08-20_1,137.5,52.7
+2018-08-20_1102,287.5,6545.0
+2018-08-20_1121,28.0,2510.382759
+2018-08-20_2,14.0,12545.624000000002
+2018-08-20_2039,193.0,0.0
+2018-08-20_2522,24.0,274.344
+2018-08-20_3,199.5,5831.0
+2018-08-20_3117,67.0,0.0
+2018-08-20_3142,486.0,2428.0
+2018-08-20_4,299.0,1785.0
+2018-08-20_5,536.75,294.28571450000004
+2018-08-20_6,522.0,34.31
+2018-08-20_7,62.0,131.25
+2018-08-20_9,205.0,262.5
+2018-08-21_1,18.0,2082.5
+2018-08-21_10,278.5,0.0
+2018-08-21_11,224.0,0.0
+2018-08-21_1101,19.0,14249.999999999998
+2018-08-21_1102,26.0,0.0
+2018-08-21_1119,19.0,0.0
+2018-08-21_1124,9.0,0.0
+2018-08-21_12,75.0,0.0
+2018-08-21_2030,145.5,21739.3863635
+2018-08-21_2031,248.0,585.0076637656
+2018-08-21_3,272.0,297.5
+2018-08-21_3040,141.0,8905.696590874999
+2018-08-21_4,277.0,590.4
+2018-08-21_5,317.6666666666667,3412.5
+2018-08-21_6,517.5,0.0
+2018-08-21_7,403.5,0.0
+2018-08-21_8,477.0,0.0
+2018-08-21_9,297.0,0.0
+2018-08-22_1,176.0,249.255
+2018-08-22_10,60.142857142857146,0.0
+2018-08-22_11,2.0,0.0
+2018-08-22_1101,288.0,0.0
+2018-08-22_1104,11.0,147.14285725000002
+2018-08-22_12,23.0,0.0
+2018-08-22_13,161.0,0.0
+2018-08-22_14,437.0,0.0
+2018-08-22_2,14.0,55.125
+2018-08-22_2544,4.0,0.0
+2018-08-22_3,463.0,1100.8
+2018-08-22_5,68.5,257.25
+2018-08-22_6,266.0,309.59999999999997
+2018-08-22_7,401.5,297.5
+2018-08-22_8,6.0,344.0
+2018-08-22_9,71.5,772.6905
+2018-08-23_1,457.1818181818182,600.9118110000001
+2018-08-23_10,63.0,0.0
+2018-08-23_11,19.0,0.0
+2018-08-23_12,78.16666666666667,0.0
+2018-08-23_2,374.0,1135.1999999999998
+2018-08-23_3,46.75,516.0
+2018-08-23_5,289.5,0.0
+2018-08-23_6,69.0,0.0
+2018-08-23_7,294.0,0.0
+2018-08-23_8,257.3333333333333,0.0
+2018-08-23_9,380.3333333333333,0.0
+2018-08-24_1,69.25,4752.0
+2018-08-24_10,437.0,0.0
+2018-08-24_11,1.0,0.0
+2018-08-24_1101,23.0,0.0
+2018-08-24_1106,167.0,0.0
+2018-08-24_1120,106.0,206.6
+2018-08-24_1124,51.0,33.71590905
+2018-08-24_13,5.0,0.0
+2018-08-24_14,255.0,0.0
+2018-08-24_15,181.0,0.0
+2018-08-24_16,172.5,0.0
+2018-08-24_3,3.0,52.7
+2018-08-24_3040,208.5,720.9
+2018-08-24_3041,28.0,235.42857160000003
+2018-08-24_5,125.0,103.19999999999999
+2018-08-24_6,2.0,892.5
+2018-08-24_7,372.8,217.0
+2018-08-24_8,411.4,0.0
+2018-08-24_9,419.0,0.0
+2018-08-25_1,15.0,2213.1
+2018-08-25_10,105.5,0.0
+2018-08-25_11,163.0,0.0
+2018-08-25_1101,59.0,0.0
+2018-08-25_1103,158.0,1100.8
+2018-08-25_1122,214.0,22744.8
+2018-08-25_1124,39.0,0.0
+2018-08-25_14,58.0,0.0
+2018-08-25_15,7.0,0.0
+2018-08-25_16,24.0,0.0
+2018-08-25_2030,389.0,40824.0
+2018-08-25_2031,378.0,2409.42857145
+2018-08-25_2038,155.0,13189.5
+2018-08-25_2544,35.0,792.75
+2018-08-25_3,23.0,1936.0
+2018-08-25_3142,425.0,416.0161904666667
+2018-08-25_4,5.0,20606.399999999998
+2018-08-25_5,152.5,26284.5
+2018-08-25_6,373.6666666666667,21967.2
+2018-08-25_7,166.66666666666666,0.0
+2018-08-25_8,79.14285714285714,0.0
+2018-08-25_9,262.5,0.0
+2018-08-26_1,73.0,340.0
+2018-08-26_10,75.33333333333333,0.0
+2018-08-26_1010,19.0,0.0
+2018-08-26_11,19.0,0.0
+2018-08-26_1101,23.0,0.0
+2018-08-26_1124,69.0,15550.0
+2018-08-26_12,160.85714285714286,0.0
+2018-08-26_13,184.0,0.0
+2018-08-26_14,225.0,0.0
+2018-08-26_15,31.6,0.0
+2018-08-26_2,51.0,172.0
+2018-08-26_2544,43.0,48.76199999999999
+2018-08-26_3,388.0,275.2
+2018-08-26_3040,168.0,2272.44
+2018-08-26_5,337.75,79.05
+2018-08-26_6,613.6666666666666,1719.9999999999998
+2018-08-26_7,531.0,2380.0
+2018-08-26_8,15.666666666666666,172.0
+2018-08-26_9,400.5,117.0
+2018-08-27_1,314.6,172.0
+2018-08-27_10,181.0,0.0
+2018-08-27_11,115.0,0.0
+2018-08-27_1101,28.0,0.0
+2018-08-27_1116,300.0,0.0
+2018-08-27_1119,471.0,708.2984847666667
+2018-08-27_1120,468.0,1623.6
+2018-08-27_1124,156.0,0.0
+2018-08-27_2,28.0,68.8
+2018-08-27_2544,63.0,0.0
+2018-08-27_4,136.5,131.75
+2018-08-27_5,204.0,622.0
+2018-08-27_6,169.4,859.9999999999999
+2018-08-27_7,136.0,309.59999999999997
+2018-08-27_8,142.5,353.1428574
+2018-08-27_9,82.33333333333333,299.106
+2018-08-28_1,597.0,1547.9999999999998
+2018-08-28_10,263.5,0.0
+2018-08-28_11,506.0,0.0
+2018-08-28_1101,251.0,0.0
+2018-08-28_12,28.2,0.0
+2018-08-28_13,44.875,0.0
+2018-08-28_14,221.0,0.0
+2018-08-28_2,181.0,2380.0
+2018-08-28_2031,47.0,1048.7845238166667
+2018-08-28_2038,494.0,480.5
+2018-08-28_2039,494.0,3986.5
+2018-08-28_3,506.5,5950.0
+2018-08-28_3040,142.0,3938.896
+2018-08-28_4,524.5,27702.0
+2018-08-28_5,137.8,2408.0
+2018-08-28_6,544.0,4581.5
+2018-08-28_7,450.2,1476.0
+2018-08-28_8,525.5,516.0
+2018-08-28_9,275.0,0.0
+2018-08-29_1,506.1,52.7
+2018-08-29_10,9.0,1785.0
+2018-08-29_1032,17.0,0.0
+2018-08-29_11,79.0,7735.0
+2018-08-29_1124,66.0,14404.500000000002
+2018-08-29_12,381.0,476.0
+2018-08-29_2,316.5,134.8636362
+2018-08-29_2030,334.0,0.0
+2018-08-29_2038,21.0,0.0
+2018-08-29_2055,16.0,7192.8
+2018-08-29_3,92.9090909090909,619.1999999999999
+2018-08-29_4,118.2,688.0
+2018-08-29_6,240.33333333333334,316.2
+2018-08-29_7,107.625,3272.5
+2018-08-29_8,18.0,108.5
+2018-08-30_1,32.833333333333336,77.5
+2018-08-30_10,132.5,0.0
+2018-08-30_1016,11.0,258.0
+2018-08-30_11,72.0,0.0
+2018-08-30_1103,331.0,0.0
+2018-08-30_1124,63.666666666666664,771.975
+2018-08-30_14,219.0,0.0
+2018-08-30_2,64.33333333333333,1238.3999999999999
+2018-08-30_2030,207.0,0.0
+2018-08-30_2055,21.0,0.0
+2018-08-30_3,125.66666666666667,434.0
+2018-08-30_3040,55.0,4888.0395064
+2018-08-30_4,31.0,1066.3999999999999
+2018-08-30_5,82.8,0.0
+2018-08-30_6,556.0,0.0
+2018-08-30_8,119.66666666666667,0.0
+2018-08-30_9,192.0,0.0
+2018-08-31_10,498.0,0.0
+2018-08-31_11,272.0,0.0
+2018-08-31_1103,99.0,12094.800000000001
+2018-08-31_12,437.5,0.0
+2018-08-31_13,197.0,0.0
+2018-08-31_2,55.0,6686.5
+2018-08-31_3,113.4,1238.3999999999999
+2018-08-31_3142,435.0,1074.1714286
+2018-08-31_4,273.0,6686.5
+2018-08-31_5,324.4,1190.0
+2018-08-31_6,383.42857142857144,714.0
+2018-08-31_7,259.0,4998.0
+2018-08-31_8,228.0,2380.0
+2018-08-31_9,224.5,0.0
+2018-09-01_1,181.30769230769232,240.79999999999998
+2018-09-01_10,123.0,0.0
+2018-09-01_1016,233.0,257.5333333333333
+2018-09-01_1032,24.0,0.0
+2018-09-01_11,166.66666666666666,0.0
+2018-09-01_1115,63.0,137.6
+2018-09-01_1119,186.0,2213.1
+2018-09-01_1120,102.0,344.0
+2018-09-01_1122,19.0,0.0
+2018-09-01_1124,52.0,8577.04
+2018-09-01_12,97.75,0.0
+2018-09-01_13,118.0,0.0
+2018-09-01_14,138.0,0.0
+2018-09-01_15,41.0,0.0
+2018-09-01_16,56.0,0.0
+2018-09-01_2,285.0,15.93189088976
+2018-09-01_2031,412.0,402.8571429
+2018-09-01_2513,33.0,252.26666666666665
+2018-09-01_2539,325.0,0.0
+2018-09-01_3,557.0,1238.3999999999999
+2018-09-01_4,83.5,1616.8
+2018-09-01_6,122.75,3094.0
+2018-09-01_7,44.25,1100.8
+2018-09-01_8,118.33333333333333,362.61
+2018-09-01_9,64.66666666666667,0.0
+2018-09-02_1,262.3333333333333,275.2
+2018-09-02_1124,52.0,0.0
+2018-09-02_2,472.1111111111111,516.0
+2018-09-02_2030,385.0,12696.0
+2018-09-02_2038,367.0,18225.0
+2018-09-02_4,501.7,7854.0
+2018-09-02_5,188.6,16065.0
+2018-09-02_6,62.0,3213.0
+2018-09-02_8,78.0,0.0
