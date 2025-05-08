@@ -228,6 +228,9 @@ def preprocess_data(
     # add number of foragers in each group
     df_production['group_size'] = df_production['group_id'].str.split('_').apply(len) - 1
 
+    # get set of foragers in each group
+    df_production['forager_ids'] = df_production['group_id'].str.split('_').str[1:].apply(lambda x: set(x))
+
     # --- Save Output (Optional) ---
     if output_dir is not None:
         output_path = Path(output_dir)

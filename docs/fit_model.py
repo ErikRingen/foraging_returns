@@ -26,6 +26,26 @@ from pyprojroot.here import here
 from preprocessing import preprocess_data
 
 from foraging_model.foraging_data import ForagingData
+from foraging_model.foraging_model import ForagingModel
+
+import pytensor
+pytensor.config.cxx = '/usr/bin/clang++' 
+
+# %load_ext autoreload
+# %autoreload 2
+
+# %%
+params = {
+    "sample_params": {
+        "tune": 150,
+        "draws": 250,
+        "chains": 4,
+        "nuts_sampler": "nutpie",
+    },
+    "seed": sum(map(ord, "outlet model")),
+    "rng": np.random.default_rng(sum(map(ord, "outlet model"))),
+    "HDI_PROB": 0.9,
+}
 
 # %%
 raw_data_dir = "raw_data/"
@@ -37,7 +57,8 @@ df_foragers, df_time_agg, df_returns = preprocess_data(
     kcal_file=here(raw_data_dir + 'kcal.csv'),
     group_file=here(raw_data_dir + 'groups.csv'),
     camp_members_file=here(raw_data_dir + 'camp_members.csv'),
-    days_in_camp_file=here(raw_data_dir + 'daysincamp.csv')
+    days_in_camp_file=here(raw_data_dir + 'daysincamp.csv'),
+    output_dir=here('data')
 )
 
 # %%
@@ -54,4 +75,30 @@ data = ForagingData(
 
 # %%
 dataset = data.to_dataset()
+
+# %%
+foraging_model = ForagingModel(data=dataset)
+foraging_model.build_model()
+
+# %%
+gv = pm.model_to_graphviz(foraging_model.model)
+gv.format = "png"
+gv.render(filename="img/model_graph")
+
+# %%
+foraging_model.fit(**params["sample_params"])
+
+# %%
+az.summary(foraging_model.idata)
+
+# %%
+if not foraging_model.already_rescaled:
+    foraging_model.rescale_predictive()
+
+# %%
+az.plot_ppc(foraging_model.idata);
+az.plot_ppc(foraging_model.idata, kind='cumulative')
+
+
+
 # %%

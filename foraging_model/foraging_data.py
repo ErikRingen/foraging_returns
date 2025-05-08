@@ -3,9 +3,9 @@ import xarray as xr
 
 def _mean_scaler(x: float) -> float:
     """
-    Scale a float by dividing by the mean
+    Scale a float by dividing by the mean of non-zero values
     """
-    return x / x.mean()
+    return x / x.where(x != 0).mean()
 
 def _max_scaler(x: float) -> float:
     """
