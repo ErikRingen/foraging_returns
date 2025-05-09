@@ -67,6 +67,7 @@ data = ForagingData(
     time_allocation_df=df_time_agg,
     production_df=df_returns,
     target_column='kcal',
+    # kcal scaled by mean of non-zero values
     target_scaling='mean',
     age_scaling='max',
     group_id_col='group_id',
@@ -89,15 +90,17 @@ gv.render(filename="img/model_graph")
 foraging_model.fit(**params["sample_params"])
 
 # %%
-az.summary(foraging_model.idata)
+az.summary(foraging_model.idata, var_names=['shape', 'intercept', 'b_groupsize'])
 
 # %%
 if not foraging_model.already_rescaled:
     foraging_model.rescale_predictive()
 
 # %%
-az.plot_ppc(foraging_model.idata);
-az.plot_ppc(foraging_model.idata, kind='cumulative')
+#az.plot_ppc(foraging_model.idata);
+
+az.plot_ppc(foraging_model.idata, kind='cumulative', group='prior');
+az.plot_ppc(foraging_model.idata, kind='cumulative', group='posterior')
 
 
 

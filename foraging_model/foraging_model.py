@@ -1,5 +1,8 @@
 import xarray as xr
 import pymc as pm
+import numpy as np
+
+from .hurdle_gamma import hurdle_gamma_logp, hurdle_gamma_rng
 
 
 class ForagingModel:
@@ -19,25 +22,49 @@ class ForagingModel:
     
     def build_model(self):
 
+        import numpy as np
+        import pytensor.tensor as pt
+
         coords = self.data.coords
         coords = {key: value.to_numpy() for key, value in coords.items()}
 
         with pm.Model(coords=coords) as self.model:
+        
+            max_groupsize = self.data.group_size.values.max()
+            kcal_scaled = pm.Data('kcal_scaled', self.data.kcal_scaled.values, dims="group")
+            group_size = pm.Data('group_size', self.data.group_size.values, dims="group")
 
             # non-zero-return probability
-            psi = pm.Beta("psi", alpha=6, beta=1)
+            theta = pm.Beta("theta", alpha=6, beta=1)
 
             # mean non-zero kcal
-            mu = pm.HalfNormal("mu", sigma=2)
+            intercept = pm.Normal("intercept", mu=0, sigma=0.5)
 
-            sigma = pm.HalfNormal("sigma", sigma=2)
+            # gamma shape
+            shape = pm.HalfNormal("shape", sigma=1)
 
-            pm.HurdleGamma(
+            # group size total effect
+            b_groupsize = pm.Normal("b_groupsize", mu=0, sigma=0.1)
+            # dirichlet decomposition
+            s_groupsize_raw = pm.Dirichlet("s_groupsize_raw", a=pt.ones(max_groupsize-1) * 2.0)
+            s_groupsize = pt.concatenate([pt.zeros(1), s_groupsize_raw])
+            s_groupsize_cumsum = pt.cumsum(s_groupsize)
+
+            # Calculate effect for each group size
+            size_idx = group_size - 1
+            groupsize_effect = pm.Deterministic("groupsize_effect", b_groupsize * s_groupsize_cumsum[size_idx], dims="group")
+
+            # expected kcal
+            mu = pm.Deterministic("mu", pt.exp(intercept + groupsize_effect))
+
+            pm.CustomDist(
                 "kcal",
-                psi = psi,
-                mu = mu,
-                sigma = sigma,
-                observed = self.data.kcal_scaled,
+                theta, # theta (binomial)
+                shape, # alpha (gamma)
+                shape / mu, # beta (gamma)
+                logp = hurdle_gamma_logp,
+                random = hurdle_gamma_rng,
+                observed = kcal_scaled,
                 dims = ("group"),
                 )
 
@@ -58,7 +85,8 @@ class ForagingModel:
             #sample_params_copy.pop("var_names")
             self.idata = nutpie.sample(compiled_model, **sample_params_copy)
         else:
-            self.idata = pm.sample(**sample_params)
+            with self.model:
+                self.idata = pm.sample(**sample_params)
 
         with self.model:
             prior = pm.sample_prior_predictive()
