@@ -58,6 +58,8 @@ df_foragers, df_time_agg, df_returns = preprocess_data(
     group_file=here(raw_data_dir + 'groups.csv'),
     camp_members_file=here(raw_data_dir + 'camp_members.csv'),
     days_in_camp_file=here(raw_data_dir + 'daysincamp.csv'),
+    # for a given group/day, sum returns and recall
+    combine_returns_recall=True,
     output_dir=here('data')
 )
 
@@ -71,7 +73,7 @@ data = ForagingData(
     target_scaling='mean',
     age_scaling='max',
     group_id_col='group_id',
-    forager_id_col='id'
+    forager_id_col='id',
 )
 
 # %%
@@ -90,7 +92,7 @@ gv.render(filename="img/model_graph")
 foraging_model.fit(**params["sample_params"])
 
 # %%
-az.summary(foraging_model.idata, var_names=['shape', 'intercept', 'b_groupsize'])
+az.summary(foraging_model.idata, var_names=['shape', 'eta_mu', 'eta_success', 'b_groupsize_mu', 'b_groupsize_success'])
 
 # %%
 if not foraging_model.already_rescaled:
@@ -102,6 +104,15 @@ if not foraging_model.already_rescaled:
 az.plot_ppc(foraging_model.idata, kind='cumulative', group='prior');
 az.plot_ppc(foraging_model.idata, kind='cumulative', group='posterior')
 
+# %%
+# foraging_model.plot_curve(prior=True, type="S")
+# foraging_model.plot_curve(prior=True, type="M")
+# foraging_model.plot_curve(prior=True, type="K")
 
-
+# %%
+foraging_model.plot_curve(prior=False, type="S")
+foraging_model.plot_curve(prior=False, type="M")
+foraging_model.plot_curve(prior=False, type="K")
+foraging_model.plot_curve(prior=False, type="harvest")
+foraging_model.plot_curve(prior=False, type="success")
 # %%

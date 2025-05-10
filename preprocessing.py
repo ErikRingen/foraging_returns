@@ -9,6 +9,7 @@ def preprocess_data(
     group_file: str | Path,
     camp_members_file: str | Path,
     days_in_camp_file: str | Path,
+    combine_returns_recall: bool = True,
     output_dir: str | Path | None = None
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
@@ -158,6 +159,18 @@ def preprocess_data(
         df_recall_agg.assign(type='recall')
     ], ignore_index=True)
 
+    if combine_returns_recall:
+        # Create a pivot table to get foraging and recall values side by side
+        df_pivot = df_production.pivot(index='group_id', columns='type', values='kcal').reset_index()
+        # Fill missing values with 0 for groups that only have one type
+        df_pivot = df_pivot.fillna(0)
+        # Calculate total and foraging proportion
+        df_pivot['total_kcal'] = df_pivot['foraging'] + df_pivot['recall']
+        df_pivot['foraging_proportion'] = df_pivot['foraging'] / df_pivot['total_kcal']
+        # Create final production dataframe with combined values
+        df_production = df_pivot[['group_id', 'total_kcal', 'foraging_proportion']].rename(columns={'total_kcal': 'kcal'})
+        df_production['type'] = 'combined'
+
     # --- Check Time vs. Returns & Append Zero Rows ---
     print("--- Checking Time vs Production & Appending Zeros ---")
     foraging_time_col = 'total.minutes'
@@ -230,6 +243,10 @@ def preprocess_data(
 
     # get set of foragers in each group
     df_production['forager_ids'] = df_production['group_id'].str.split('_').str[1:].apply(lambda x: set(x))
+
+    # Remove any production rows where no forager ids appear in df_foragers
+    valid_foragers_set = set(df_foragers['id'])
+    df_production = df_production[df_production['forager_ids'].apply(lambda x: len(x.intersection(valid_foragers_set)) > 0)]
 
     # --- Save Output (Optional) ---
     if output_dir is not None:
