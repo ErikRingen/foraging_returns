@@ -1,5 +1,6 @@
 import pandas as pd
 import xarray as xr
+import numpy as np
 
 def _mean_scaler(x: float) -> float:
     """
@@ -68,6 +69,28 @@ class ForagingData:
             ds_foragers['age_scaled'] = _max_scaler(ds_foragers['age'])
 
             ds_foragers['age_scale'] = ds_foragers['age'].max()
+
+        # Convert forager_ids to indices before merging
+        if 'forager_ids' in self.production_df.columns:
+            # Create mapping from forager ID to index
+            forager_id_to_idx = {str(id): idx for idx, id in enumerate(self.foragers_df[self.forager_id_col])}
+            
+            # Convert sets to lists of consistent length
+            max_foragers = max(len(ids) for ids in self.production_df['forager_ids'])
+            forager_ids_array = np.full((len(self.production_df), max_foragers), -1, dtype=np.int64)
+            
+            for i, ids in enumerate(self.production_df['forager_ids']):
+                ids_list = list(ids) if hasattr(ids, '__iter__') else [ids]
+                for j, id in enumerate(ids_list):
+                    forager_ids_array[i, j] = forager_id_to_idx.get(str(id), -1)
+                
+            # Store as a DataArray with proper dimensions
+            forager_ids_da = xr.DataArray(
+                forager_ids_array,
+                dims=['group', 'forager_in_group'],
+                coords={'group': self.production_df[self.group_id_col]}
+            )
+            ds_production['forager_ids'] = forager_ids_da
 
         combined_ds = xr.merge([ds_foragers, ds_production])
 

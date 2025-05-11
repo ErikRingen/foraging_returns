@@ -22,6 +22,7 @@ import arviz as az
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pyprojroot.here import here
+import arviz as az
 
 from preprocessing import preprocess_data
 
@@ -95,19 +96,23 @@ foraging_model.fit(**params["sample_params"])
 az.summary(foraging_model.idata, var_names=['shape', 'eta_mu', 'eta_success', 'b_groupsize_mu', 'b_groupsize_success'])
 
 # %%
+az.plot_dist_comparison(foraging_model.idata, var_names=['shape', 'eta_mu', 'eta_success', 'b_groupsize_mu', 'b_groupsize_success', 'intercept_mu', 'intercept_success', 'm', 'k', 'b'])
+
+
+# %%
 if not foraging_model.already_rescaled:
     foraging_model.rescale_predictive()
 
 # %%
 #az.plot_ppc(foraging_model.idata);
 
-az.plot_ppc(foraging_model.idata, kind='cumulative', group='prior');
+az.plot_ppc(foraging_model.idata, group='prior', kind='cumulative', var_names=['kcal']);
 az.plot_ppc(foraging_model.idata, kind='cumulative', group='posterior')
 
 # %%
-# foraging_model.plot_curve(prior=True, type="S")
-# foraging_model.plot_curve(prior=True, type="M")
-# foraging_model.plot_curve(prior=True, type="K")
+foraging_model.plot_curve(prior=True, type="S")
+foraging_model.plot_curve(prior=True, type="M")
+foraging_model.plot_curve(prior=True, type="K")
 
 # %%
 foraging_model.plot_curve(prior=False, type="S")

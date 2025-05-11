@@ -34,35 +34,24 @@ class ForagingModel:
             age = pm.Data('age', self.data.age_scaled.values, dims="forager")
             group_size = pm.Data('group_size', self.data.group_size.values, dims="group")
             max_groupsize = group_size.max()
-            
-            # Store forager IDs as a 2D array where each row represents a group's foragers
-            forager_coords = self.data.coords['forager'].values
-            forager_id_to_idx = {str(id): idx for idx, id in enumerate(forager_coords)}
-            max_foragers = max(len(ids) for ids in self.data.forager_ids.values)
-            forager_ids_array = np.full((len(self.data.forager_ids), max_foragers), -1)
-            for i, ids in enumerate(self.data.forager_ids.values):
-                indices = []
-                for id in ids:
-                    idx = forager_id_to_idx.get(str(id), -1)  # -1 if not found
-                    indices.append(idx)
-                forager_ids_array[i, :len(indices)] = indices
-            forager_ids = pm.Data("forager_ids", forager_ids_array, dims=("group", "forager_in_group"))
+
+            forager_ids = pm.Data("forager_ids", self.data.forager_ids.values, dims=("group", "forager_in_group"))
 
             # mean non-zero kcal
-            intercept_mu = pm.Normal("intercept", mu=0, sigma=0.5)
+            intercept_mu = pm.Normal("intercept_mu", mu=0, sigma=0.5)
             # non-zero-return probability
             intercept_success = pm.Normal("intercept_success", mu=0, sigma=0.5)
 
             # gamma shape
-            shape = pm.HalfNormal("shape", sigma=1)
+            shape = pm.Gamma("shape", alpha=10, beta=10)
 
             # group size effect
-            b_groupsize_mu = pm.Normal("b_groupsize_mu", mu=0.5, sigma=0.5)
-            b_groupsize_success = pm.Normal("b_groupsize_success", mu=0.5, sigma=0.5)
+            b_groupsize_mu = pm.Normal("b_groupsize_mu", mu=0.2, sigma=0.2)
+            b_groupsize_success = pm.Normal("b_groupsize_success", mu=1, sigma=0.5)
 
             # --- skill curve ---
-            m0 = pm.Normal("m0", mu=0, sigma=1)
-            k0 = pm.Normal('k0', mu=2, sigma=1)
+            m0 = pm.Normal("m0", mu=-1, sigma=1)
+            k0 = pm.Normal('k0', mu=1, sigma=1)
             b0 = pm.Normal('b0', mu=0, sigma=1)
 
             m = pm.Deterministic("m", pt.exp(m0))
@@ -78,14 +67,25 @@ class ForagingModel:
             # Replace -1 with 0 for safe indexing, then mask out after
             safe_forager_ids = pt.where(valid_foragers, forager_ids, 0)
             S_x_selected = S_x[safe_forager_ids]
+
+            # mask for groups with no valid foragers
+            # only relevant for interventions
+            valid_groups = pt.sum(valid_foragers, axis=1) > 0
+            #valid_idx = pt.as_tensor_variable(valid_groups)
+
+            # avoid division by zero
             S_x_group = pm.Deterministic(
                 "S_x_grouped",
-                pt.sum(S_x_selected * valid_foragers, axis=1) / pt.sum(valid_foragers, axis=1),
+                pt.where(
+                    valid_groups,
+                    pt.sum(S_x_selected * valid_foragers, axis=1) / pt.sum(valid_foragers, axis=1),
+                    0  # when no valid foragers
+                ),
                 dims="group"
             )
             
-            alpha_mu = pm.Deterministic("alpha_mu", pt.exp(intercept_mu + b_groupsize_mu*group_size), dims="group")
-            alpha_success = pm.Deterministic("alpha_success", pt.exp(intercept_success + b_groupsize_success*group_size), dims="group")
+            alpha_mu = pm.Deterministic("alpha_mu", pt.exp(intercept_mu + b_groupsize_mu*pt.log(group_size)), dims="group")
+            alpha_success = pm.Deterministic("alpha_success", pt.exp(intercept_success + b_groupsize_success*pt.log(group_size)), dims="group")
 
             eta_mu0 = pm.Normal("eta_mu0", mu=0, sigma=1)
             eta_success0 = pm.Normal("eta_success0", mu=0, sigma=1)
@@ -96,11 +96,12 @@ class ForagingModel:
             mu = pm.Deterministic("mu", S_x_group**eta_mu * alpha_mu, dims="group")
             theta = pm.Deterministic("theta", 2*(pm.math.invlogit(S_x_group**eta_success * alpha_success) - 0.5), dims="group")
 
+            expected = pm.Deterministic("expected", pt.where(valid_groups, mu * theta, 0), dims="group")
 
             pm.CustomDist(
                 "kcal",
                 theta, # theta (binomial)
-                shape, # alpha (gamma)
+                shape, # alpha (gamma) - scalar, no indexing needed
                 shape / mu, # beta (gamma)
                 logp = hurdle_gamma_logp,
                 random = hurdle_gamma_rng,
