@@ -32,10 +32,13 @@ class ForagingModel:
             # Data
             kcal = pm.Data('kcal_scaled', self.data.kcal_scaled.values, dims="group")
             age = pm.Data('age', self.data.age_scaled.values, dims="forager")
-            group_size = pm.Data('group_size', self.data.group_size.values, dims="group")
-            max_groupsize = group_size.max()
 
             forager_ids = pm.Data("forager_ids", self.data.forager_ids.values, dims=("group", "forager_in_group"))
+            # group size derived from forager_ids
+            valid_foragers = forager_ids >= 0  # For skill calculation
+            present_foragers = pt.or_(forager_ids >= 0, pt.eq(forager_ids, -99))  # For group size
+            group_size = pm.Deterministic("group_size", pt.sum(present_foragers, axis=1), dims="group")
+            max_groupsize = group_size.max()
 
             # mean non-zero kcal
             intercept_mu = pm.Normal("intercept_mu", mu=0, sigma=0.5)
@@ -63,8 +66,6 @@ class ForagingModel:
             S_x = pm.Deterministic("S", M_x * K_x**b, dims="forager")
 
             # For each group, get average skill of forager ids
-            valid_foragers = forager_ids >= 0
-            # Replace -1 with 0 for safe indexing, then mask out after
             safe_forager_ids = pt.where(valid_foragers, forager_ids, 0)
             S_x_selected = S_x[safe_forager_ids]
 
@@ -93,8 +94,9 @@ class ForagingModel:
             eta_success = pm.Deterministic("eta_success", pt.exp(eta_success0))
 
             # expected kcal
-            mu = pm.Deterministic("mu", S_x_group**eta_mu * alpha_mu, dims="group")
-            theta = pm.Deterministic("theta", 2*(pm.math.invlogit(S_x_group**eta_success * alpha_success) - 0.5), dims="group")
+            mu = pm.Deterministic("mu", pt.where(valid_groups, S_x_group**eta_mu * alpha_mu, 0), dims="group")
+
+            theta = pm.Deterministic("theta", 2*(pm.math.invlogit(pt.where(valid_groups, S_x_group**eta_success * alpha_success, 0)) - 0.5), dims="group")
 
             expected = pm.Deterministic("expected", pt.where(valid_groups, mu * theta, 0), dims="group")
 
@@ -238,5 +240,44 @@ class ForagingModel:
         plt.xlabel("age")
         plt.ylabel(ylab)
         plt.show()
+    
+    def plot_marginal_contributions(self):
+
+        # get the expected values
+        expected = self.idata.posterior_predictive["expected"]
+
+        fig, axs = plt.subplots(2, 1, figsize=(10, 10))
+
+        # loop over foragers
+        for forager in self.data.coords["forager"].values:
+            forager_ids = self.idata["constant_data"]["forager_ids"].copy()
+
+            forager_ids = np.where(forager_ids == forager, -1, forager_ids)
+            intervention = {
+                "forager_ids": forager_ids,
+            }
+
+            intervened_model = pm.do(self.model, intervention)
+
+            # %%
+            with intervened_model:
+                idata_intervened = pm.sample_posterior_predictive(
+                    self.idata,
+                    var_names=["expected"],
+                )
+
+            counterfactual_mu = idata_intervened
+
+            # %%
+            diff = self.idata.posterior["expected"] - counterfactual_mu.posterior_predictive["expected"]
+
+            # %%
+            # add the date coordinate to the diff
+            diff["date"] = self.data.date
+
+            # %%
+            # sum over groups for date and plot
+            diff.groupby('date').sum().mean(dim=["chain", "draw"]).plot(ax=axs[0], x="date")
+        
 
 

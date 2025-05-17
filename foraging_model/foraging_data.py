@@ -82,7 +82,12 @@ class ForagingData:
             for i, ids in enumerate(self.production_df['forager_ids']):
                 ids_list = list(ids) if hasattr(ids, '__iter__') else [ids]
                 for j, id in enumerate(ids_list):
-                    forager_ids_array[i, j] = forager_id_to_idx.get(str(id), -1)
+                    # -99 for foragers not in the database
+                    # This distinguishes them from invalid entries (-1)
+                    if str(id) not in forager_id_to_idx:
+                        forager_ids_array[i, j] = -99
+                    else:
+                        forager_ids_array[i, j] = forager_id_to_idx[str(id)]
                 
             # Store as a DataArray with proper dimensions
             forager_ids_da = xr.DataArray(
