@@ -1,9 +1,10 @@
+from functools import cache, cached_property
 import xarray as xr
 import pymc as pm
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from .hurdle_gamma import hurdle_gamma_logp, hurdle_gamma_rng
-
 
 class ForagingModel:
     def __init__(
@@ -240,44 +241,198 @@ class ForagingModel:
         plt.xlabel("age")
         plt.ylabel(ylab)
         plt.show()
-    
-    def plot_marginal_contributions(self):
 
-        # get the expected values
-        expected = self.idata.posterior_predictive["expected"]
+    @cache
+    def marginal_contributions(
+            self,
+            group: str = "posterior",
+            ) -> xr.Dataset:
+        """
+        Calculate the marginal contributions of each forager to the expected kcal on each day.
+        """
+        if group not in ["posterior", "prior"]:
+            raise ValueError("Invalid group, must be one of posterior or prior")
 
-        fig, axs = plt.subplots(2, 1, figsize=(10, 10))
+        if group == "posterior":
+            idata = self.idata.posterior
+        else:
+            idata = self.idata.prior
 
-        # loop over foragers
-        for forager in self.data.coords["forager"].values:
-            forager_ids = self.idata["constant_data"]["forager_ids"].copy()
+        expected = idata["expected"]
+        forager_indices = range(len(self.data.coords["forager"]))
+        forager_ids = self.data.coords["forager"].values
 
-            forager_ids = np.where(forager_ids == forager, -1, forager_ids)
-            intervention = {
-                "forager_ids": forager_ids,
-            }
+        forager_contributions = []
 
+        for forager_idx in forager_indices:
+            # Set this forager's ID to -1 (remove from groups)
+            forager_ids_copy = self.idata["constant_data"]["forager_ids"].copy()
+            forager_ids_copy = np.where(forager_ids_copy == forager_idx, -1, forager_ids_copy)
+            intervention = {"forager_ids": forager_ids_copy}
+            
+            # Apply the intervention
             intervened_model = pm.do(self.model, intervention)
-
-            # %%
+            
+            # Sample posterior predictive
             with intervened_model:
-                idata_intervened = pm.sample_posterior_predictive(
-                    self.idata,
-                    var_names=["expected"],
-                )
+                if group == "posterior":
+                    idata_intervened = pm.sample_posterior_predictive(
+                        self.idata,
+                        var_names=["expected"]
+                    )
+                else:
+                    idata_intervened = pm.sample_prior_predictive(
+                        var_names=["expected"]
+                    )
+            
+            # Calculate the difference
+            if group == "posterior":
+                diff = expected - idata_intervened.posterior_predictive["expected"]
+            else:
+                diff = expected - idata_intervened.prior["expected"]
+            diff *= self.data.kcal_scale
+            
+            # Add the date coordinate
+            diff = diff.assign_coords(date=("group", self.data.group_date.values))
+            
+            # Group by date while preserving chains and draws
+            diff_by_date = diff.groupby('date').sum()
+            
+            # Keep only the dimensions we need
+            reduced_dims = [dim for dim in diff_by_date.dims if dim not in ['date', 'chain', 'draw']]
+            if reduced_dims:
+                diff_by_date = diff_by_date.sum(dim=reduced_dims)
+            
+            # Store this forager's contribution
+            forager_contributions.append(diff_by_date)
+    
+        # Combine all forager contributions into a single DataArray
+        # by stacking them along a new 'forager' dimension
+        combined = xr.concat(forager_contributions, dim=pd.Index(forager_ids, name='forager'))
+        
+        return combined.rename('marginal_contribution')
+    
+    
+    def plot_forager_contributions(
+        self,
+        sort_by_age=True,
+        figsize=(15, 20),
+        nrows=10,
+        ncols=5,
+        group="posterior",
+        ci_prob=0.9
+    ):
+        """
+        Plot the marginal contributions of foragers.
+        
+        Parameters:
+        -----------
+        sort_by_age : bool, default=True
+            Whether to sort foragers by age.
+        figsize : tuple, default=(15, 20)
+            Figure size.
+        nrows, ncols : int, default=10, 5
+            Number of rows and columns in the subplot grid.
+        group : str, default="posterior"
+            The inference group to use, either "posterior" or "prior".
+        ci_level : float, default=0.9
+            Credible interval level (e.g., 0.9 for 90% CI).
+            
+        Returns:
+        --------
+        fig, axes : matplotlib figure and axes
+        """
+        # Get the cached contributions
+        marginal_contrib = self.marginal_contributions(group=group)
+        
+        # Calculate the lower and upper quantiles for the credible interval
+        alpha = (1 - ci_prob) / 2
+        lower_quantile = alpha
+        upper_quantile = 1 - alpha
+        
+        # Calculate statistics from the full posterior
+        mean_contributions = marginal_contrib.mean(dim=['chain', 'draw'])
+        lower_ci = marginal_contrib.quantile(lower_quantile, dim=['chain', 'draw'])
+        upper_ci = marginal_contrib.quantile(upper_quantile, dim=['chain', 'draw'])
+        
+        # Get ages and in_camp mask from the model data
+        ages = self.data.age.values
+        in_camp = self.data.in_camp.values
+        
+        # Create a list of forager indices and sort if needed
+        forager_indices = range(len(self.data.coords['forager']))
+        forager_info = list(zip(forager_indices, ages))
+        
+        if sort_by_age:
+            forager_info.sort(key=lambda x: x[1])
+        
+        # Create figure and axes
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize, sharex=True, sharey=True)
+        axes_flat = axes.flatten()
+        
+        # Loop over foragers in the specified order
+        for plot_idx, (forager_idx, age) in enumerate(forager_info):
+            if plot_idx >= len(axes_flat):  # Safety check
+                break
+                
+            # Get the forager ID
+            forager_id = self.data.coords['forager'].values[forager_idx]
+            
+            # Get the data for this forager
+            dates = marginal_contrib.coords['date'].values
+            mean_values = mean_contributions.sel(forager=forager_id).values
+            lower_values = lower_ci.sel(forager=forager_id).values
+            upper_values = upper_ci.sel(forager=forager_id).values
+            
+            # Get the mask for this forager
+            forager_mask = in_camp[forager_idx].astype(bool)
+            
+            # Apply the mask
+            masked_dates = dates[forager_mask]
+            masked_mean = mean_values[forager_mask]
+            masked_lower = lower_values[forager_mask]
+            masked_upper = upper_values[forager_mask]
+            
+            # Plot mean line (only for in_camp days)
+            line, = axes_flat[plot_idx].plot(masked_dates, masked_mean)
+            
+            # Add shaded credible interval (only for in_camp days)
+            axes_flat[plot_idx].fill_between(masked_dates, 
+                                        masked_lower, 
+                                        masked_upper, 
+                                        alpha=0.3)
+            
+            # Set the title for each subplot including age
+            axes_flat[plot_idx].set_title(f"Forager {forager_id} (Age: {age:.1f})")
+            
+            # Format date ticks if dates are datetime objects
+            if hasattr(dates[0], 'strftime'):
+                axes_flat[plot_idx].xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+            axes_flat[plot_idx].tick_params(axis='x', rotation=45)
 
-            counterfactual_mu = idata_intervened
+            # Add reference line at y=0
+            axes_flat[plot_idx].axhline(y=0, color='darkred', linestyle='--', alpha=0.5)
+            
+            # Add gridlines
+            axes_flat[plot_idx].grid(True, linestyle='--', alpha=0.5)
 
-            # %%
-            diff = self.idata.posterior["expected"] - counterfactual_mu.posterior_predictive["expected"]
+        # Hide any unused subplots
+        for idx in range(len(forager_info), len(axes_flat)):
+            axes_flat[idx].set_visible(False)
 
-            # %%
-            # add the date coordinate to the diff
-            diff["date"] = self.data.date
+        # Add common labels using figure-level commands
+        ci_text = f"{int(ci_prob * 100)}% Credible Intervals"
+        fig.suptitle(f"Marginal Contribution by Forager with {ci_text} (Sorted by Age)", fontsize=16)
 
-            # %%
-            # sum over groups for date and plot
-            diff.groupby('date').sum().mean(dim=["chain", "draw"]).plot(ax=axs[0], x="date")
+        # Add common x and y labels
+        fig.text(0.5, 0.04, 'Date', ha='center', fontsize=14)
+        fig.text(0.04, 0.5, 'Contribution (expected kcal)', va='center', rotation='vertical', fontsize=14)
+
+        # Adjust layout
+        plt.tight_layout(rect=[0.05, 0.08, 0.95, 0.95])  # Leave space for labels and legend
+        plt.subplots_adjust(top=0.92, bottom=0.12)  # Adjust top and bottom margins
+        
+        return fig, axes
         
 
 

@@ -20,6 +20,7 @@ class ForagingData:
             foragers_df: pd.DataFrame,
             time_allocation_df: pd.DataFrame,
             production_df: pd.DataFrame,
+            days_in_camp_df: pd.DataFrame,
             target_column: str,
             group_id_col: str,
             forager_id_col: str,
@@ -29,6 +30,7 @@ class ForagingData:
         self.foragers_df = foragers_df  
         self.time_allocation_df = time_allocation_df
         self.production_df = production_df
+        self.days_in_camp_df = days_in_camp_df
         self.target_column = target_column
         self.group_id_col = group_id_col
         self.forager_id_col = forager_id_col
@@ -45,7 +47,7 @@ class ForagingData:
         """
         Combine the dataframes into an xarray dataset
         """
-        ds_production = self.production_df.set_index(self.group_id_col).to_xarray().rename({self.group_id_col: 'group'}).set_coords('date')
+        ds_production = self.production_df.set_index(self.group_id_col).to_xarray().rename({self.group_id_col: 'group', 'date': 'group_date'}).set_coords('group')
 
         # scale the target column
         if self.target_scaling == 'mean':
@@ -97,7 +99,23 @@ class ForagingData:
             )
             ds_production['forager_ids'] = forager_ids_da
 
-        combined_ds = xr.merge([ds_foragers, ds_production])
+        # Forager days in camp
+        ds_forager_days_in_camp = (
+            self.days_in_camp_df
+            .set_index(['forager_id', 'date'])
+            .astype(bool)
+            .to_xarray()
+            .rename({'forager_id': 'forager'})
+            .set_coords(['date', 'forager'])
+        )
+
+        combined_ds = xr.merge(
+            [
+                ds_foragers,
+                ds_production,
+                ds_forager_days_in_camp
+            ]
+        )
 
         return combined_ds
         
