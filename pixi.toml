@@ -1,0 +1,38 @@
+[project]
+name = "foraging-returns"
+version = "0.1.0"
+description = "Foraging returns model using PyMC"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
+
+[dependencies]
+# Core scientific computing
+python = ">=3.11,<3.13"
+ipykernel = "*"
+nbformat = ">=4.2.0"
+numpy = "*"
+pandas = "*"
+
+# Probabilistic programming
+pymc = ">=5.0"
+pytensor = ">=2.14"
+arviz = ">=0.16"
+nutpie = ">=0.4"
+numba = "*"
+
+# Visualization
+matplotlib = ">=3.7"
+seaborn = ">=0.12"
+plotly = "*"
+
+# Utilities
+pyprojroot = "*"
+
+# Testing
+pytest = "*"
+
+[tasks]
+test = "pytest tests/ -v"
+test-cov = "pytest tests/ --cov=foraging_model --cov=preprocessing --cov-report=html"
+test-fast = "pytest tests/ -v -x"
+

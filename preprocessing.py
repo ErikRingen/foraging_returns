@@ -248,6 +248,9 @@ def preprocess_data(
     valid_foragers_set = set(df_foragers['id'])
     df_production = df_production[df_production['forager_ids'].apply(lambda x: len(x.intersection(valid_foragers_set)) > 0)]
 
+    # Remove foragers from df_days_long that are not in df_foragers
+    df_days_long = df_days_long[df_days_long['forager_id'].isin(df_foragers['id'])]
+
     # --- Save Output (Optional) ---
     if output_dir is not None:
         output_path = Path(output_dir)
@@ -257,7 +260,7 @@ def preprocess_data(
         df_production.to_csv(output_path / 'production.csv', index=False)
         print(f"Processed files saved to: {output_path}")
 
-    return df_foragers, df_time_agg, df_production
+    return df_foragers, df_time_agg, df_production, df_days_long
         
 
 
