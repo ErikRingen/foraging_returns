@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Generated outputs
+results/
+
+# Auto-generated Quarto/Cursor files
+Interactive - *.ipynb
+*.quarto_ipynb
+docs/*_files/
+docs/*.html
+
+# Environment
+.pixi/
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,372 +1,18 @@
-"""Counterfactual analysis utilities for foraging model."""
-import numpy as np
+"""
+Counterfactual analysis utilities for foraging model.
+
+Provides Shapley value computation for attributing group returns to individual foragers.
+Uses exact computation for small groups (faster and exact) and Monte Carlo for large groups.
+"""
 import math
+import numpy as np
 import xarray as xr
-import pandas as pd
-import pymc as pm
-import arviz as az
-import pytensor.tensor as pt
-from itertools import combinations, permutations
-from typing import Dict, List, Optional, Callable, Union
-from collections import defaultdict
-
-def marginal_contributions(
-    model: pm.Model,
-    idata: az.InferenceData,
-    data: xr.Dataset,
-    kcal_scale: float = 1.0,
-    group: str = "posterior",
-) -> xr.DataArray:
-    """
-    Calculate the marginal contributions of each forager to the expected returns (mu) on each day.
-    
-    Parameters
-    ----------
-    model : pm.Model
-        The PyMC model
-    idata : az.InferenceData
-        InferenceData object from fitted model
-    data : xr.Dataset
-        Original dataset with forager data
-    kcal_scale : float, optional
-        Scaling factor for kcal (to convert back to original scale), by default 1.0
-    group : str, optional
-        Which inference group to use: "posterior" or "prior", by default "posterior"
-        
-    Returns
-    -------
-    xr.DataArray
-        Marginal contributions by forager and date
-    """
-    if group not in ["posterior", "prior"]:
-        raise ValueError("Invalid group, must be one of posterior or prior")
-
-    if group == "posterior":
-        idata_group = idata.posterior
-    else:
-        idata_group = idata.prior
-
-    mu = idata_group["mu"]
-    forager_indices = range(len(data.coords["forager"]))
-    forager_ids = data.coords["forager"].values
-
-    forager_contributions = []
-
-    # Get the original forager_ids variable from the model to check dtype
-    # PyMC typically converts int64 to int32, so we need to match the model's dtype
-    original_forager_ids_var = model["forager_ids"]
-    # Access dtype through the tensor type
-    try:
-        original_dtype = original_forager_ids_var.type.dtype
-    except (AttributeError, TypeError):
-        # Fallback: PyMC typically uses int32 for integer data
-        # Based on error message, model expects int32
-        original_dtype = np.int32
-
-    # Store original value to restore later
-    original_forager_ids_value = data.forager_ids.values.copy().astype(original_dtype)
-
-    for forager_idx in forager_indices:
-        # Set this forager's ID to -1 (remove from groups)
-        # Cast to match the model's expected dtype (int32, not int64)
-        forager_ids_copy = data.forager_ids.values.copy().astype(original_dtype)
-        forager_ids_copy = np.where(forager_ids_copy == forager_idx, -1, forager_ids_copy)
-        
-        # Use set_data() within model context to update the data variable directly
-        # This avoids pm.do() issues with deterministic variables
-        # set_data() updates pm.Data variables without rebuilding the model
-        with model:
-            pm.set_data({"forager_ids": forager_ids_copy})
-        
-        # Sample posterior predictive with the updated data
-        # No need for pm.do() - set_data() modifies the model in place
-        if group == "posterior":
-            idata_intervened = pm.sample_posterior_predictive(
-                idata,
-                var_names=["mu"],
-                model=model
-            )
-        else:
-            idata_intervened = pm.sample_prior_predictive(
-                var_names=["mu"],
-                model=model
-            )
-        
-        # Calculate the difference
-        if group == "posterior":
-            diff = mu - idata_intervened.posterior_predictive["mu"]
-        else:
-            diff = mu - idata_intervened.prior["mu"]
-        
-        # Restore original value for next iteration
-        with model:
-            pm.set_data({"forager_ids": original_forager_ids_value})
-        
-        # Rescale to original units
-        diff *= kcal_scale
-        
-        # Add the date coordinate
-        diff = diff.assign_coords(date=("group", data.group_date.values))
-        
-        # Group by date while preserving chains and draws
-        diff_by_date = diff.groupby('date').sum()
-        
-        # Keep only the dimensions we need
-        reduced_dims = [dim for dim in diff_by_date.dims if dim not in ['date', 'chain', 'draw']]
-        if reduced_dims:
-            diff_by_date = diff_by_date.sum(dim=reduced_dims)
-        
-        # Store this forager's contribution
-        forager_contributions.append(diff_by_date)
-    
-    # Ensure original value is restored at the end
-    with model:
-        pm.set_data({"forager_ids": original_forager_ids_value})
-    
-    # Combine all forager contributions into a single DataArray
-    # by stacking them along a new 'forager' dimension
-    combined = xr.concat(forager_contributions, dim=pd.Index(forager_ids, name='forager'))
-    
-    return combined.rename('marginal_contribution')
+import warnings
+from itertools import combinations
+from typing import Dict, List, Optional
 
 
-def shapley_values(
-    group_members: List[int],
-    mu_values: Dict[frozenset, float],
-    method: str = "exact",
-    n_samples: Optional[int] = None,
-) -> Dict[int, float]:
-    """
-    Compute Shapley values for group members.
-    
-    Parameters
-    ----------
-    group_members : List[int]
-        List of member indices in the group
-    mu_values : Dict[frozenset, float]
-        Dictionary mapping subsets (as frozensets) to their mu values.
-        Must include all subsets of group_members, including empty set.
-    method : str, optional
-        Computation method: "exact" or "monte_carlo", by default "exact"
-    n_samples : int, optional
-        Number of Monte Carlo samples (only used if method="monte_carlo")
-        
-    Returns
-    -------
-    Dict[int, float]
-        Dictionary mapping member indices to their Shapley values
-    """
-    n = len(group_members)
-    if n == 0:
-        return {}
-    
-    if method == "exact":
-        # Reference function from module globals to handle autoreload issues
-        import sys
-        current_module = sys.modules[__name__]
-        if not hasattr(current_module, '_compute_exact_shapley'):
-            raise NameError(
-                "_compute_exact_shapley not found. "
-                "This may be due to a module reload issue. "
-                "Try restarting the kernel or reloading the module."
-            )
-        shapley = current_module._compute_exact_shapley(group_members, mu_values)
-    elif method == "monte_carlo":
-        if n_samples is None:
-            n_samples = 1000
-        import sys
-        current_module = sys.modules[__name__]
-        if not hasattr(current_module, '_compute_monte_carlo_shapley'):
-            raise NameError(
-                "_compute_monte_carlo_shapley not found. "
-                "This may be due to a module reload issue. "
-                "Try restarting the kernel or reloading the module."
-            )
-        shapley = current_module._compute_monte_carlo_shapley(group_members, mu_values, n_samples)
-    else:
-        raise ValueError(f"Unknown method: {method}. Must be 'exact' or 'monte_carlo'")
-    
-    return shapley
-
-
-def _compute_exact_shapley(
-    group_members: List[int],
-    mu_values: Dict[frozenset, float],
-) -> Dict[int, float]:
-    """
-    Compute exact Shapley values using the formula.
-    
-    Optimized with cached factorials to avoid repeated computations.
-    """
-    n = len(group_members)
-    if n == 0:
-        return {}
-    
-    shapley = {member: 0.0 for member in group_members}
-    
-    # Ensure empty set is in mu_values
-    if frozenset() not in mu_values:
-        mu_values[frozenset()] = 0.0
-    
-    # Precompute factorials once (more efficient than computing repeatedly)
-    n_factorial = math.factorial(n)
-    # Cache factorials for subset sizes
-    factorial_cache = {s: math.factorial(s) for s in range(n + 1)}
-    
-    # For each member, compute their Shapley value
-    for member in group_members:
-        # Sum over all subsets T not containing member
-        other_members = [m for m in group_members if m != member]
-        
-        for subset_size in range(n):
-            # Weight: |T|! * (n - |T| - 1)! / n!
-            # Use cached factorials
-            weight = (
-                factorial_cache[subset_size] 
-                * factorial_cache[n - subset_size - 1]
-                / n_factorial
-            )
-            
-            for subset in combinations(other_members, subset_size):
-                T = frozenset(subset)
-                T_with_member = T | {member}
-                
-                # Marginal contribution
-                marginal = mu_values.get(T_with_member, 0.0) - mu_values.get(T, 0.0)
-                
-                shapley[member] += weight * marginal
-    
-    return shapley
-
-
-def _compute_monte_carlo_shapley(
-    group_members: List[int],
-    mu_values: Dict[frozenset, float],
-    n_samples: int,
-) -> Dict[int, float]:
-    """
-    Compute Shapley values using Monte Carlo sampling of permutations.
-    
-    This version uses precomputed mu_values. For on-the-fly computation,
-    use _compute_monte_carlo_shapley_lazy instead.
-    """
-    n = len(group_members)
-    shapley = {member: 0.0 for member in group_members}
-    
-    # Ensure empty set is in mu_values
-    if frozenset() not in mu_values:
-        mu_values[frozenset()] = 0.0
-    
-    # Sample random permutations
-    rng = np.random.RandomState(42)  # For reproducibility
-    
-    for _ in range(n_samples):
-        # Random permutation of group members
-        perm = rng.permutation(group_members).tolist()
-        
-        # For each member, compute their marginal contribution in this permutation
-        for i, member in enumerate(perm):
-            # Members before this one in the permutation
-            predecessors = frozenset(perm[:i])
-            # Members before plus this member
-            predecessors_with_member = predecessors | {member}
-            
-            # Marginal contribution
-            marginal = (
-                mu_values.get(predecessors_with_member, 0.0) 
-                - mu_values.get(predecessors, 0.0)
-            )
-            
-            shapley[member] += marginal
-    
-    # Average over samples
-    for member in group_members:
-        shapley[member] /= n_samples
-    
-    return shapley
-
-
-def _compute_monte_carlo_shapley_lazy(
-    group_members: List[int],
-    mu_func: Callable[[List[int]], float],
-    n_samples: int,
-    random_seed: int = 42,
-) -> Dict[int, float]:
-    """
-    Compute Shapley values using Monte Carlo sampling with lazy mu computation.
-    
-    This is more efficient than precomputing all 2^n mu values when using
-    Monte Carlo sampling, as it only computes mu for subsets encountered
-    during permutation sampling.
-    
-    Parameters
-    ----------
-    group_members : List[int]
-        List of member indices in the group
-    mu_func : Callable[[List[int]], float]
-        Function that computes mu for a given subset of members
-    n_samples : int
-        Number of Monte Carlo samples
-    random_seed : int, optional
-        Random seed for reproducibility, by default 42
-        
-    Returns
-    -------
-    Dict[int, float]
-        Dictionary mapping member indices to their Shapley values
-    """
-    n = len(group_members)
-    if n == 0:
-        return {}
-    
-    shapley = {member: 0.0 for member in group_members}
-    
-    # Cache for mu values to avoid recomputation
-    mu_cache: Dict[frozenset, float] = {frozenset(): mu_func([])}
-    
-    # Sample random permutations
-    rng = np.random.RandomState(random_seed)
-    
-    for _ in range(n_samples):
-        # Random permutation of group members
-        perm = rng.permutation(group_members).tolist()
-        
-        # For each member, compute their marginal contribution in this permutation
-        for i, member in enumerate(perm):
-            # Members before this one in the permutation
-            predecessors = frozenset(perm[:i])
-            # Members before plus this member
-            predecessors_with_member = predecessors | {member}
-            
-            # Compute mu values (use cache if available)
-            if predecessors not in mu_cache:
-                mu_cache[predecessors] = mu_func(list(predecessors))
-            if predecessors_with_member not in mu_cache:
-                mu_cache[predecessors_with_member] = mu_func(list(predecessors_with_member))
-            
-            # Marginal contribution
-            marginal = mu_cache[predecessors_with_member] - mu_cache[predecessors]
-            
-            shapley[member] += marginal
-    
-    # Average over samples
-    for member in group_members:
-        shapley[member] /= n_samples
-    
-    return shapley
-
-
-def _generate_all_subsets(members: List[int]) -> List[frozenset]:
-    """Generate all subsets of members."""
-    subsets = []
-    n = len(members)
-    for subset_size in range(n + 1):
-        for subset in combinations(members, subset_size):
-            subsets.append(frozenset(subset))
-    return subsets
-
-
-def _compute_mu_for_subset(
+def compute_mu_for_subset(
     subset_members: List[int],
     S_x: np.ndarray,
     intercept_mu: float,
@@ -374,14 +20,14 @@ def _compute_mu_for_subset(
     eta_mu: float,
 ) -> float:
     """
-    Compute mu for a subset using the best-top-k formula (non-vectorized, single sample).
+    Compute mu for a subset using the best-top-k formula (single sample).
     
     Parameters
     ----------
     subset_members : List[int]
-        List of forager indices in the subset
+        Forager indices in the subset
     S_x : np.ndarray
-        Array of skills for all foragers (indexed by forager), shape (n_foragers,)
+        Skills for all foragers, shape (n_foragers,)
     intercept_mu : float
         Intercept parameter for mu
     b_groupsize_mu : float
@@ -397,32 +43,21 @@ def _compute_mu_for_subset(
     if len(subset_members) == 0:
         return 0.0
     
-    # Get skills for subset members
     subset_skills = S_x[subset_members]
-    
-    # Sort descending
     sorted_skills = np.sort(subset_skills)[::-1]
-    
     n = len(subset_members)
     
-    # Compute values for all k
-    values_by_k = np.zeros(n)
+    # Compute g(k) * (top-k average)^eta for all k, return max
+    k_values = np.arange(1, n + 1)
+    cumsum = np.cumsum(sorted_skills)
+    top_k_avgs = cumsum / k_values
+    g_k = np.exp(intercept_mu + b_groupsize_mu * np.log(k_values))
+    values = g_k * (top_k_avgs ** eta_mu)
     
-    for k in range(1, n + 1):
-        # Top-k average
-        top_k_avg = np.mean(sorted_skills[:k])
-        
-        # g(k) = exp(intercept_mu + b_groupsize_mu * log(k))
-        g_k = np.exp(intercept_mu + b_groupsize_mu * np.log(k))
-        
-        # Value for this k
-        values_by_k[k - 1] = g_k * (top_k_avg ** eta_mu)
-    
-    # Maximum over k
-    return np.max(values_by_k)
+    return float(np.max(values))
 
 
-def _compute_mu_for_subset_vectorized(
+def compute_mu_for_subset_vectorized(
     subset_members: List[int],
     S_x: np.ndarray,
     intercept_mu: np.ndarray,
@@ -430,91 +65,496 @@ def _compute_mu_for_subset_vectorized(
     eta_mu: np.ndarray,
 ) -> np.ndarray:
     """
-    Compute mu for a subset using the best-top-k formula, vectorized across MCMC samples.
+    Compute mu for a subset, vectorized across posterior samples.
     
     Parameters
     ----------
     subset_members : List[int]
-        List of forager indices in the subset
+        Forager indices in the subset
     S_x : np.ndarray
-        Array of skills for all foragers, shape (chain, draw, forager) or (n_samples, forager)
+        Skills for all foragers, shape (n_samples, n_foragers)
     intercept_mu : np.ndarray
-        Intercept parameter, shape (chain, draw) or (n_samples,)
+        Intercept parameter, shape (n_samples,)
     b_groupsize_mu : np.ndarray
-        Group size coefficient, shape (chain, draw) or (n_samples,)
+        Group size coefficient, shape (n_samples,)
     eta_mu : np.ndarray
-        Skill elasticity, shape (chain, draw) or (n_samples,)
+        Skill elasticity, shape (n_samples,)
         
     Returns
     -------
     np.ndarray
-        Expected returns mu for this subset, shape (chain, draw) or (n_samples,)
+        Expected returns mu for this subset, shape (n_samples,)
     """
     if len(subset_members) == 0:
-        # Return zeros with same shape as intercept_mu
-        return np.zeros_like(intercept_mu)
+        return np.zeros(len(intercept_mu))
     
-    # Get skills for subset members
-    # S_x has shape (chain, draw, forager) or (n_samples, forager)
-    # subset_skills will have shape (chain, draw, n_members) or (n_samples, n_members)
-    subset_skills = S_x[..., subset_members]
-    
-    # Sort descending along the forager dimension (last dimension)
-    # Use np.sort with axis=-1 and reverse
-    sorted_skills = np.sort(subset_skills, axis=-1)[..., ::-1]
-    
+    n_samples = S_x.shape[0]
     n = len(subset_members)
     
-    # Compute values for all k, vectorized across MCMC samples
-    # values_by_k will have shape (chain, draw, n) or (n_samples, n)
-    values_by_k = np.zeros(subset_skills.shape[:-1] + (n,))
+    # Get subset skills: (n_samples, n_subset)
+    subset_skills = S_x[:, subset_members]
     
-    for k in range(1, n + 1):
-        # Top-k average: mean of first k skills
-        # sorted_skills[..., :k] has shape (chain, draw, k) or (n_samples, k)
-        top_k_avg = np.mean(sorted_skills[..., :k], axis=-1)  # Shape: (chain, draw) or (n_samples,)
-        
-        # g(k) = exp(intercept_mu + b_groupsize_mu * log(k))
-        # Broadcasting: intercept_mu and b_groupsize_mu have shape (chain, draw) or (n_samples,)
-        log_k = np.log(k)
-        g_k = np.exp(intercept_mu + b_groupsize_mu * log_k)  # Shape: (chain, draw) or (n_samples,)
-        
-        # Value for this k: g_k * (top_k_avg ** eta_mu)
-        # Broadcasting: top_k_avg and eta_mu have shape (chain, draw) or (n_samples,)
-        values_by_k[..., k - 1] = g_k * (top_k_avg ** eta_mu)
+    # Sort descending along subset axis
+    sorted_skills = np.sort(subset_skills, axis=1)[:, ::-1]
     
-    # Maximum over k (along last dimension)
-    return np.max(values_by_k, axis=-1)  # Shape: (chain, draw) or (n_samples,)
+    # Cumsum and top-k averages: (n_samples, n_subset)
+    cumsum = np.cumsum(sorted_skills, axis=1)
+    k_values = np.arange(1, n + 1)  # (n_subset,)
+    top_k_avgs = cumsum / k_values[None, :]  # (n_samples, n_subset)
+    
+    # g(k) depends on parameters: (n_samples, n_subset)
+    log_k = np.log(k_values)[None, :]  # (1, n_subset)
+    g_k = np.exp(
+        intercept_mu[:, None] + b_groupsize_mu[:, None] * log_k
+    )  # (n_samples, n_subset)
+    
+    # Compute values: (n_samples, n_subset)
+    # Need to handle eta_mu per sample
+    values = g_k * (top_k_avgs ** eta_mu[:, None])
+    
+    # Return max over k for each sample
+    return np.max(values, axis=1)
+
+
+def compute_mu_for_subset_masked_vectorized(
+    subset_mask: np.ndarray,
+    S_x_group: np.ndarray,
+    intercept_mu: np.ndarray,
+    b_groupsize_mu: np.ndarray,
+    eta_mu: np.ndarray,
+) -> np.ndarray:
+    """
+    Compute mu for masked subsets, vectorized across posterior samples.
+
+    Parameters
+    ----------
+    subset_mask : np.ndarray
+        Binary mask for subsets, shape (n_samples, n_steps, n_members)
+    S_x_group : np.ndarray
+        Skills for group members, shape (n_samples, n_members)
+    intercept_mu, b_groupsize_mu, eta_mu : np.ndarray
+        Model parameters, shape (n_samples,)
+
+    Returns
+    -------
+    np.ndarray
+        Mu for each subset step, shape (n_samples, n_steps)
+    """
+    n_samples, n_steps, n_members = subset_mask.shape
+
+    if n_members == 0:
+        return np.zeros((n_samples, n_steps))
+
+    # Masked skills: (n_samples, n_steps, n_members)
+    masked_skills = S_x_group[:, None, :] * subset_mask
+
+    # Sort descending along member axis
+    sorted_skills = np.sort(masked_skills, axis=2)[:, :, ::-1]
+
+    # Cumsum and top-k averages
+    cumsum = np.cumsum(sorted_skills, axis=2)
+    k_values = np.arange(1, n_members + 1)  # (n_members,)
+    top_k_avgs = cumsum / k_values[None, None, :]
+
+    # g(k) for each sample
+    log_k = np.log(k_values)[None, :]  # (1, n_members)
+    g_k = np.exp(
+        intercept_mu[:, None] + b_groupsize_mu[:, None] * log_k
+    )  # (n_samples, n_members)
+
+    # Values for each k and step
+    values = g_k[:, None, :] * (top_k_avgs ** eta_mu[:, None, None])
+
+    # Mask invalid k (k > group_size)
+    group_sizes = subset_mask.sum(axis=2)  # (n_samples, n_steps)
+    valid_k = k_values[None, None, :] <= group_sizes[:, :, None]
+    values = np.where(valid_k, values, 0.0)
+
+    # Max over k
+    return np.max(values, axis=2)
+
+
+def shapley_monte_carlo_joint_vectorized(
+    group_members: List[int],
+    S_x: np.ndarray,
+    intercept_mu: np.ndarray,
+    b_groupsize_mu: np.ndarray,
+    eta_mu: np.ndarray,
+    permutations: Optional[np.ndarray] = None,
+    random_seed: Optional[int] = None,
+) -> np.ndarray:
+    """
+    Compute Shapley values using joint sampling (one permutation per sample).
+
+    Parameters
+    ----------
+    group_members : List[int]
+        Forager indices in the group
+    S_x : np.ndarray
+        Skills for all foragers, shape (n_samples, n_foragers)
+    intercept_mu, b_groupsize_mu, eta_mu : np.ndarray
+        Model parameters, shape (n_samples,)
+    permutations : np.ndarray, optional
+        Precomputed permutations in local group index space,
+        shape (n_samples, n_group_members)
+    random_seed : int, optional
+        Random seed for reproducibility
+
+    Returns
+    -------
+    np.ndarray
+        Shapley values, shape (n_samples, n_group_members)
+    """
+    n_members = len(group_members)
+    n_samples = S_x.shape[0]
+
+    if n_members == 0:
+        return np.zeros((n_samples, 0))
+
+    # Work in local index space for the group
+    S_x_group = S_x[:, group_members]  # (n_samples, n_members)
+
+    if permutations is None:
+        rng = np.random.RandomState(random_seed)
+        permutations = np.array(
+            [rng.permutation(n_members) for _ in range(n_samples)],
+            dtype=np.int32
+        )
+    else:
+        if permutations.shape != (n_samples, n_members):
+            raise ValueError(
+                "permutations must have shape (n_samples, n_group_members)"
+            )
+
+    # Build subset masks from permutations: (n_samples, n_members + 1, n_members)
+    idx = np.arange(n_members)[None, None, :]
+    one_hots = permutations[:, :, None] == idx
+    cumsum = np.cumsum(one_hots, axis=1).astype(np.float64)
+    zeros = np.zeros((n_samples, 1, n_members))
+    subset_mask = np.concatenate([zeros, cumsum], axis=1)
+
+    # Compute mu for all subset steps
+    mu_values = compute_mu_for_subset_masked_vectorized(
+        subset_mask, S_x_group, intercept_mu, b_groupsize_mu, eta_mu
+    )  # (n_samples, n_members + 1)
+
+    # Marginal contributions per position
+    marginals = mu_values[:, 1:] - mu_values[:, :-1]
+
+    # Scatter marginals to local member indices
+    shapley = np.zeros((n_samples, n_members))
+    row_idx = np.arange(n_samples)[:, None]
+    shapley[row_idx, permutations] = marginals
+
+    return shapley
+
+
+def shapley_exact(
+    group_members: List[int],
+    S_x: np.ndarray,
+    intercept_mu: float,
+    b_groupsize_mu: float,
+    eta_mu: float,
+) -> Dict[int, float]:
+    """
+    Compute exact Shapley values using the closed-form formula (single sample).
+    
+    Complexity: O(2^n * n) - suitable for groups up to ~15 members.
+    
+    Parameters
+    ----------
+    group_members : List[int]
+        Forager indices in the group
+    S_x : np.ndarray
+        Skills for all foragers, shape (n_foragers,)
+    intercept_mu, b_groupsize_mu, eta_mu : float
+        Model parameters
+        
+    Returns
+    -------
+    Dict[int, float]
+        Shapley values for each group member
+    """
+    n = len(group_members)
+    if n == 0:
+        return {}
+    
+    # Precompute all 2^n mu values
+    mu_cache: Dict[frozenset, float] = {}
+    for size in range(n + 1):
+        for subset in combinations(group_members, size):
+            subset_frozen = frozenset(subset)
+            mu_cache[subset_frozen] = compute_mu_for_subset(
+                list(subset), S_x, intercept_mu, b_groupsize_mu, eta_mu
+            )
+    
+    # Precompute factorials
+    n_factorial = math.factorial(n)
+    factorial_cache = {s: math.factorial(s) for s in range(n + 1)}
+    
+    shapley = {member: 0.0 for member in group_members}
+    
+    for member in group_members:
+        other_members = [m for m in group_members if m != member]
+        
+        for subset_size in range(n):
+            weight = (
+                factorial_cache[subset_size] 
+                * factorial_cache[n - subset_size - 1]
+                / n_factorial
+            )
+            
+            for subset in combinations(other_members, subset_size):
+                T = frozenset(subset)
+                T_with_member = T | {member}
+                marginal = mu_cache[T_with_member] - mu_cache[T]
+                shapley[member] += weight * marginal
+    
+    return shapley
+
+
+def shapley_exact_vectorized(
+    group_members: List[int],
+    S_x: np.ndarray,
+    intercept_mu: np.ndarray,
+    b_groupsize_mu: np.ndarray,
+    eta_mu: np.ndarray,
+) -> np.ndarray:
+    """
+    Compute exact Shapley values, vectorized across posterior samples.
+    
+    Complexity: O(2^n * n) - suitable for groups up to ~15 members.
+    
+    Parameters
+    ----------
+    group_members : List[int]
+        Forager indices in the group
+    S_x : np.ndarray
+        Skills for all foragers, shape (n_samples, n_foragers)
+    intercept_mu, b_groupsize_mu, eta_mu : np.ndarray
+        Model parameters, shape (n_samples,)
+        
+    Returns
+    -------
+    np.ndarray
+        Shapley values, shape (n_samples, n_group_members)
+    """
+    n = len(group_members)
+    n_posterior = S_x.shape[0]
+    
+    if n == 0:
+        return np.zeros((n_posterior, 0))
+    
+    member_to_idx = {m: i for i, m in enumerate(group_members)}
+    
+    # Precompute all 2^n mu values for all samples
+    mu_cache: Dict[frozenset, np.ndarray] = {}
+    for size in range(n + 1):
+        for subset in combinations(group_members, size):
+            subset_frozen = frozenset(subset)
+            mu_cache[subset_frozen] = compute_mu_for_subset_vectorized(
+                list(subset), S_x, intercept_mu, b_groupsize_mu, eta_mu
+            )
+    
+    # Precompute factorials
+    n_factorial = math.factorial(n)
+    factorial_cache = {s: math.factorial(s) for s in range(n + 1)}
+    
+    shapley = np.zeros((n_posterior, n))
+    
+    for member in group_members:
+        other_members = [m for m in group_members if m != member]
+        member_idx = member_to_idx[member]
+        
+        for subset_size in range(n):
+            weight = (
+                factorial_cache[subset_size] 
+                * factorial_cache[n - subset_size - 1]
+                / n_factorial
+            )
+            
+            for subset in combinations(other_members, subset_size):
+                T = frozenset(subset)
+                T_with_member = T | {member}
+                marginal = mu_cache[T_with_member] - mu_cache[T]
+                shapley[:, member_idx] += weight * marginal
+    
+    return shapley
+
+
+def shapley_monte_carlo(
+    group_members: List[int],
+    S_x: np.ndarray,
+    intercept_mu: float,
+    b_groupsize_mu: float,
+    eta_mu: float,
+    n_samples: int = 5000,
+    random_seed: Optional[int] = None,
+) -> Dict[int, float]:
+    """
+    Compute Shapley values using Monte Carlo sampling (single sample).
+    
+    Uses lazy mu computation with caching. Only useful for very large groups (n > 15).
+    
+    Parameters
+    ----------
+    group_members : List[int]
+        Forager indices in the group
+    S_x : np.ndarray
+        Skills for all foragers
+    intercept_mu, b_groupsize_mu, eta_mu : float
+        Model parameters
+    n_samples : int, default=5000
+        Number of permutation samples
+    random_seed : int, optional
+        Random seed for reproducibility
+        
+    Returns
+    -------
+    Dict[int, float]
+        Shapley values for each group member
+    """
+    n = len(group_members)
+    if n == 0:
+        return {}
+    
+    shapley = {member: 0.0 for member in group_members}
+    mu_cache: Dict[frozenset, float] = {frozenset(): 0.0}
+    
+    rng = np.random.RandomState(random_seed)
+    
+    for _ in range(n_samples):
+        perm = rng.permutation(group_members).tolist()
+        
+        for i, member in enumerate(perm):
+            predecessors = frozenset(perm[:i])
+            predecessors_with_member = predecessors | {member}
+            
+            if predecessors not in mu_cache:
+                mu_cache[predecessors] = compute_mu_for_subset(
+                    list(predecessors), S_x, intercept_mu, b_groupsize_mu, eta_mu
+                )
+            if predecessors_with_member not in mu_cache:
+                mu_cache[predecessors_with_member] = compute_mu_for_subset(
+                    list(predecessors_with_member), S_x, intercept_mu, b_groupsize_mu, eta_mu
+                )
+            
+            marginal = mu_cache[predecessors_with_member] - mu_cache[predecessors]
+            shapley[member] += marginal
+    
+    for member in group_members:
+        shapley[member] /= n_samples
+    
+    return shapley
+
+
+def shapley_monte_carlo_vectorized(
+    group_members: List[int],
+    S_x: np.ndarray,
+    intercept_mu: np.ndarray,
+    b_groupsize_mu: np.ndarray,
+    eta_mu: np.ndarray,
+    n_permutations: int = 100,
+    random_seed: Optional[int] = None,
+) -> np.ndarray:
+    """
+    Compute Shapley values using Monte Carlo, vectorized across posterior samples.
+    
+    Parameters
+    ----------
+    group_members : List[int]
+        Forager indices in the group
+    S_x : np.ndarray
+        Skills for all foragers, shape (n_samples, n_foragers)
+    intercept_mu, b_groupsize_mu, eta_mu : np.ndarray
+        Model parameters, shape (n_samples,)
+    n_permutations : int, default=100
+        Number of permutation samples
+    random_seed : int, optional
+        Random seed for reproducibility
+        
+    Returns
+    -------
+    np.ndarray
+        Shapley values, shape (n_samples, n_group_members)
+    """
+    n = len(group_members)
+    n_posterior = S_x.shape[0]
+    
+    if n == 0:
+        return np.zeros((n_posterior, 0))
+    
+    # Map member index to position in output array
+    member_to_idx = {m: i for i, m in enumerate(group_members)}
+    
+    # Accumulate Shapley values: (n_posterior, n_members)
+    shapley = np.zeros((n_posterior, n))
+    
+    # Cache for mu values: subset -> (n_posterior,) array
+    mu_cache: Dict[frozenset, np.ndarray] = {
+        frozenset(): np.zeros(n_posterior)
+    }
+    
+    rng = np.random.RandomState(random_seed)
+    
+    for _ in range(n_permutations):
+        perm = rng.permutation(group_members).tolist()
+        
+        for i, member in enumerate(perm):
+            predecessors = frozenset(perm[:i])
+            predecessors_with_member = predecessors | {member}
+            
+            # Compute mu for predecessors if not cached
+            if predecessors not in mu_cache:
+                mu_cache[predecessors] = compute_mu_for_subset_vectorized(
+                    list(predecessors), S_x, intercept_mu, b_groupsize_mu, eta_mu
+                )
+            
+            # Compute mu for predecessors + member if not cached
+            if predecessors_with_member not in mu_cache:
+                mu_cache[predecessors_with_member] = compute_mu_for_subset_vectorized(
+                    list(predecessors_with_member), S_x, 
+                    intercept_mu, b_groupsize_mu, eta_mu
+                )
+            
+            # Marginal contribution: (n_posterior,)
+            marginal = mu_cache[predecessors_with_member] - mu_cache[predecessors]
+            shapley[:, member_to_idx[member]] += marginal
+    
+    return shapley / n_permutations
+
+
+# Threshold for switching from exact to Monte Carlo
+EXACT_THRESHOLD = 15  # 2^15 = 32768 subsets
+
+# Valid computation methods
+VALID_METHODS = ("auto", "exact", "monte_carlo", "joint")
 
 
 def shapley_contributions(
     S_x: xr.DataArray,
-    mu: xr.DataArray,
     data: xr.Dataset,
     group_idx: int,
     intercept_mu: xr.DataArray,
     b_groupsize_mu: xr.DataArray,
     eta_mu: xr.DataArray,
     kcal_scale: float = 1.0,
-    method: str = "exact",
-    n_samples: Optional[int] = None,
+    n_permutations: int = 100,
+    method: str = "auto",
+    n_posterior_samples: Optional[int] = None,
+    random_seed: Optional[int] = None,
 ) -> xr.DataArray:
     """
-    Compute Shapley values for a specific group using full MCMC posterior distributions.
+    Compute Shapley values for a specific group, preserving posterior uncertainty.
     
-    This function computes Shapley values for each MCMC sample, preserving full posterior uncertainty.
-    Uses vectorized operations to efficiently compute mu for all subsets across all MCMC samples.
+    Uses vectorized computation across all posterior samples (no Python loops).
     
     Parameters
     ----------
     S_x : xr.DataArray
         Skills for all foragers, shape (chain, draw, forager)
-        Should be computed using pm.compute_deterministics() with var_names=['S']
-    mu : xr.DataArray
-        Expected returns for all groups, shape (chain, draw, group)
-        Should be computed using pm.compute_deterministics() with var_names=['mu']
     data : xr.Dataset
-        Original dataset with forager data
+        Dataset with forager data
     group_idx : int
         Index of the group to compute Shapley values for
     intercept_mu : xr.DataArray
@@ -523,130 +563,102 @@ def shapley_contributions(
         Group size coefficient, shape (chain, draw)
     eta_mu : xr.DataArray
         Skill elasticity, shape (chain, draw)
-    kcal_scale : float, optional
-        Scaling factor for kcal (to convert back to original scale), by default 1.0
-    method : str, optional
-        Computation method: "exact" or "monte_carlo", by default "exact"
-    n_samples : int, optional
-        Number of Monte Carlo samples (only used if method="monte_carlo")
+    kcal_scale : float, default=1.0
+        Scaling factor for kcal (converts back to original scale)
+    n_permutations : int, default=100
+        Monte Carlo permutations (for method='monte_carlo')
+        Ignored for method='joint' (one permutation per draw)
+    method : str, default="auto"
+        Computation method:
+        - "auto": Use exact for groups ≤ 15 members, Monte Carlo otherwise
+        - "exact": Always use exact computation (exponential complexity)
+        - "monte_carlo": Always use Monte Carlo approximation
+        - "joint": One permutation per posterior sample (joint sampling)
+    n_posterior_samples : int, optional
+        Number of posterior samples to use. If None, uses all samples.
+        Subsampling speeds up computation while preserving uncertainty.
+    random_seed : int, optional
+        Random seed for reproducibility
         
     Returns
     -------
     xr.DataArray
-        Shapley values by forager and MCMC sample, shape (chain, draw, forager)
-        Uses full posterior distributions for computation
+        Shapley values, shape (sample, forager)
     """
-    # Get group members for this group
+    if method not in VALID_METHODS:
+        raise ValueError(f"method must be one of {VALID_METHODS}, got '{method}'")
+    
     group_forager_ids = data.forager_ids.isel(group=group_idx).values
     group_members = [int(fid) for fid in group_forager_ids if fid >= 0]
     
+    rng = np.random.RandomState(random_seed)
+    
+    # Stack chains and draws into flat samples: (n_total, n_foragers)
+    S_x_stacked = S_x.stack(sample=("chain", "draw")).transpose("sample", "forager")
+    intercept_stacked = intercept_mu.stack(sample=("chain", "draw"))
+    b_groupsize_stacked = b_groupsize_mu.stack(sample=("chain", "draw"))
+    eta_stacked = eta_mu.stack(sample=("chain", "draw"))
+    
+    n_total_samples = len(S_x_stacked.sample)
+    
+    # Subsample posterior if requested
+    if n_posterior_samples is not None and n_posterior_samples < n_total_samples:
+        sample_indices = rng.choice(n_total_samples, n_posterior_samples, replace=False)
+        sample_indices = np.sort(sample_indices)
+    else:
+        sample_indices = np.arange(n_total_samples)
+        n_posterior_samples = n_total_samples
+    
     if len(group_members) == 0:
-        # Empty group - return zeros with MCMC dimensions
-        n_foragers = len(data.coords["forager"])
         return xr.DataArray(
-            np.zeros((len(S_x.chain), len(S_x.draw), n_foragers)),
-            dims=["chain", "draw", "forager"],
-            coords={
-                "chain": S_x.chain,
-                "draw": S_x.draw,
-                "forager": data.coords["forager"].values,
-            },
+            np.zeros((len(sample_indices), 0)),
+            dims=["sample", "forager"],
+            coords={"sample": sample_indices, "forager": []},
             name="shapley_contribution"
         )
     
-    # Convert to numpy arrays for efficient computation
-    S_x_np = S_x.values  # Shape: (chain, draw, forager)
-    intercept_mu_np = intercept_mu.values  # Shape: (chain, draw)
-    b_groupsize_mu_np = b_groupsize_mu.values  # Shape: (chain, draw)
-    eta_mu_np = eta_mu.values  # Shape: (chain, draw)
-    
-    n_chains, n_draws = intercept_mu_np.shape
     n_group_members = len(group_members)
     
-    # Initialize output array: (chain, draw, forager)
-    shapley_array = np.zeros((n_chains, n_draws, n_group_members))
+    # Extract numpy arrays for selected samples: (n_samples, ...)
+    S_x_np = S_x_stacked.isel(sample=sample_indices).values
+    intercept_np = intercept_stacked.isel(sample=sample_indices).values
+    b_groupsize_np = b_groupsize_stacked.isel(sample=sample_indices).values
+    eta_np = eta_stacked.isel(sample=sample_indices).values
     
-    # Precompute all subsets only if using exact method
-    if method == "exact":
-        all_subsets = _generate_all_subsets(group_members)
-        
-        # Vectorized computation: compute mu for all subsets across all MCMC samples
-        # mu_values will be a dict mapping subset -> array of shape (chain, draw)
-        mu_values = {}
-        for subset in all_subsets:
-            mu_vals = _compute_mu_for_subset_vectorized(
-                list(subset),
-                S_x_np,
-                intercept_mu_np,
-                b_groupsize_mu_np,
-                eta_mu_np,
-            )
-            mu_values[subset] = mu_vals
-        
-        # Compute Shapley values for each MCMC sample
-        for chain_idx in range(n_chains):
-            for draw_idx in range(n_draws):
-                # Extract mu values for this sample
-                mu_values_sample = {
-                    subset: float(mu_vals[chain_idx, draw_idx])
-                    for subset, mu_vals in mu_values.items()
-                }
-                
-                # Compute exact Shapley values
-                shapley_sample = shapley_values(group_members, mu_values_sample, method="exact")
-                
-                # Store results
-                for i, member in enumerate(group_members):
-                    shapley_array[chain_idx, draw_idx, i] = shapley_sample.get(member, 0.0)
-    else:
-        # Monte Carlo method: compute mu for all subsets across all MCMC samples (vectorized),
-        # then take posterior mean and run Monte Carlo Shapley once
-        all_subsets = _generate_all_subsets(group_members)
-        
-        # Vectorized computation: compute mu for all subsets across all MCMC samples
-        # mu_values will be a dict mapping subset -> array of shape (chain, draw)
-        mu_values_full = {}
-        for subset in all_subsets:
-            mu_vals = _compute_mu_for_subset_vectorized(
-                list(subset),
-                S_x_np,
-                intercept_mu_np,
-                b_groupsize_mu_np,
-                eta_mu_np,
-            )
-            mu_values_full[subset] = mu_vals
-        
-        # Take posterior mean across (chain, draw) dimensions
-        mu_values_mean = {
-            subset: float(np.mean(mu_vals))
-            for subset, mu_vals in mu_values_full.items()
-        }
-        
-        # Run Monte Carlo Shapley once with mean mu values
-        def mu_func(subset_members: List[int]) -> float:
-            subset_frozen = frozenset(subset_members)
-            return mu_values_mean.get(subset_frozen, 0.0)
-        
-        shapley_mean = _compute_monte_carlo_shapley_lazy(
-            group_members,
-            mu_func,
-            n_samples=n_samples if n_samples is not None else 1000,
-            random_seed=42,
+    # Choose method based on parameter or group size
+    if method == "auto":
+        use_exact = n_group_members <= EXACT_THRESHOLD
+    elif method == "exact":
+        use_exact = True
+    elif method == "monte_carlo":
+        use_exact = False
+    else:  # joint
+        use_exact = False
+    
+    # Vectorized computation - no Python loop over samples!
+    if use_exact:
+        shapley_array = shapley_exact_vectorized(
+            group_members, S_x_np, intercept_np, b_groupsize_np, eta_np
         )
-        
-        # Broadcast the mean Shapley values to all MCMC samples
-        for i, member in enumerate(group_members):
-            shapley_array[:, :, i] = shapley_mean.get(member, 0.0)
+    elif method == "joint":
+        shapley_array = shapley_monte_carlo_joint_vectorized(
+            group_members, S_x_np, intercept_np, b_groupsize_np, eta_np,
+            random_seed=rng.randint(0, 2**31),
+        )
+    else:
+        shapley_array = shapley_monte_carlo_vectorized(
+            group_members, S_x_np, intercept_np, b_groupsize_np, eta_np,
+            n_permutations=n_permutations,
+            random_seed=rng.randint(0, 2**31),
+        )
     
-    # Apply scaling
     shapley_array *= kcal_scale
     
     return xr.DataArray(
         shapley_array,
-        dims=["chain", "draw", "forager"],
+        dims=["sample", "forager"],
         coords={
-            "chain": S_x.chain,
-            "draw": S_x.draw,
+            "sample": sample_indices,
             "forager": group_members,
         },
         name="shapley_contribution"
@@ -655,153 +667,179 @@ def shapley_contributions(
 
 def shapley_contributions_all_groups(
     S_x: xr.DataArray,
-    mu: xr.DataArray,
     data: xr.Dataset,
     intercept_mu: xr.DataArray,
     b_groupsize_mu: xr.DataArray,
     eta_mu: xr.DataArray,
     kcal_scale: float = 1.0,
-    method: str = "exact",
-    n_samples: Optional[int] = None,
+    n_permutations: int = 100,
     max_group_size: Optional[int] = None,
-    return_dict: bool = False,
-) -> Union[xr.Dataset, Dict[int, xr.DataArray]]:
+    method: str = "auto",
+    n_posterior_samples: int = 100,
+    random_seed: Optional[int] = None,
+) -> xr.Dataset:
     """
-    Compute Shapley values for all groups in the dataset using full MCMC posterior distributions.
-    
-    This function expects all pre-computation to be done outside:
-    - S_x: Skills for all foragers, shape (chain, draw, forager)
-    - mu: Expected returns for all groups, shape (chain, draw, group)
-    - intercept_mu, b_groupsize_mu, eta_mu: Parameters with shape (chain, draw)
-    
-    Uses vectorized operations to efficiently compute Shapley values across all MCMC samples.
+    Compute Shapley values for all groups in the dataset.
     
     Parameters
     ----------
     S_x : xr.DataArray
         Skills for all foragers, shape (chain, draw, forager)
-        Should be computed using pm.compute_deterministics() with var_names=['S']
-    mu : xr.DataArray
-        Expected returns for all groups, shape (chain, draw, group)
-        Should be computed using pm.compute_deterministics() with var_names=['mu']
     data : xr.Dataset
-        Original dataset with forager data
+        Dataset with forager data
     intercept_mu : xr.DataArray
         Intercept parameter, shape (chain, draw)
     b_groupsize_mu : xr.DataArray
         Group size coefficient, shape (chain, draw)
     eta_mu : xr.DataArray
         Skill elasticity, shape (chain, draw)
-    kcal_scale : float, optional
-        Scaling factor for kcal (to convert back to original scale), by default 1.0
-    method : str, optional
-        Computation method: "exact" or "monte_carlo", by default "exact"
-    n_samples : int, optional
-        Number of Monte Carlo samples (only used if method="monte_carlo")
+    kcal_scale : float, default=1.0
+        Scaling factor for kcal
+    n_permutations : int, default=100
+        Monte Carlo permutations per posterior sample (for method='monte_carlo')
+        Ignored for method='joint' (one permutation per draw)
     max_group_size : int, optional
-        Maximum group size to compute Shapley values for (None = no limit).
-        Groups larger than this will be skipped with a warning.
-    return_dict : bool, optional
-        If True, returns a dictionary mapping group indices to DataArrays (legacy format).
-        If False (default), returns an xarray Dataset with dimensions (chain, draw, group, forager).
+        Skip groups larger than this
+    method : str, default="auto"
+        Computation method:
+        - "auto": Use exact for groups ≤ 15 members, Monte Carlo otherwise
+        - "exact": Always use exact computation (exponential complexity)
+        - "monte_carlo": Always use Monte Carlo approximation
+        - "joint": One permutation per posterior sample (joint sampling)
+    n_posterior_samples : int, default=100
+        Number of posterior samples to use. Subsampling speeds up computation
+        while preserving uncertainty quantification.
+    random_seed : int, optional
+        Random seed for reproducibility
         
     Returns
     -------
-    xr.Dataset or Dict[int, xr.DataArray]
-        If return_dict=False: Dataset with 'shapley_contribution' variable,
-        dimensions (chain, draw, group, forager), using same coordinates as model.
-        Missing values (foragers not in group) are NaN.
-        If return_dict=True: Dictionary mapping group indices to their Shapley value DataArrays
-        with shape (chain, draw, forager)
+    xr.Dataset
+        Dataset with 'shapley_contribution' variable,
+        dimensions (sample, group, forager).
+        NaN for foragers not in a given group.
     """
+    if method not in VALID_METHODS:
+        raise ValueError(f"method must be one of {VALID_METHODS}, got '{method}'")
+    
+    rng = np.random.RandomState(random_seed)
+    
     n_groups = len(data.coords['group'])
     n_foragers = len(data.coords['forager'])
-    n_chains = len(S_x.chain)
-    n_draws = len(S_x.draw)
     
-    # Initialize array for all groups and foragers: (chain, draw, group, forager)
-    shapley_array = np.full((n_chains, n_draws, n_groups, n_foragers), np.nan, dtype=np.float64)
+    # Stack chains and draws into flat samples: (n_total, n_foragers)
+    S_x_stacked = S_x.stack(sample=("chain", "draw")).transpose("sample", "forager")
+    intercept_stacked = intercept_mu.stack(sample=("chain", "draw"))
+    b_groupsize_stacked = b_groupsize_mu.stack(sample=("chain", "draw"))
+    eta_stacked = eta_mu.stack(sample=("chain", "draw"))
+
+    n_total_samples = len(S_x_stacked.sample)
+
+    # Subsample posterior if requested
+    if n_posterior_samples is not None and n_posterior_samples < n_total_samples:
+        sample_indices = rng.choice(n_total_samples, n_posterior_samples, replace=False)
+        sample_indices = np.sort(sample_indices)
+    else:
+        sample_indices = np.arange(n_total_samples)
+        n_posterior_samples = n_total_samples
+
+    n_samples_actual = len(sample_indices)
     
-    # Track which groups were computed
+    shapley_array = np.full(
+        (n_samples_actual, n_groups, n_foragers), 
+        np.nan, 
+        dtype=np.float64
+    )
+    
     computed_groups = []
     
+    # Joint sampling uses one permutation per posterior sample (per group size).
+    joint_permutations: Dict[int, np.ndarray] = {}
+
     for group_idx in range(n_groups):
         group_forager_ids = data.forager_ids.isel(group=group_idx).values
         group_members = [int(fid) for fid in group_forager_ids if fid >= 0]
         group_size = len(group_members)
         
-        # Skip if group is too large (exponential complexity)
+        if group_size == 0:
+            continue
+            
         if max_group_size is not None and group_size > max_group_size:
-            import warnings
             warnings.warn(
                 f"Skipping group {group_idx} with size {group_size} "
                 f"(exceeds max_group_size={max_group_size})"
             )
             continue
         
-        # Skip empty groups
-        if group_size == 0:
-            continue
+        if method == "joint":
+            if group_size not in joint_permutations:
+                joint_permutations[group_size] = np.array(
+                    [rng.permutation(group_size) for _ in range(n_samples_actual)],
+                    dtype=np.int32,
+                )
+
+            shapley_group = shapley_monte_carlo_joint_vectorized(
+                group_members,
+                S_x_stacked.isel(sample=sample_indices).values,
+                intercept_stacked.isel(sample=sample_indices).values,
+                b_groupsize_stacked.isel(sample=sample_indices).values,
+                eta_stacked.isel(sample=sample_indices).values,
+                permutations=joint_permutations[group_size],
+            )
+            shapley_group *= kcal_scale
+            shapley_data = xr.DataArray(
+                shapley_group,
+                dims=["sample", "forager"],
+                coords={
+                    "sample": sample_indices,
+                    "forager": group_members,
+                },
+                name="shapley_contribution",
+            )
+        else:
+            shapley_data = shapley_contributions(
+                S_x=S_x,
+                data=data,
+                group_idx=group_idx,
+                intercept_mu=intercept_mu,
+                b_groupsize_mu=b_groupsize_mu,
+                eta_mu=eta_mu,
+                kcal_scale=kcal_scale,
+                n_permutations=n_permutations,
+                method=method,
+                n_posterior_samples=n_posterior_samples,
+                random_seed=rng.randint(0, 2**31),
+            )
         
-        # Compute Shapley values for this group using full posterior distributions
-        shapley_data = shapley_contributions(
-            S_x=S_x,
-            mu=mu,
-            data=data,
-            group_idx=group_idx,
-            intercept_mu=intercept_mu,
-            b_groupsize_mu=b_groupsize_mu,
-            eta_mu=eta_mu,
-            kcal_scale=kcal_scale,
-            method=method,
-            n_samples=n_samples,
-        )
-        
-        # Extract contributions for foragers in this group
-        # shapley_data has shape (chain, draw, forager) where forager coords are group_members
         for forager_idx in shapley_data.coords['forager'].values:
-            # shapley_data.sel(forager=forager_idx) has shape (chain, draw)
             contrib_values = shapley_data.sel(forager=forager_idx).values
-            shapley_array[:, :, group_idx, forager_idx] = contrib_values
+            shapley_array[:, group_idx, forager_idx] = contrib_values
         
         computed_groups.append(group_idx)
     
-    # Create Dataset with same coordinates as model
     shapley_ds = xr.Dataset(
         {
             'shapley_contribution': (
-                ['chain', 'draw', 'group', 'forager'],
+                ['sample', 'group', 'forager'],
                 shapley_array,
             )
         },
         coords={
-            'chain': S_x.chain,
-            'draw': S_x.draw,
+            'sample': np.arange(n_samples_actual),
             'group': data.coords['group'],
             'forager': data.coords['forager'],
         }
     )
     
-    # Add attributes
     shapley_ds['shapley_contribution'].attrs = {
         'long_name': 'Shapley contribution',
         'units': 'kcal',
         'description': 'Shapley value contribution of each forager to each group',
+        'exact_threshold': EXACT_THRESHOLD,
+        'n_permutations': n_permutations,
+        'n_posterior_samples': n_samples_actual,
         'method': method,
         'computed_groups': computed_groups,
     }
-    
-    if return_dict:
-        # Return legacy dictionary format
-        results = {}
-        for group_idx in computed_groups:
-            group_forager_ids = data.forager_ids.isel(group=group_idx).values
-            group_members = [int(fid) for fid in group_forager_ids if fid >= 0]
-            
-            # Extract only the foragers in this group
-            group_shapley = shapley_ds['shapley_contribution'].sel(group=group_idx).sel(forager=group_members)
-            results[group_idx] = group_shapley.rename('shapley_contribution')
-        
-        return results
     
     return shapley_ds

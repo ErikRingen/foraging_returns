@@ -1,0 +1,939 @@
+---
+title: "Foraging Effort Time Series EDA"
+author: "Erik Ringen"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    code-tools: true
+    theme: cosmo
+execute:
+  warning: false
+  echo: false
+---
+
+## Setup
+
+```{python}
+#| label: setup
+#| message: false
+#| echo: true
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pyprojroot.here import here
+from scipy import stats
+import sys
+sys.path.append(str(here()))
+
+from preprocessing import preprocess_data
+```
+
+```{python}
+# Notebook configuration
+plt.style.use('seaborn-v0_8-whitegrid')
+sns.set_palette("colorblind")
+pd.set_option("display.max_columns", None)
+```
+
+## Data Loading
+
+```{python}
+#| label: load-data
+#| echo: true
+
+raw_data_dir = "raw_data/"
+
+df_foragers, df_time_agg, df_production, df_days_long = preprocess_data(
+    returns_file=here(raw_data_dir + 'returns.csv'),
+    recall_file=here(raw_data_dir + 'recall.csv'),
+    kcal_file=here(raw_data_dir + 'kcal.csv'),
+    group_file=here(raw_data_dir + 'groups.csv'),
+    camp_members_file=here(raw_data_dir + 'camp_members.csv'),
+    days_in_camp_file=here(raw_data_dir + 'daysincamp.csv'),
+    combine_returns_recall=True,
+    output_dir=here('data')
+)
+```
+
+## Preparing Effort Time Series
+
+We need to carefully distinguish between:
+
+1. **Not in camp** (missing data - forager was away)
+2. **In camp but didn't forage** (true zero effort)
+3. **In camp and foraged** (positive effort)
+
+```{python}
+#| label: prepare-effort-ts
+#| echo: true
+
+# Merge days in camp with time allocation
+effort_ts = (
+    df_days_long
+    .merge(
+        df_time_agg[['id', 'date', 'total.minutes']],
+        left_on=['forager_id', 'date'],
+        right_on=['id', 'date'],
+        how='left'
+    )
+    .drop(columns=['id'])
+)
+
+# Create effort variables
+# Only fill with 0 if they were in camp
+effort_ts['minutes'] = effort_ts['total.minutes'].copy()
+effort_ts.loc[effort_ts['in_camp'] == 1, 'minutes'] = effort_ts.loc[effort_ts['in_camp'] == 1, 'minutes'].fillna(0)
+
+# Binary: went foraging or not (only defined when in camp)
+effort_ts['went_foraging'] = np.where(
+    effort_ts['in_camp'] == 1,
+    (effort_ts['minutes'] > 0).astype(int),
+    np.nan
+)
+
+# Add forager demographics
+effort_ts = effort_ts.merge(
+    df_foragers[['id', 'age', 'sex']],
+    left_on='forager_id',
+    right_on='id',
+    how='left'
+).drop(columns=['id'])
+
+# Sort by forager and date
+effort_ts = effort_ts.sort_values(['forager_id', 'date']).reset_index(drop=True)
+
+print(f"Total forager-days: {len(effort_ts)}")
+print(f"In camp: {effort_ts['in_camp'].sum():.0f} ({100*effort_ts['in_camp'].mean():.1f}%)")
+print(f"Went foraging (of in-camp): {effort_ts[effort_ts['in_camp']==1]['went_foraging'].sum():.0f} ({100*effort_ts[effort_ts['in_camp']==1]['went_foraging'].mean():.1f}%)")
+```
+
+## Individual Time Series Visualization
+
+### Example Forager Time Series
+
+Let's visualize effort patterns for a few individual foragers, showing which days they were in camp and how much time they spent foraging.
+
+```{python}
+#| label: fig-example-timeseries
+#| fig-cap: "Example individual foraging effort time series. Gray bars indicate days not in camp. Blue bars show foraging minutes on days when the forager was in camp."
+
+# Select foragers with good coverage (many days in camp)
+forager_coverage = (
+    effort_ts[effort_ts['in_camp'] == 1]
+    .groupby('forager_id')
+    .size()
+    .sort_values(ascending=False)
+)
+
+# Pick 6 foragers with varying ages for illustration
+example_foragers = []
+forager_ages = df_foragers.set_index('id')['age'].to_dict()
+
+# Get foragers at different ages
+age_quantiles = [0.1, 0.3, 0.5, 0.7, 0.9]
+for q in age_quantiles:
+    target_age = df_foragers['age'].quantile(q)
+    # Find forager closest to this age with good coverage
+    candidates = forager_coverage[forager_coverage >= 20].index
+    if len(candidates) > 0:
+        ages = [forager_ages.get(str(f), np.inf) for f in candidates]
+        best_idx = np.argmin(np.abs(np.array(ages) - target_age))
+        example_foragers.append(candidates[best_idx])
+
+example_foragers = list(dict.fromkeys(example_foragers))[:5]  # Unique, max 5
+
+# Create figure
+fig, axes = plt.subplots(len(example_foragers), 1, figsize=(12, 2.5*len(example_foragers)), sharex=True)
+if len(example_foragers) == 1:
+    axes = [axes]
+
+all_dates = sorted(effort_ts['date'].unique())
+
+for ax, forager_id in zip(axes, example_foragers):
+    forager_data = effort_ts[effort_ts['forager_id'] == forager_id].set_index('date')
+    forager_age = forager_ages.get(str(forager_id), '?')
+    forager_sex = df_foragers[df_foragers['id'] == str(forager_id)]['sex'].values
+    forager_sex = forager_sex[0] if len(forager_sex) > 0 else '?'
+    
+    # Prepare data for all dates
+    minutes = []
+    colors = []
+    for d in all_dates:
+        if d in forager_data.index:
+            row = forager_data.loc[d]
+            if isinstance(row, pd.DataFrame):
+                row = row.iloc[0]
+            if row['in_camp'] == 1:
+                minutes.append(row['minutes'] if pd.notna(row['minutes']) else 0)
+                colors.append('#2E86AB' if row['minutes'] > 0 else '#E8E8E8')
+            else:
+                minutes.append(0)
+                colors.append('#CCCCCC')  # Not in camp
+        else:
+            minutes.append(0)
+            colors.append('#CCCCCC')
+    
+    # Plot bars
+    x = np.arange(len(all_dates))
+    ax.bar(x, minutes, color=colors, edgecolor='none', width=1.0)
+    
+    # Mark days not in camp with a different background
+    for i, d in enumerate(all_dates):
+        if d in forager_data.index:
+            row = forager_data.loc[d]
+            if isinstance(row, pd.DataFrame):
+                row = row.iloc[0]
+            if row['in_camp'] != 1:
+                ax.axvspan(i-0.5, i+0.5, color='#F5F5F5', alpha=0.8, zorder=0)
+    
+    ax.set_ylabel('Minutes')
+    ax.set_title(f'Forager {forager_id} (age {forager_age}, {forager_sex})', fontsize=10)
+    ax.set_ylim(0, effort_ts['minutes'].max() * 1.1)
+
+# X-axis labels
+ax.set_xticks(x[::7])  # Every week
+ax.set_xticklabels([d.strftime('%m/%d') for d in all_dates[::7]], rotation=45, ha='right')
+ax.set_xlabel('Date')
+
+# Add legend
+from matplotlib.patches import Patch
+legend_elements = [
+    Patch(facecolor='#2E86AB', label='Foraging (minutes)'),
+    Patch(facecolor='#E8E8E8', label='In camp, no foraging'),
+    Patch(facecolor='#F5F5F5', edgecolor='#CCCCCC', label='Not in camp'),
+]
+fig.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(0.98, 0.98))
+
+plt.tight_layout()
+plt.show()
+```
+
+### Heatmap of Effort Across All Foragers
+
+```{python}
+#| label: fig-effort-heatmap
+#| fig-cap: "Heatmap of foraging effort (minutes) across all foragers and dates. Rows are sorted by forager age. White cells indicate days not in camp."
+
+# Create pivot table: forager × date
+# Ensure forager_id is string for consistent handling
+effort_ts_str = effort_ts.copy()
+effort_ts_str['forager_id'] = effort_ts_str['forager_id'].astype(str)
+
+effort_pivot = effort_ts_str.pivot_table(
+    index='forager_id', 
+    columns='date', 
+    values='minutes',
+    aggfunc='first'
+)
+
+# Get in-camp status for masking
+in_camp_pivot = effort_ts_str.pivot_table(
+    index='forager_id',
+    columns='date',
+    values='in_camp',
+    aggfunc='first'
+)
+
+# Sort foragers by age
+# Create age lookup with string keys
+forager_ages_str = {str(k): v for k, v in forager_ages.items()}
+forager_age_list = [(fid, forager_ages_str.get(fid, 999)) for fid in effort_pivot.index]
+forager_order = [fid for fid, _ in sorted(forager_age_list, key=lambda x: x[1])]
+
+effort_pivot = effort_pivot.reindex(forager_order)
+in_camp_pivot = in_camp_pivot.reindex(forager_order)
+
+# Create masked array (NaN for not in camp)
+effort_masked = effort_pivot.where(in_camp_pivot == 1)
+
+fig, ax = plt.subplots(figsize=(14, 10))
+
+# Plot heatmap
+im = ax.imshow(
+    effort_masked.values, 
+    aspect='auto', 
+    cmap='YlOrRd',
+    interpolation='nearest',
+    vmin=0,
+    vmax=effort_masked.max().max()  # Set explicit max for colorbar
+)
+
+# Add colorbar
+cbar = plt.colorbar(im, ax=ax, label='Minutes Foraging', shrink=0.8)
+
+# Labels
+ax.set_xlabel('Date')
+ax.set_ylabel('Forager (sorted by age)')
+
+# X-axis: show every 7th date
+date_labels = effort_pivot.columns
+ax.set_xticks(np.arange(0, len(date_labels), 7))
+ax.set_xticklabels([d.strftime('%m/%d') for d in date_labels[::7]], rotation=45, ha='right')
+
+# Y-axis: show forager IDs (or ages)
+ax.set_yticks(np.arange(len(effort_pivot.index)))
+forager_ages_list = [forager_ages_str.get(f, '?') for f in effort_pivot.index]
+ax.set_yticklabels([f'{fid} ({age})' for fid, age in zip(effort_pivot.index, forager_ages_list)], fontsize=6)
+
+ax.set_title('Foraging Effort by Forager and Date')
+plt.tight_layout()
+plt.show()
+```
+
+## Temporal Autocorrelation Analysis
+
+We're interested in whether individual foraging effort shows negative autocorrelation - i.e., does a forager who puts in high effort on one day tend to reduce effort the next day?
+
+### Computing Lag-1 Autocorrelation
+
+For each forager, we compute the lag-1 autocorrelation of effort, considering only **consecutive in-camp days** to avoid spurious correlations from missing data.
+
+```{python}
+#| label: compute-autocorr
+#| echo: true
+
+def compute_lag1_autocorr(series, min_pairs=5):
+    """
+    Compute lag-1 autocorrelation for a series, only using consecutive valid observations.
+    Returns NaN if fewer than min_pairs consecutive pairs.
+    """
+    # Get valid (non-NaN) values
+    valid = series.dropna()
+    if len(valid) < min_pairs + 1:
+        return np.nan
+    
+    # We need consecutive observations - check dates
+    dates = valid.index
+    consecutive_pairs = []
+    
+    for i in range(len(dates) - 1):
+        # Check if dates are consecutive (1 day apart)
+        if (dates[i+1] - dates[i]).days == 1:
+            consecutive_pairs.append((valid.iloc[i], valid.iloc[i+1]))
+    
+    if len(consecutive_pairs) < min_pairs:
+        return np.nan
+    
+    x = np.array([p[0] for p in consecutive_pairs])
+    y = np.array([p[1] for p in consecutive_pairs])
+    
+    # Pearson correlation
+    if np.std(x) == 0 or np.std(y) == 0:
+        return np.nan
+    
+    return np.corrcoef(x, y)[0, 1]
+
+# Compute autocorrelation for each forager
+# Using minutes on in-camp days
+autocorr_results = []
+
+for forager_id in effort_ts['forager_id'].unique():
+    forager_data = effort_ts[effort_ts['forager_id'] == forager_id].copy()
+    forager_data = forager_data.set_index('date').sort_index()
+    
+    # Only in-camp days
+    in_camp_data = forager_data[forager_data['in_camp'] == 1]['minutes']
+    
+    # Compute autocorrelation
+    autocorr = compute_lag1_autocorr(in_camp_data, min_pairs=5)
+    
+    # Get forager info
+    age = forager_ages.get(str(forager_id), np.nan)
+    sex = df_foragers[df_foragers['id'] == str(forager_id)]['sex'].values
+    sex = sex[0] if len(sex) > 0 else None
+    
+    # Count consecutive in-camp day pairs
+    dates = in_camp_data.index
+    n_consecutive = sum(1 for i in range(len(dates)-1) if (dates[i+1] - dates[i]).days == 1)
+    
+    autocorr_results.append({
+        'forager_id': forager_id,
+        'age': age,
+        'sex': sex,
+        'autocorr': autocorr,
+        'n_in_camp_days': len(in_camp_data),
+        'n_consecutive_pairs': n_consecutive,
+    })
+
+autocorr_df = pd.DataFrame(autocorr_results)
+autocorr_valid = autocorr_df[autocorr_df['autocorr'].notna()].copy()
+
+print(f"Foragers with valid autocorrelation: {len(autocorr_valid)} / {len(autocorr_df)}")
+print(f"Mean consecutive in-camp pairs: {autocorr_valid['n_consecutive_pairs'].mean():.1f}")
+```
+
+### Distribution of Autocorrelations
+
+```{python}
+#| label: fig-autocorr-distribution
+#| fig-cap: "Distribution of lag-1 autocorrelations of foraging effort (minutes) across foragers. Negative values indicate that high-effort days tend to be followed by low-effort days."
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+
+# Left: Histogram
+ax = axes[0]
+ax.hist(autocorr_valid['autocorr'], bins=15, edgecolor='black', alpha=0.7, color='#2E86AB')
+ax.axvline(0, color='black', linestyle='--', linewidth=1.5, alpha=0.7)
+ax.axvline(autocorr_valid['autocorr'].mean(), color='red', linestyle='-', linewidth=2, 
+           label=f'Mean: {autocorr_valid["autocorr"].mean():.3f}')
+ax.axvline(autocorr_valid['autocorr'].median(), color='orange', linestyle=':', linewidth=2,
+           label=f'Median: {autocorr_valid["autocorr"].median():.3f}')
+ax.set_xlabel('Lag-1 Autocorrelation')
+ax.set_ylabel('Count (Foragers)')
+ax.set_title('Distribution of Individual Autocorrelations')
+ax.legend(fontsize=9)
+
+# Right: By age
+ax = axes[1]
+colors = {'male': '#2E86AB', 'female': '#E94F37'}
+for sex in autocorr_valid['sex'].dropna().unique():
+    subset = autocorr_valid[autocorr_valid['sex'] == sex]
+    ax.scatter(subset['age'], subset['autocorr'], alpha=0.7, label=sex.capitalize(),
+               color=colors.get(sex, 'gray'), s=50, edgecolor='white', linewidth=0.5)
+
+ax.axhline(0, color='black', linestyle='--', linewidth=1, alpha=0.5)
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Lag-1 Autocorrelation')
+ax.set_title('Autocorrelation by Age')
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Summary statistics
+print(f"\nAutocorrelation Summary:")
+print(f"  Mean: {autocorr_valid['autocorr'].mean():.3f}")
+print(f"  Median: {autocorr_valid['autocorr'].median():.3f}")
+print(f"  Std: {autocorr_valid['autocorr'].std():.3f}")
+print(f"  % Negative: {100 * (autocorr_valid['autocorr'] < 0).mean():.1f}%")
+print(f"  % Positive: {100 * (autocorr_valid['autocorr'] > 0).mean():.1f}%")
+
+# One-sample t-test: is mean autocorrelation different from zero?
+t_stat, p_value = stats.ttest_1samp(autocorr_valid['autocorr'], 0)
+print(f"\nOne-sample t-test (H0: mean = 0):")
+print(f"  t = {t_stat:.2f}, p = {p_value:.4f}")
+```
+
+### Autocorrelation of Binary Effort (Went Foraging or Not)
+
+```{python}
+#| label: fig-autocorr-binary
+#| fig-cap: "Distribution of lag-1 autocorrelations of binary foraging effort (went foraging = 1, stayed in camp = 0)."
+
+# Compute autocorrelation for binary effort
+autocorr_binary_results = []
+
+for forager_id in effort_ts['forager_id'].unique():
+    forager_data = effort_ts[effort_ts['forager_id'] == forager_id].copy()
+    forager_data = forager_data.set_index('date').sort_index()
+    
+    # Only in-camp days, binary effort
+    in_camp_data = forager_data[forager_data['in_camp'] == 1]['went_foraging']
+    
+    # Compute autocorrelation
+    autocorr = compute_lag1_autocorr(in_camp_data, min_pairs=5)
+    
+    # Get forager info
+    age = forager_ages.get(str(forager_id), np.nan)
+    sex = df_foragers[df_foragers['id'] == str(forager_id)]['sex'].values
+    sex = sex[0] if len(sex) > 0 else None
+    
+    autocorr_binary_results.append({
+        'forager_id': forager_id,
+        'age': age,
+        'sex': sex,
+        'autocorr': autocorr,
+    })
+
+autocorr_binary_df = pd.DataFrame(autocorr_binary_results)
+autocorr_binary_valid = autocorr_binary_df[autocorr_binary_df['autocorr'].notna()].copy()
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+
+# Left: Histogram
+ax = axes[0]
+ax.hist(autocorr_binary_valid['autocorr'], bins=15, edgecolor='black', alpha=0.7, color='#A23B72')
+ax.axvline(0, color='black', linestyle='--', linewidth=1.5, alpha=0.7)
+ax.axvline(autocorr_binary_valid['autocorr'].mean(), color='red', linestyle='-', linewidth=2, 
+           label=f'Mean: {autocorr_binary_valid["autocorr"].mean():.3f}')
+ax.set_xlabel('Lag-1 Autocorrelation')
+ax.set_ylabel('Count (Foragers)')
+ax.set_title('Autocorrelation of Binary Effort')
+ax.legend(fontsize=9)
+
+# Right: By age
+ax = axes[1]
+for sex in autocorr_binary_valid['sex'].dropna().unique():
+    subset = autocorr_binary_valid[autocorr_binary_valid['sex'] == sex]
+    ax.scatter(subset['age'], subset['autocorr'], alpha=0.7, label=sex.capitalize(),
+               color=colors.get(sex, 'gray'), s=50, edgecolor='white', linewidth=0.5)
+
+ax.axhline(0, color='black', linestyle='--', linewidth=1, alpha=0.5)
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Lag-1 Autocorrelation')
+ax.set_title('Binary Effort Autocorrelation by Age')
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Summary
+print(f"\nBinary Effort Autocorrelation Summary:")
+print(f"  Mean: {autocorr_binary_valid['autocorr'].mean():.3f}")
+print(f"  Median: {autocorr_binary_valid['autocorr'].median():.3f}")
+print(f"  % Negative: {100 * (autocorr_binary_valid['autocorr'] < 0).mean():.1f}%")
+
+t_stat, p_value = stats.ttest_1samp(autocorr_binary_valid['autocorr'], 0)
+print(f"\nOne-sample t-test (H0: mean = 0):")
+print(f"  t = {t_stat:.2f}, p = {p_value:.4f}")
+```
+
+### Autocorrelation Function (ACF) at Multiple Lags
+
+We can look beyond lag-1 to see how temporal dependencies decay over time. This also helps identify any periodic patterns (e.g., weekly cycles).
+
+```{python}
+#| label: compute-acf-multi-lag
+#| echo: true
+
+def compute_autocorr_at_lag(series, lag, min_pairs=5):
+    """
+    Compute autocorrelation at a specific lag, using observations separated by exactly `lag` days.
+    """
+    valid = series.dropna()
+    if len(valid) < min_pairs + lag:
+        return np.nan
+    
+    dates = valid.index
+    pairs = []
+    
+    for i in range(len(dates)):
+        for j in range(i + 1, len(dates)):
+            if (dates[j] - dates[i]).days == lag:
+                pairs.append((valid.iloc[i], valid.iloc[j]))
+                break  # Only take first match at this lag
+    
+    if len(pairs) < min_pairs:
+        return np.nan
+    
+    x = np.array([p[0] for p in pairs])
+    y = np.array([p[1] for p in pairs])
+    
+    if np.std(x) == 0 or np.std(y) == 0:
+        return np.nan
+    
+    return np.corrcoef(x, y)[0, 1]
+
+# Compute ACF at multiple lags for each forager
+max_lag = 14  # Up to 2 weeks
+acf_results = {lag: [] for lag in range(1, max_lag + 1)}
+
+for forager_id in effort_ts['forager_id'].unique():
+    forager_data = effort_ts[effort_ts['forager_id'] == forager_id].copy()
+    forager_data = forager_data.set_index('date').sort_index()
+    
+    # Only in-camp days
+    in_camp_data = forager_data[forager_data['in_camp'] == 1]['minutes']
+    
+    for lag in range(1, max_lag + 1):
+        acf = compute_autocorr_at_lag(in_camp_data, lag, min_pairs=3)
+        if not np.isnan(acf):
+            acf_results[lag].append(acf)
+
+# Summary statistics by lag
+acf_summary = pd.DataFrame({
+    'lag': range(1, max_lag + 1),
+    'mean_acf': [np.mean(acf_results[lag]) if acf_results[lag] else np.nan for lag in range(1, max_lag + 1)],
+    'median_acf': [np.median(acf_results[lag]) if acf_results[lag] else np.nan for lag in range(1, max_lag + 1)],
+    'std_acf': [np.std(acf_results[lag]) if acf_results[lag] else np.nan for lag in range(1, max_lag + 1)],
+    'n_foragers': [len(acf_results[lag]) for lag in range(1, max_lag + 1)],
+    'pct_negative': [100 * np.mean([x < 0 for x in acf_results[lag]]) if acf_results[lag] else np.nan for lag in range(1, max_lag + 1)],
+})
+
+print("ACF Summary by Lag:")
+print(acf_summary.to_string(index=False))
+```
+
+```{python}
+#| label: fig-acf-multillag
+#| fig-cap: "Autocorrelation function (ACF) of foraging effort (minutes) at multiple lags. Left: Mean ACF across foragers. Right: Distribution of individual ACFs at each lag."
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: Mean ACF by lag with CI
+ax = axes[0]
+lags = acf_summary['lag'].values
+means = acf_summary['mean_acf'].values
+stds = acf_summary['std_acf'].values
+n_foragers = acf_summary['n_foragers'].values
+
+# Standard error
+se = stds / np.sqrt(n_foragers)
+ci_lower = means - 1.96 * se
+ci_upper = means + 1.96 * se
+
+ax.bar(lags, means, color='#2E86AB', alpha=0.7, edgecolor='black', linewidth=0.5)
+ax.errorbar(lags, means, yerr=[means - ci_lower, ci_upper - means], 
+            fmt='none', color='black', capsize=3, linewidth=1)
+ax.axhline(0, color='black', linestyle='--', linewidth=1, alpha=0.7)
+ax.set_xlabel('Lag (days)')
+ax.set_ylabel('Mean Autocorrelation')
+ax.set_title('Mean ACF Across Foragers')
+ax.set_xticks(lags)
+
+# Right: Boxplot of individual ACFs at each lag
+ax = axes[1]
+box_data = [acf_results[lag] for lag in range(1, max_lag + 1)]
+bp = ax.boxplot(box_data, positions=lags, widths=0.6, patch_artist=True,
+                boxprops=dict(facecolor='#2E86AB', alpha=0.6),
+                medianprops=dict(color='red', linewidth=2))
+ax.axhline(0, color='black', linestyle='--', linewidth=1, alpha=0.7)
+ax.set_xlabel('Lag (days)')
+ax.set_ylabel('Autocorrelation')
+ax.set_title('Distribution of Individual ACFs')
+ax.set_xticks(lags)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Pooled Autocorrelation (All Foragers Combined)
+
+Instead of computing ACF per forager, we can pool all consecutive observations across foragers and compute a single ACF. This gives more power but assumes homogeneity across individuals.
+
+```{python}
+#| label: fig-pooled-acf
+#| fig-cap: "Pooled autocorrelation function computed from all forager-day observations."
+
+# Collect all pairs at each lag across all foragers
+pooled_pairs = {lag: [] for lag in range(1, max_lag + 1)}
+
+for forager_id in effort_ts['forager_id'].unique():
+    forager_data = effort_ts[effort_ts['forager_id'] == forager_id].copy()
+    forager_data = forager_data.set_index('date').sort_index()
+    
+    in_camp_data = forager_data[forager_data['in_camp'] == 1]['minutes']
+    dates = in_camp_data.index
+    
+    for i in range(len(dates)):
+        for j in range(i + 1, len(dates)):
+            lag = (dates[j] - dates[i]).days
+            if 1 <= lag <= max_lag:
+                pooled_pairs[lag].append((in_camp_data.iloc[i], in_camp_data.iloc[j]))
+
+# Compute pooled ACF
+pooled_acf = []
+for lag in range(1, max_lag + 1):
+    pairs = pooled_pairs[lag]
+    if len(pairs) >= 10:
+        x = np.array([p[0] for p in pairs])
+        y = np.array([p[1] for p in pairs])
+        if np.std(x) > 0 and np.std(y) > 0:
+            pooled_acf.append(np.corrcoef(x, y)[0, 1])
+        else:
+            pooled_acf.append(np.nan)
+    else:
+        pooled_acf.append(np.nan)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+# Left: Pooled ACF bar plot
+ax = axes[0]
+ax.bar(range(1, max_lag + 1), pooled_acf, color='#27AE60', alpha=0.7, edgecolor='black')
+ax.axhline(0, color='black', linestyle='--', linewidth=1)
+ax.set_xlabel('Lag (days)')
+ax.set_ylabel('Autocorrelation (pooled)')
+ax.set_title('Pooled ACF Across All Foragers')
+ax.set_xticks(range(1, max_lag + 1))
+
+# Add significance threshold (approximate: 2/sqrt(n))
+n_obs = len(effort_ts[effort_ts['in_camp'] == 1])
+sig_threshold = 2 / np.sqrt(n_obs)
+ax.axhline(sig_threshold, color='red', linestyle=':', alpha=0.7, label=f'±2/√n ≈ ±{sig_threshold:.3f}')
+ax.axhline(-sig_threshold, color='red', linestyle=':', alpha=0.7)
+ax.legend(fontsize=9)
+
+# Right: Number of pairs at each lag
+ax = axes[1]
+n_pairs = [len(pooled_pairs[lag]) for lag in range(1, max_lag + 1)]
+ax.bar(range(1, max_lag + 1), n_pairs, color='#A23B72', alpha=0.7, edgecolor='black')
+ax.set_xlabel('Lag (days)')
+ax.set_ylabel('Number of Observation Pairs')
+ax.set_title('Sample Size by Lag')
+ax.set_xticks(range(1, max_lag + 1))
+
+plt.tight_layout()
+plt.show()
+
+# Print pooled ACF values
+print("\nPooled ACF values:")
+for lag in range(1, max_lag + 1):
+    n = len(pooled_pairs[lag])
+    acf_val = pooled_acf[lag-1]
+    if not np.isnan(acf_val):
+        print(f"  Lag {lag:2d}: r = {acf_val:+.3f} (n = {n:4d} pairs)")
+```
+
+### Detecting Periodicity
+
+If foragers have weekly patterns (e.g., less foraging on certain days), we might see spikes at lag 7 in the ACF.
+
+```{python}
+#| label: periodicity-check
+
+# Check for weekly pattern
+print("Checking for periodic patterns:")
+print(f"  Lag 7 (weekly) ACF: {pooled_acf[6]:.3f}" if len(pooled_acf) > 6 and not np.isnan(pooled_acf[6]) else "  Lag 7: insufficient data")
+
+# Day-of-week effects
+effort_ts['day_of_week'] = pd.to_datetime(effort_ts['date']).dt.dayofweek
+in_camp_effort = effort_ts[effort_ts['in_camp'] == 1]
+
+dow_summary = in_camp_effort.groupby('day_of_week').agg(
+    mean_minutes=('minutes', 'mean'),
+    prop_foraging=('went_foraging', 'mean'),
+    n_obs=('minutes', 'count')
+)
+dow_summary.index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+print("\nForaging by Day of Week:")
+print(dow_summary.to_string())
+```
+
+### Pooled ACF for Binary Effort
+
+The binary indicator (went foraging = 1, stayed in camp = 0) may show different temporal patterns than continuous minutes. This is particularly relevant for testing the target foraging hypothesis.
+
+```{python}
+#| label: fig-pooled-acf-binary
+#| fig-cap: "Pooled autocorrelation function for binary effort (went foraging or not) at multiple lags."
+
+# Collect all binary effort pairs at each lag across all foragers
+pooled_pairs_binary = {lag: [] for lag in range(1, max_lag + 1)}
+
+for forager_id in effort_ts['forager_id'].unique():
+    forager_data = effort_ts[effort_ts['forager_id'] == forager_id].copy()
+    forager_data = forager_data.set_index('date').sort_index()
+    
+    in_camp_data = forager_data[forager_data['in_camp'] == 1]['went_foraging']
+    dates = in_camp_data.index
+    
+    for i in range(len(dates)):
+        for j in range(i + 1, len(dates)):
+            lag = (dates[j] - dates[i]).days
+            if 1 <= lag <= max_lag:
+                pooled_pairs_binary[lag].append((in_camp_data.iloc[i], in_camp_data.iloc[j]))
+
+# Compute pooled ACF for binary
+pooled_acf_binary = []
+for lag in range(1, max_lag + 1):
+    pairs = pooled_pairs_binary[lag]
+    if len(pairs) >= 10:
+        x = np.array([p[0] for p in pairs])
+        y = np.array([p[1] for p in pairs])
+        if np.std(x) > 0 and np.std(y) > 0:
+            pooled_acf_binary.append(np.corrcoef(x, y)[0, 1])
+        else:
+            pooled_acf_binary.append(np.nan)
+    else:
+        pooled_acf_binary.append(np.nan)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+# Left: Pooled ACF bar plot for binary
+ax = axes[0]
+colors_binary = ['#E94F37' if v < 0 else '#2E86AB' for v in pooled_acf_binary]
+ax.bar(range(1, max_lag + 1), pooled_acf_binary, color=colors_binary, alpha=0.7, edgecolor='black')
+ax.axhline(0, color='black', linestyle='--', linewidth=1)
+ax.set_xlabel('Lag (days)')
+ax.set_ylabel('Autocorrelation (pooled)')
+ax.set_title('Binary Effort: Pooled ACF')
+ax.set_xticks(range(1, max_lag + 1))
+
+# Add significance threshold
+n_obs_binary = len(effort_ts[(effort_ts['in_camp'] == 1) & (effort_ts['went_foraging'].notna())])
+sig_threshold_binary = 2 / np.sqrt(n_obs_binary)
+ax.axhline(sig_threshold_binary, color='gray', linestyle=':', alpha=0.7, label=f'±2/√n')
+ax.axhline(-sig_threshold_binary, color='gray', linestyle=':', alpha=0.7)
+ax.legend(fontsize=9)
+
+# Right: Compare binary vs continuous ACF
+ax = axes[1]
+lags_arr = np.arange(1, max_lag + 1)
+width = 0.35
+ax.bar(lags_arr - width/2, pooled_acf, width, label='Minutes', color='#27AE60', alpha=0.7, edgecolor='black')
+ax.bar(lags_arr + width/2, pooled_acf_binary, width, label='Binary', color='#A23B72', alpha=0.7, edgecolor='black')
+ax.axhline(0, color='black', linestyle='--', linewidth=1)
+ax.set_xlabel('Lag (days)')
+ax.set_ylabel('Autocorrelation')
+ax.set_title('Comparison: Minutes vs Binary ACF')
+ax.set_xticks(lags_arr)
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Print binary ACF values
+print("\nPooled Binary Effort ACF values:")
+for lag in range(1, max_lag + 1):
+    n = len(pooled_pairs_binary[lag])
+    acf_val = pooled_acf_binary[lag-1]
+    if not np.isnan(acf_val):
+        sig = "*" if abs(acf_val) > sig_threshold_binary else ""
+        print(f"  Lag {lag:2d}: r = {acf_val:+.3f} (n = {n:4d} pairs) {sig}")
+```
+
+## Transition Probabilities
+
+Another way to characterize temporal dynamics is through transition probabilities: given the forager's effort on day $t$, what's the probability of foraging on day $t+1$?
+
+```{python}
+#| label: transition-probs
+#| echo: true
+
+# Compute transition probabilities for each forager
+# States: 0 = didn't forage, 1 = foraged
+transition_counts = {'00': 0, '01': 0, '10': 0, '11': 0}
+forager_transitions = []
+
+for forager_id in effort_ts['forager_id'].unique():
+    forager_data = effort_ts[effort_ts['forager_id'] == forager_id].copy()
+    forager_data = forager_data.set_index('date').sort_index()
+    
+    # Only in-camp days
+    in_camp_data = forager_data[forager_data['in_camp'] == 1]['went_foraging']
+    dates = in_camp_data.index
+    
+    # Count consecutive-day transitions
+    forager_counts = {'00': 0, '01': 0, '10': 0, '11': 0}
+    for i in range(len(dates) - 1):
+        if (dates[i+1] - dates[i]).days == 1:  # Consecutive days
+            state_t = int(in_camp_data.iloc[i])
+            state_t1 = int(in_camp_data.iloc[i+1])
+            key = f'{state_t}{state_t1}'
+            transition_counts[key] += 1
+            forager_counts[key] += 1
+    
+    total_from_0 = forager_counts['00'] + forager_counts['01']
+    total_from_1 = forager_counts['10'] + forager_counts['11']
+    
+    forager_transitions.append({
+        'forager_id': forager_id,
+        'p_forage_given_rest': forager_counts['01'] / total_from_0 if total_from_0 > 0 else np.nan,
+        'p_forage_given_forage': forager_counts['11'] / total_from_1 if total_from_1 > 0 else np.nan,
+        'age': forager_ages.get(str(forager_id), np.nan),
+    })
+
+# Overall transition probabilities
+total_from_0 = transition_counts['00'] + transition_counts['01']
+total_from_1 = transition_counts['10'] + transition_counts['11']
+
+print("Overall Transition Probabilities (consecutive in-camp days):")
+print(f"  P(forage | rested yesterday) = {transition_counts['01'] / total_from_0:.3f}")
+print(f"  P(forage | foraged yesterday) = {transition_counts['11'] / total_from_1:.3f}")
+print(f"  P(rest | rested yesterday) = {transition_counts['00'] / total_from_0:.3f}")
+print(f"  P(rest | foraged yesterday) = {transition_counts['10'] / total_from_1:.3f}")
+
+# Difference in probability
+p_forage_given_rest = transition_counts['01'] / total_from_0
+p_forage_given_forage = transition_counts['11'] / total_from_1
+print(f"\nDifference: P(forage|forage) - P(forage|rest) = {p_forage_given_forage - p_forage_given_rest:.3f}")
+```
+
+```{python}
+#| label: fig-transition-matrix
+#| fig-cap: "Transition probabilities between foraging and resting states on consecutive in-camp days."
+
+# Create transition matrix visualization
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+
+# Left: Transition matrix heatmap
+ax = axes[0]
+trans_matrix = np.array([
+    [transition_counts['00'] / total_from_0, transition_counts['01'] / total_from_0],
+    [transition_counts['10'] / total_from_1, transition_counts['11'] / total_from_1]
+])
+im = ax.imshow(trans_matrix, cmap='Blues', vmin=0, vmax=1)
+ax.set_xticks([0, 1])
+ax.set_yticks([0, 1])
+ax.set_xticklabels(['Rest', 'Forage'])
+ax.set_yticklabels(['Rest', 'Forage'])
+ax.set_xlabel('State at t+1')
+ax.set_ylabel('State at t')
+ax.set_title('Transition Probability Matrix')
+
+# Add text annotations
+for i in range(2):
+    for j in range(2):
+        text = ax.text(j, i, f'{trans_matrix[i, j]:.2f}',
+                      ha='center', va='center', color='white' if trans_matrix[i, j] > 0.5 else 'black',
+                      fontsize=14, fontweight='bold')
+
+plt.colorbar(im, ax=ax, label='Probability', shrink=0.8)
+
+# Right: Individual transition probabilities
+ax = axes[1]
+trans_df = pd.DataFrame(forager_transitions).dropna()
+
+ax.scatter(trans_df['p_forage_given_rest'], trans_df['p_forage_given_forage'], 
+           alpha=0.6, s=50, c=trans_df['age'], cmap='viridis', edgecolor='white', linewidth=0.5)
+ax.plot([0, 1], [0, 1], 'k--', alpha=0.5, label='No persistence')
+ax.set_xlabel('P(forage | rested yesterday)')
+ax.set_ylabel('P(forage | foraged yesterday)')
+ax.set_title('Individual Transition Probabilities')
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+ax.set_aspect('equal')
+
+# Add colorbar
+sm = plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=trans_df['age'].min(), vmax=trans_df['age'].max()))
+plt.colorbar(sm, ax=ax, label='Age')
+
+plt.tight_layout()
+plt.show()
+```
+
+## Summary
+
+```{python}
+#| label: summary-stats
+
+print("=" * 60)
+print("EFFORT TIME SERIES EDA SUMMARY")
+print("=" * 60)
+
+print(f"\nData coverage:")
+print(f"  Total foragers: {effort_ts['forager_id'].nunique()}")
+print(f"  Date range: {effort_ts['date'].min().strftime('%Y-%m-%d')} to {effort_ts['date'].max().strftime('%Y-%m-%d')}")
+print(f"  Total in-camp days: {effort_ts['in_camp'].sum():.0f}")
+
+print(f"\nAutocorrelation (minutes, consecutive in-camp days):")
+print(f"  Valid foragers: {len(autocorr_valid)}")
+print(f"  Mean autocorrelation: {autocorr_valid['autocorr'].mean():.3f}")
+print(f"  % with negative autocorrelation: {100 * (autocorr_valid['autocorr'] < 0).mean():.1f}%")
+
+print(f"\nAutocorrelation (binary, consecutive in-camp days):")
+print(f"  Valid foragers: {len(autocorr_binary_valid)}")
+print(f"  Mean autocorrelation: {autocorr_binary_valid['autocorr'].mean():.3f}")
+print(f"  % with negative autocorrelation: {100 * (autocorr_binary_valid['autocorr'] < 0).mean():.1f}%")
+
+print(f"\nTransition probabilities:")
+print(f"  P(forage | rested yesterday): {p_forage_given_rest:.3f}")
+print(f"  P(forage | foraged yesterday): {p_forage_given_forage:.3f}")
+print(f"  Difference: {p_forage_given_forage - p_forage_given_rest:.3f}")
+
+if p_forage_given_forage < p_forage_given_rest:
+    print("\n→ Evidence for NEGATIVE autocorrelation in foraging effort")
+    print("  (Foragers are LESS likely to forage after foraging the previous day)")
+elif p_forage_given_forage > p_forage_given_rest:
+    print("\n→ Evidence for POSITIVE autocorrelation in foraging effort")
+    print("  (Foragers are MORE likely to forage after foraging the previous day)")
+else:
+    print("\n→ No evidence for autocorrelation in foraging effort")
+```
+

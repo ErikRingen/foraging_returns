@@ -11,7 +11,7 @@ def preprocess_data(
     days_in_camp_file: str | Path,
     combine_returns_recall: bool = True,
     output_dir: str | Path | None = None
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Preprocesses raw foraging data files into analysis-ready DataFrames.
 

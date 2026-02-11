@@ -9,7 +9,9 @@ platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
 # Core scientific computing
 python = ">=3.11,<3.13"
 ipykernel = "*"
-nbformat = ">=4.2.0"
+nbformat = ">=5.10.4,<6"
+nbclient = ">=0.10.2,<0.11"
+jupyter_client = "*"
 numpy = "*"
 pandas = "*"
 
@@ -19,14 +21,28 @@ pytensor = ">=2.14"
 arviz = ">=0.16"
 nutpie = ">=0.4"
 numba = "*"
+scikit-learn = ">=1.8.0,<2"
+pypdf = ">=6.6.0,<7"
+graphviz = ">=14.1.1,<15"
+python-graphviz = ">=0.21,<0.22"
+
+[pypi-dependencies]
+jax = "*"
 
 # Visualization
 matplotlib = ">=3.7"
 seaborn = ">=0.12"
 plotly = "*"
 
+# Quarto
+quarto = "*"
+quartodoc = "*"
+jupyter-cache = "*"
+openpyxl = "*"
+
 # Utilities
 pyprojroot = "*"
+flox = "*"
 
 # Testing
 pytest = "*"

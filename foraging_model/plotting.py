@@ -27,6 +27,10 @@ def _shapley_to_dict(shapley_results: Union[xr.Dataset, Dict[int, xr.DataArray]]
         results = {}
         shapley_var = shapley_results['shapley_contribution']
         
+        # If sample dimension exists, take mean across samples first
+        if 'sample' in shapley_var.dims:
+            shapley_var = shapley_var.mean(dim='sample')
+        
         for group_idx in shapley_var.group.values:
             # Get group index (handle both integer and string group IDs)
             if isinstance(group_idx, (int, np.integer)):
@@ -423,7 +427,8 @@ def plot_shapley_by_forager(
     Parameters:
     -----------
     shapley_results : Union[xr.Dataset, Dict[int, xr.DataArray]]
-        Either a Dataset with 'shapley_contribution' variable (dimensions: group, forager),
+        Either a Dataset with 'shapley_contribution' variable 
+        (dimensions: sample, group, forager OR group, forager),
         or a dictionary mapping group indices to Shapley contribution DataArrays
     data : xr.Dataset
         Original dataset with forager data (for ages and group_date)
@@ -441,6 +446,9 @@ def plot_shapley_by_forager(
     # Convert to Dataset format if needed
     if isinstance(shapley_results, xr.Dataset):
         shapley_var = shapley_results['shapley_contribution']
+        # If sample dimension exists, take mean across samples first
+        if 'sample' in shapley_var.dims:
+            shapley_var = shapley_var.mean(dim='sample')
     else:
         # Convert dict to Dataset
         shapley_dict = shapley_results
@@ -491,8 +499,8 @@ def plot_shapley_by_forager(
         dates = []
         group_ids = []
         
-        # Get contributions from Dataset
-        forager_contribs = shapley_var.sel(forager=forager_idx)
+        # Get contributions from Dataset (use isel for positional indexing)
+        forager_contribs = shapley_var.isel(forager=forager_idx)
         valid_mask = ~np.isnan(forager_contribs.values)
         
         if np.any(valid_mask):
@@ -534,8 +542,8 @@ def plot_shapley_by_forager(
         # Set the title for each subplot including age
         ax.set_title(f"Forager {forager_id} (Age: {age:.1f})")
         
-        # Add reference line at y=0
-        ax.axhline(y=0, color='darkred', linestyle='--', alpha=0.5)
+        # # Add reference line at y=0
+        # ax.axhline(y=0, color='darkred', linestyle='--', alpha=0.5)
         
         # Add gridlines
         ax.grid(True, linestyle='--', alpha=0.5)
@@ -574,7 +582,8 @@ def plot_shapley_summary(
     Parameters:
     -----------
     shapley_results : Union[xr.Dataset, Dict[int, xr.DataArray]]
-        Either a Dataset with 'shapley_contribution' variable (dimensions: group, forager),
+        Either a Dataset with 'shapley_contribution' variable 
+        (dimensions: sample, group, forager OR group, forager),
         or a dictionary mapping group indices to Shapley contribution DataArrays
     data : xr.Dataset
         Original dataset with forager data
@@ -594,6 +603,9 @@ def plot_shapley_summary(
     # Convert to Dataset format if needed
     if isinstance(shapley_results, xr.Dataset):
         shapley_var = shapley_results['shapley_contribution']
+        # If sample dimension exists, take mean across samples first
+        if 'sample' in shapley_var.dims:
+            shapley_var = shapley_var.mean(dim='sample')
     else:
         # Convert dict to Dataset
         shapley_dict = shapley_results
@@ -630,8 +642,8 @@ def plot_shapley_summary(
     forager_info = [(fid, ages[fid]) for fid in forager_indices]
     forager_info.sort(key=lambda x: x[1])
     
-    # Extract values
-    mean_values = [float(total_contributions.sel(forager=fid).values) if not np.isnan(total_contributions.sel(forager=fid).values) else 0.0 
+    # Extract values (use isel for positional indexing)
+    mean_values = [float(total_contributions.isel(forager=fid).values) if not np.isnan(total_contributions.isel(forager=fid).values) else 0.0 
                    for fid, _ in forager_info]
     forager_labels = [f"Forager {data.coords['forager'].values[fid]}" for fid, _ in forager_info]
     
@@ -640,7 +652,7 @@ def plot_shapley_summary(
         lower_values = []
         upper_values = []
         for fid, _ in forager_info:
-            forager_contribs = shapley_var.sel(forager=fid)
+            forager_contribs = shapley_var.isel(forager=fid)
             valid_values = forager_contribs.values[~np.isnan(forager_contribs.values)]
             if len(valid_values) > 1:
                 alpha = 0.05  # 90% CI

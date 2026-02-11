@@ -1,0 +1,1314 @@
+---
+title: "Foraging Returns Model"
+author: "Erik Ringen"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    code-tools: true
+    theme: cosmo
+execute:
+  warning: false
+  echo: false
+---
+
+## Setup
+
+```{python}
+#| label: setup
+#| message: false
+#| echo: true
+
+import pandas as pd
+import xarray as xr
+import numpy as np
+import pymc as pm
+import arviz as az
+import scipy.special as sp
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pyprojroot.here import here
+import sys
+sys.path.append(str(here()))
+
+# Import local modules
+from preprocessing import preprocess_data
+from foraging_model.data import ForagingData
+from foraging_model.model import ForagingModel
+from foraging_model.plotting import plot_curve
+```
+
+```{python}
+# Notebook configuration
+RANDOM_SEED = 1234
+plt.style.use('seaborn-v0_8-whitegrid')
+sns.set_palette("colorblind")
+pd.set_option("display.max_columns", None)
+%load_ext autoreload
+%autoreload 2
+```
+
+## Data Loading
+
+We load and preprocess the raw data files, combining returns and recall records by group/day.
+
+```{python}
+#| label: load-data
+#| echo: true
+
+raw_data_dir = "raw_data/"
+
+df_foragers, df_time_agg, df_production, df_days_long = preprocess_data(
+    returns_file=here(raw_data_dir + 'returns.csv'),
+    recall_file=here(raw_data_dir + 'recall.csv'),
+    kcal_file=here(raw_data_dir + 'kcal.csv'),
+    group_file=here(raw_data_dir + 'groups.csv'),
+    camp_members_file=here(raw_data_dir + 'camp_members.csv'),
+    days_in_camp_file=here(raw_data_dir + 'daysincamp.csv'),
+    combine_returns_recall=True,
+    output_dir=here('data')
+)
+```
+
+## Exploratory Data Analysis
+
+### Forager Demographics
+
+```{python}
+#| label: fig-age-distribution
+#| fig-cap: "Distribution of forager ages by sex"
+
+fig, ax = plt.subplots(figsize=(6, 3))
+
+if 'sex' in df_foragers.columns:
+    for sex in df_foragers['sex'].unique():
+        subset = df_foragers[df_foragers['sex'] == sex]
+        ax.hist(subset['age'], bins=25, alpha=0.6, label=f'{sex} (n={len(subset)})')
+    ax.set_xlabel('Age')
+    ax.set_ylabel('Count')
+    ax.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+### Production Summary
+
+```{python}
+#| label: fig-kcal-distribution
+#| fig-cap: "Distribution of foraging returns (kcal)"
+
+fig, axes = plt.subplots(1, 2, figsize=(8, 3))
+
+# Raw distribution
+axes[0].hist(df_production['kcal'], bins=50, edgecolor='black', alpha=0.7, color='forestgreen')
+axes[0].set_xlabel('kcal')
+axes[0].set_ylabel('Count')
+axes[0].set_title('Distribution of Returns')
+axes[0].axvline(df_production['kcal'].mean(), color='red', linestyle='--', 
+                label=f'Mean: {df_production["kcal"].mean():.0f}')
+axes[0].legend()
+
+# Log-transformed
+log_kcal = np.log(df_production['kcal'][df_production['kcal'] > 0])
+axes[1].hist(log_kcal, bins=50, edgecolor='black', alpha=0.7, color='forestgreen')
+axes[1].set_xlabel('log(kcal)')
+axes[1].set_ylabel('Count')
+axes[1].set_title('Distribution of Returns (log scale)')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Group Size Distribution
+
+```{python}
+#| label: fig-group-size
+#| fig-cap: "Distribution of group sizes"
+
+if 'forager_ids' in df_production.columns:
+    group_sizes = df_production['forager_ids'].apply(lambda x: len(x) if hasattr(x, '__len__') else 1)
+    
+    fig, ax = plt.subplots(figsize=(6, 3))
+    ax.hist(group_sizes, bins=range(1, group_sizes.max() + 2), edgecolor='black', 
+            alpha=0.7, color='coral', align='left')
+    ax.set_xlabel('Group Size')
+    ax.set_ylabel('Count')
+    ax.set_title(f'Distribution of Group Sizes (mean: {group_sizes.mean():.1f})')
+    ax.set_xticks(range(1, group_sizes.max() + 1))
+    plt.tight_layout()
+    plt.show()
+    
+    print(f"Group size statistics:")
+    print(f"  Min: {group_sizes.min()}")
+    print(f"  Max: {group_sizes.max()}")
+    print(f"  Mean: {group_sizes.mean():.2f}")
+    print(f"  Solo trips: {(group_sizes == 1).sum()} ({100*(group_sizes == 1).mean():.1f}%)")
+```
+
+
+### Foraging Participation
+
+What proportion of days when a forager was in camp did they actually go foraging?
+
+```{python}
+#| label: fig-foraging-proportion
+#| fig-cap: "Proportion of in-camp days spent foraging"
+
+# Merge days in camp with time allocation to compute foraging proportion
+forager_participation = (
+    df_days_long[df_days_long['in_camp'] == 1]
+    .merge(
+        df_time_agg[['id', 'date', 'total.minutes']],
+        left_on=['forager_id', 'date'],
+        right_on=['id', 'date'],
+        how='left'
+    )
+)
+
+# Fill missing time allocation with 0 (in camp but didn't forage)
+forager_participation['total.minutes'] = forager_participation['total.minutes'].fillna(0)
+forager_participation['went_foraging'] = forager_participation['total.minutes'] > 0
+
+# Compute proportion by forager
+foraging_props = (
+    forager_participation
+    .groupby('forager_id')
+    .agg(
+        days_in_camp=('in_camp', 'sum'),
+        days_foraging=('went_foraging', 'sum')
+    )
+)
+foraging_props['prop_foraging'] = foraging_props['days_foraging'] / foraging_props['days_in_camp']
+
+# Add age and sex
+foraging_props = foraging_props.reset_index().merge(
+    df_foragers[['id', 'age', 'sex']],
+    left_on='forager_id',
+    right_on='id',
+    how='left'
+)
+
+# Histogram of foraging proportion
+fig, ax = plt.subplots(figsize=(6, 3))
+ax.hist(foraging_props['prop_foraging'], bins=20, edgecolor='black', alpha=0.7, color='teal')
+ax.set_xlabel('Proportion of In-Camp Days Spent Foraging')
+ax.set_ylabel('Count (Foragers)')
+ax.set_title(f'Foraging Participation (mean: {foraging_props["prop_foraging"].mean():.2f})')
+ax.axvline(foraging_props['prop_foraging'].mean(), color='red', linestyle='--', label='Mean')
+ax.legend()
+plt.tight_layout()
+plt.show()
+```
+
+```{python, echo = False}
+#| label: fig-foraging-by-age-sex
+#| fig-cap: "Foraging participation by age and sex"
+
+fig, ax = plt.subplots(figsize=(6, 4))
+
+if 'sex' in foraging_props.columns:
+    for sex in foraging_props['sex'].dropna().unique():
+        subset = foraging_props[foraging_props['sex'] == sex]
+        ax.scatter(subset['age'], subset['prop_foraging'], alpha=0.7, label=sex, s=50)
+    ax.legend(title='Sex')
+else:
+    ax.scatter(foraging_props['age'], foraging_props['prop_foraging'], alpha=0.7, s=50)
+
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Proportion of In-Camp Days Spent Foraging')
+ax.set_title('Foraging Participation by Age')
+plt.tight_layout()
+plt.show()
+```
+
+### Foraging Time (Minutes)
+
+```{python, echo = False}
+#| label: fig-effort-minutes-eda
+#| fig-cap: "Foraging time (minutes) distributions and age patterns"
+
+# Get forager-day level data where they went foraging
+foraging_days = forager_participation[forager_participation['went_foraging']].copy()
+foraging_days = foraging_days.merge(
+    df_foragers[['id', 'age', 'sex']],
+    left_on='forager_id',
+    right_on='id',
+    how='left'
+)
+
+fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+
+# Top-left: Histogram of minutes (raw)
+ax = axes[0, 0]
+ax.hist(foraging_days['total.minutes'], bins=30, edgecolor='black', alpha=0.7, color='#5DADE2')
+ax.axvline(foraging_days['total.minutes'].mean(), color='red', linestyle='--', linewidth=2, label=f'Mean: {foraging_days["total.minutes"].mean():.0f}')
+ax.axvline(foraging_days['total.minutes'].median(), color='orange', linestyle=':', linewidth=2, label=f'Median: {foraging_days["total.minutes"].median():.0f}')
+ax.set_xlabel('Minutes Foraging')
+ax.set_ylabel('Count (Forager-Days)')
+ax.set_title('Distribution of Foraging Time')
+ax.legend(fontsize=9)
+
+# Top-right: Histogram of sqrt(minutes)
+ax = axes[0, 1]
+sqrt_minutes = np.sqrt(foraging_days['total.minutes'])
+ax.hist(sqrt_minutes, bins=30, edgecolor='black', alpha=0.7, color='#27AE60')
+ax.axvline(sqrt_minutes.mean(), color='red', linestyle='--', linewidth=2, label=f'Mean: {sqrt_minutes.mean():.1f}')
+ax.axvline(sqrt_minutes.median(), color='orange', linestyle=':', linewidth=2, label=f'Median: {sqrt_minutes.median():.1f}')
+ax.set_xlabel('√Minutes Foraging')
+ax.set_ylabel('Count (Forager-Days)')
+ax.set_title('Distribution of √Foraging Time')
+ax.legend(fontsize=9)
+
+# Bottom-left: Minutes by age (forager-day level), colored by sex
+ax = axes[1, 0]
+colors = {'male': '#2E86AB', 'female': '#E94F37'}
+for sex in foraging_days['sex'].dropna().unique():
+    subset = foraging_days[foraging_days['sex'] == sex]
+    ax.scatter(subset['age'], subset['total.minutes'], alpha=0.3, label=sex, 
+               color=colors.get(sex, 'gray'), s=20)
+
+# Add smoothed trend line
+age_bins = np.linspace(foraging_days['age'].min(), foraging_days['age'].max(), 20)
+for sex in foraging_days['sex'].dropna().unique():
+    subset = foraging_days[foraging_days['sex'] == sex]
+    binned = subset.groupby(pd.cut(subset['age'], age_bins))['total.minutes'].mean()
+    bin_centers = [(b.left + b.right) / 2 for b in binned.index]
+    ax.plot(bin_centers, binned.values, color=colors.get(sex, 'gray'), linewidth=2, alpha=0.8)
+
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Minutes Foraging')
+ax.set_title('Foraging Time by Age (Forager-Day)')
+ax.legend(title='Sex', fontsize=9)
+
+# Bottom-right: Forager-average minutes vs age
+ax = axes[1, 1]
+forager_avg = (
+    foraging_days
+    .groupby('forager_id')
+    .agg(
+        avg_minutes=('total.minutes', 'mean'),
+        n_days=('total.minutes', 'count'),
+        age=('age', 'first'),
+        sex=('sex', 'first')
+    )
+    .reset_index()
+)
+
+for sex in forager_avg['sex'].dropna().unique():
+    subset = forager_avg[forager_avg['sex'] == sex]
+    # Size points by number of foraging days
+    sizes = 20 + subset['n_days'] * 3
+    ax.scatter(subset['age'], subset['avg_minutes'], alpha=0.7, label=sex, 
+               color=colors.get(sex, 'gray'), s=sizes, edgecolor='white', linewidth=0.5)
+
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Mean Minutes Foraging')
+ax.set_title('Forager-Average Time by Age\n(point size = # foraging days)')
+ax.legend(title='Sex', fontsize=9)
+
+plt.tight_layout()
+plt.show()
+
+# Summary stats
+print(f"Foraging time summary:")
+print(f"  Mean: {foraging_days['total.minutes'].mean():.0f} minutes")
+print(f"  Median: {foraging_days['total.minutes'].median():.0f} minutes")
+print(f"  Std: {foraging_days['total.minutes'].std():.0f} minutes")
+print(f"  Range: {foraging_days['total.minutes'].min():.0f} - {foraging_days['total.minutes'].max():.0f} minutes")
+print(f"\nForager-level summary (avg per forager):")
+print(f"  Mean of means: {forager_avg['avg_minutes'].mean():.0f} minutes")
+print(f"  Median of means: {forager_avg['avg_minutes'].median():.0f} minutes")
+```
+
+### Group Composition
+
+```{python, echo = False}
+#| label: fig-group-age
+#| fig-cap: "Group size vs mean age of group members"
+
+if 'forager_ids' in df_production.columns:
+    # Compute group size and mean age for each group
+    group_stats = []
+    forager_ages = df_foragers.set_index('id')['age'].to_dict()
+    
+    for _, row in df_production.iterrows():
+        fids = row['forager_ids']
+        if hasattr(fids, '__iter__') and not isinstance(fids, str):
+            fids_list = list(fids)
+            group_size = len(fids_list)
+            # Get ages for foragers we have data on
+            ages = [forager_ages.get(str(fid)) for fid in fids_list]
+            ages = [a for a in ages if a is not None]
+            if ages:
+                mean_age = np.mean(ages)
+                group_stats.append({'group_size': group_size, 'mean_age': mean_age})
+    
+    group_stats_df = pd.DataFrame(group_stats)
+    
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.scatter(group_stats_df['group_size'], group_stats_df['mean_age'], alpha=0.5, s=30)
+    ax.set_xlabel('Group Size')
+    ax.set_ylabel('Mean Age of Group Members (years)')
+    ax.set_title('Group Composition: Size vs Age')
+    
+    plt.tight_layout()
+    plt.show()
+```
+
+## Model Specification
+
+The model has two independent components sharing a common skill curve.
+
+### Skill Curve
+
+Individual forager skill $S(x)$ depends on age $x$ via the life-history function from Koster et al. (2020):
+$$S(x) = M(x) \cdot K(x)^b$$
+
+where:
+
+| Component | Formula | Interpretation |
+|-----------|---------|----------------|
+| $M(x)$ | $\exp(-m \cdot x)$ | Senescence factor (declines with age) |
+| $K(x)$ | $1 - \exp(-k \cdot x)$ | Learning factor (increases with age) |
+| $b$ | (parameter) | Elasticity of skill on learning |
+
+The skill curve captures the life-history pattern where foraging ability:
+
+- Increases from zero at birth (learning)
+- Peaks at some intermediate age
+- Declines in later life (senescence)
+
+Individual variation is captured by a multiplicative random effect:
+$$S_i(x) = S_{\text{base}}(x_i) \cdot e^{u_i^{\text{skill}}}$$
+
+### Correlated Random Effects
+
+For each forager $i$, we model correlated random effects for effort and skill:
+
+$$\mathbf{u}_i = \begin{pmatrix} u_i^{\text{effort}} \\ u_i^{\text{skill}} \end{pmatrix} \sim \text{MVNormal}(\mathbf{0}, \boldsymbol{\Sigma})$$
+
+The covariance matrix uses a Cholesky decomposition with an LKJ prior on correlations:
+$$\boldsymbol{\Sigma} = \mathbf{L}\mathbf{L}^T, \quad \mathbf{L} \sim \text{LKJCholesky}(\eta)$$
+
+This allows the model to learn whether foragers who are more likely to go foraging also tend to be more skilled. Note that success probability depends on skill, so individual variation in success is captured through the skill random effect.
+
+### Temporal Effects (Gaussian Processes)
+
+To capture day-to-day variation in foraging conditions (e.g., weather, prey availability), we include additive Gaussian Process terms for each outcome:
+
+$$f^{\text{effort}}(t), f^{\text{success}}(t), f^{\text{returns}}(t) \sim \mathcal{GP}(0, K(t, t'))$$
+
+with a squared exponential kernel:
+$$K(t, t') = \sigma^2 \exp\left(-\frac{(t - t')^2}{2\ell^2}\right)$$
+
+The lengthscale $\ell$ is shared across all three GPs, while each has its own amplitude $\sigma$. One latent GP value is estimated per unique date and shared across all observations on that date.
+
+### Component 1: Foraging Effort (Bernoulli)
+
+For each (forager $i$, date $t$) where forager is in camp:
+
+$$\text{effort}_{i,t} \sim \text{Bernoulli}(p_{i,t}^{\text{effort}})$$
+
+$$\text{logit}(p_{i,t}^{\text{effort}}) = \beta_0 + \beta_1 \tilde{x}_i + \beta_2 \tilde{x}_i^2 + u_i^{\text{effort}} + f^{\text{effort}}(t)$$
+
+where $\tilde{x}_i$ is z-scored age for numerical stability.
+
+**Eligibility**: Forager was in camp on that date.
+
+### Component 1b: Foraging Time (2-Component Gamma Mixture)
+
+For each forager-day where the forager went foraging, we model minutes spent foraging as a mixture of two Gamma distributions (capturing short trips vs. long expeditions):
+
+$$\text{minutes}_{i,t} \sim \pi_i \cdot \text{Gamma}(\alpha_1, \mu_1) + (1 - \pi_i) \cdot \text{Gamma}(\alpha_2, \mu_2)$$
+
+where $\alpha_1, \alpha_2$ are component-specific shape parameters (allowing different variances), and the **age-varying mixture weight** is:
+
+$$\text{logit}(\pi_i) = \gamma_0 + \gamma_1 \cdot \tilde{x}_i$$
+
+This allows the probability of short vs. long trips to vary with age - e.g., children may be more likely to do short foraging trips.
+
+The component means are:
+
+- **Short trips**: $\log \mu_{1,i,t} = \beta_0^{(1)} + f^{\text{age}}(x_i) + u_i^{\text{minutes}} + f^{\text{date}}(t)$
+- **Long trips**: $\log \mu_{2,i,t} = \beta_0^{(2)} + u_i^{\text{minutes}} + f^{\text{date}}(t)$
+
+Note: Only the short-trip component has an age GP effect, allowing the long-trip duration to be relatively constant across ages.
+
+**Eligibility**: Forager went foraging (positive time allocation).
+
+### Component 2: Forager Success (Bernoulli)
+
+For each (forager $i$, date $t$) where forager went foraging:
+
+$$\text{success}_{i,t} \sim \text{Bernoulli}(\theta_{i,t})$$
+
+where the success probability is:
+
+$$\theta_{i,t} = \sigma\left( \log(S_i^{\eta_{\text{success}}} \cdot \alpha_{\text{success}}) + f^{\text{success}}(t) \right)$$
+
+with $\sigma(\cdot)$ being the sigmoid function. Individual variation in success is captured through the skill random effect embedded in $S_i$.
+
+**Eligibility**: Forager was in camp AND had positive time allocation (went foraging).
+
+### Component 3: Group Returns (Gamma)
+
+For each group $g$ on date $t$ with positive returns:
+
+$$\text{kcal}_g \sim \text{Gamma}(\text{shape}, \text{rate}_g)$$
+
+where:
+
+$$\text{rate}_g = \frac{\text{shape}}{\mu_g}, \quad \mu_g = \mu_g^{\text{base}} \cdot \exp(f^{\text{returns}}(t))$$
+
+The temporal GP enters multiplicatively, allowing day-to-day variation in overall foraging productivity.
+
+The base expected return $\mu_g^{\text{base}}$ depends on how we aggregate individual forager skills into a group-level predictor. The model supports two aggregation methods.
+
+#### Group Size Scaling
+
+Both methods use a group size scaling function:
+
+$$g(k) = \exp(\alpha_\mu + \beta_n \log k) = e^{\alpha_\mu} \cdot k^{\beta_n}$$
+
+When $\beta_n > 0$, larger groups have higher expected returns (all else equal). When $\beta_n < 1$, there are diminishing marginal returns to group size.
+
+#### Aggregation Method 1: Simple Mean
+
+$$\mu_g = g(n_g) \cdot \bar{S}_g^{\eta_\mu}$$
+
+where $\bar{S}_g = \frac{1}{n_g} \sum_{i \in g} S(x_i)$ is the mean skill of all foragers in the group.
+
+**Interpretation**: Under this specification, adding a low-skill forager to a group can *decrease* expected returns if the reduction in average skill outweighs the marginal gain from $g(n)$ increasing. This creates a tradeoff where groups may benefit from excluding less skilled members.
+
+#### Aggregation Method 2: Best-Top-K (Default)
+
+$$\mu_g = \max_{1 \leq k \leq n_g} \left[ g(k) \cdot \bar{S}_{g,k}^{\eta_\mu} \right]$$
+
+where $\bar{S}_{g,k}$ is the mean of the top $k$ skills in group $g$.
+
+**Interpretation**: This method optimally selects the subset size $k$ that maximizes expected returns. It captures the idea that groups may implicitly coordinate to have their most skilled members contribute, while others provide support or engage in complementary activities. The model learns whether inclusive (large $k$) or selective (small $k$) strategies are more productive.
+
+### Prior Specifications
+
+```{python}
+#| label: prior-table
+#| echo: false
+
+from foraging_model.model import DEFAULT_PRIORS
+
+# Parameter descriptions
+descriptions = {
+    "m0": "Log senescence rate",
+    "k0": "Log learning rate", 
+    "b0": "Log skill elasticity on learning",
+    "intercept_mu": "Intercept for μ",
+    "b_groupsize_mu0": "Log group size elasticity",
+    "shape": "Gamma shape parameter",
+    "eta_success0": "Log skill elasticity (success)",
+    "eta_mu0": "Log skill elasticity (returns)",
+    "intercept_success": "Log success intercept",
+    "effort_intercept": "Effort intercept",
+    "effort_age": "Effort linear age coefficient",
+    "effort_age2": "Effort quadratic age coefficient",
+    "sigma_re": "Random effect SD (exponential rate)",
+    "lkj_eta": "LKJ concentration (higher = less correlation)",
+}
+
+# Build table rows
+rows = []
+for param, spec in DEFAULT_PRIORS.items():
+    # Handle hyperparameters stored as direct values (not dicts)
+    if not isinstance(spec, dict):
+        desc = descriptions.get(param, "")
+        rows.append(f"| `{param}` | (hyperparameter) | {spec} | {desc} |")
+        continue
+    if "dist" not in spec:
+        continue
+    dist = spec["dist"].capitalize()
+    params = {k: v for k, v in spec.items() if k != "dist"}
+    param_str = ", ".join(f"{k}={v}" for k, v in params.items())
+    desc = descriptions.get(param, "")
+    rows.append(f"| `{param}` | {dist} | {param_str} | {desc} |")
+
+# Print as markdown table
+print("| Parameter | Distribution | Parameters | Description |")
+print("|-----------|--------------|------------|-------------|")
+print("\n".join(rows))
+```
+
+Parameters with `0` suffix are on the log scale; the actual parameter is $\exp(\cdot)$ for positivity. The `lkj_eta` parameter controls the LKJ prior concentration (higher values pull correlations toward zero).
+
+## Model Fitting
+
+### Prepare Data
+
+```{python}
+#| label: prepare-data
+
+data = ForagingData(
+    foragers_df=df_foragers,
+    time_allocation_df=df_time_agg,
+    production_df=df_production,
+    days_in_camp_df=df_days_long,
+    target_column='kcal',
+    group_id_col='group_id',
+    forager_id_col='id',
+)
+
+dataset = data.to_dataset()
+print(f"Dataset dimensions:")
+for dim, size in dataset.dims.items():
+    print(f"  {dim}: {size}")
+```
+
+### Build and Fit Model
+
+```{python}
+#| label: build-model
+
+foraging_model = ForagingModel(
+    data=dataset,
+    effort_type='hurdle',   # Hurdle model: Bernoulli (went?) + Gamma (minutes)
+    target_scaling='mean',  # kcal scaled by mean of non-zero values
+    age_scaling='max',      # age scaled by maximum age
+)
+```
+
+```{python}
+#| label: fit-model
+
+# Fit the model using nutpie sampler
+idata = foraging_model.fit(
+    tune=250,
+    draws=250,
+    chains=4,
+    random_seed=42,
+    target_accept=0.95,
+    low_rank_modified_mass_matrix=True,
+)
+
+# Compute log likelihood for LOO comparison
+with foraging_model.model:
+    pm.compute_log_likelihood(idata, var_names=['kcal'])
+```
+
+```{python, echo = False}
+#| label: predictive-samples
+
+with foraging_model.model:
+    prior = pm.sample_prior_predictive(random_seed=42)
+    posterior_predictive = pm.sample_posterior_predictive(idata, random_seed=42)
+    deterministics = pm.compute_deterministics(dataset=idata.posterior, model=foraging_model.model, var_names=['chol_cov_corr', 'chol_cov_stds', 're'])
+    idata.extend(prior)
+    idata.extend(posterior_predictive)
+```
+
+## Model Diagnostics
+
+### Parameter Summary
+
+```{python}
+#| label: parameter-summary
+
+summary = az.summary(
+    idata, 
+    var_names=[var.name for var in foraging_model.model.free_RVs if var.name not in ['re_raw']]
+)
+summary
+```
+
+### Prior vs Posterior Comparison
+
+```{python}
+#| label: fig-prior-posterior
+#| fig-cap: "Comparison of prior and posterior distributions"
+
+az.plot_forest(
+    [idata.prior, idata.posterior],
+    var_names=[var.name for var in foraging_model.model.free_RVs if var.name not in ['re_raw', 'chol_cov', 'gp_success_raw', 'gp_returns_raw', 'gp_effort_raw', 'gp_effort_minutes_raw', 'gp_minutes_age_raw']],
+    combined=True,
+    model_names=['Prior', 'Posterior'],
+    figsize=(6, 5),
+    textsize=11,
+    hdi_prob=0.9,
+);
+plt.tight_layout()
+plt.show()
+
+az.plot_forest(
+    deterministics,
+    var_names=['chol_cov_corr', 'chol_cov_stds'],
+    combined=True,
+    figsize=(6, 5),
+    textsize=11,
+    hdi_prob=0.9,
+);
+```
+
+### Random Effects Correlations
+
+The model estimates correlated random effects for each forager across three dimensions:
+
+1. **Effort (binary)**: Propensity to go foraging on any given day
+2. **Effort (minutes)**: Time spent foraging, conditional on going
+3. **Skill**: Individual deviation from the age-skill curve
+
+```{python}
+#| label: fig-random-effects-pairs
+#| fig-cap: "Pairwise correlations of forager random effects. Points show posterior means colored by age."
+
+# Extract random effects posterior
+re_posterior = deterministics.re  # shape: (chain, draw, forager, re_response)
+
+# Compute posterior means and 90% CI for each forager
+re_mean = re_posterior.mean(dim=['chain', 'draw'])
+re_lower = re_posterior.quantile(0.05, dim=['chain', 'draw'])
+re_upper = re_posterior.quantile(0.95, dim=['chain', 'draw'])
+
+# Get forager IDs and match to demographics
+forager_ids = dataset.forager.values
+forager_ids_str = [str(f) for f in forager_ids]
+forager_demo = df_foragers.set_index('id').loc[forager_ids_str, ['sex', 'age']]
+forager_sex = forager_demo['sex'].values
+forager_age = forager_demo['age'].values
+
+# Create dataframe for plotting (3 random effects for hurdle model)
+re_names = ['effort_binary', 'effort_minutes', 'skill']
+re_df = pd.DataFrame({
+    'forager': forager_ids,
+    'sex': forager_sex,
+    'age': forager_age,
+})
+for i, name in enumerate(re_names):
+    re_df[f'{name}_mean'] = re_mean.isel(re_response=i).values
+    re_df[f'{name}_lower'] = re_lower.isel(re_response=i).values
+    re_df[f'{name}_upper'] = re_upper.isel(re_response=i).values
+
+print(f"Number of foragers: {len(re_df)}")
+print(f"Age range: {re_df['age'].min():.0f} - {re_df['age'].max():.0f} years")
+
+# Get correlation matrix
+corr_mean = deterministics.chol_cov_corr.mean(dim=['chain', 'draw']).values
+corr_lower = deterministics.chol_cov_corr.quantile(0.05, dim=['chain', 'draw']).values
+corr_upper = deterministics.chol_cov_corr.quantile(0.95, dim=['chain', 'draw']).values
+
+print(f"\nCorrelation matrix (posterior mean):")
+for i, n1 in enumerate(re_names):
+    row = [f"{corr_mean[i,j]:.2f}" for j in range(3)]
+    print(f"  {n1}: {row}")
+
+# Create pairs plot (3x3 grid, lower triangle only)
+fig, axes = plt.subplots(3, 3, figsize=(9, 9))
+
+re_labels = ['Effort (binary)', 'Effort (minutes)', 'Skill']
+cmap = plt.cm.viridis
+norm = plt.Normalize(vmin=re_df['age'].min(), vmax=re_df['age'].max())
+
+for i in range(3):
+    for j in range(3):
+        ax = axes[i, j]
+        
+        if i == j:
+            # Diagonal: histogram (simple, no color split)
+            ax.hist(re_df[f'{re_names[i]}_mean'], bins=12, alpha=0.7, 
+                   color='#2E86AB', edgecolor='white')
+            ax.set_xlabel(re_labels[i], fontsize=9)
+        elif i > j:
+            # Lower triangle: scatter colored by age
+            sc = ax.scatter(
+                re_df[f'{re_names[j]}_mean'], re_df[f'{re_names[i]}_mean'],
+                c=re_df['age'], cmap=cmap, norm=norm,
+                s=40, alpha=0.8, edgecolor='white', linewidth=0.3
+            )
+            ax.axhline(0, color='gray', linestyle='--', alpha=0.3, linewidth=0.5)
+            ax.axvline(0, color='gray', linestyle='--', alpha=0.3, linewidth=0.5)
+            
+            # Add correlation
+            rho = corr_mean[i, j]
+            ci = [corr_lower[i, j], corr_upper[i, j]]
+            ax.set_title(f'ρ = {rho:.2f} [{ci[0]:.2f}, {ci[1]:.2f}]', fontsize=9)
+            ax.set_xlabel(re_labels[j], fontsize=9)
+            ax.set_ylabel(re_labels[i], fontsize=9)
+        else:
+            # Upper triangle: hide
+            ax.axis('off')
+
+# Add colorbar for age
+cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
+sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+cbar = fig.colorbar(sm, cax=cbar_ax, label='Age (years)')
+
+plt.tight_layout(rect=[0, 0, 0.9, 1])
+plt.show()
+```
+
+## Posterior Predictive Checks
+
+```{python}
+#| label: rescale-predictive
+
+# Rescale predictive samples back to original scale
+foraging_model.rescale_predictive()
+```
+
+```{python}
+#| label: fig-ppc
+#| fig-cap: "Posterior predictive checks for all outcomes"
+
+fig, axes = plt.subplots(2, 2, figsize=(10, 7))
+axes = axes.flatten()
+
+# Effort PPC (proportion went foraging)
+ax = axes[0]
+effort_obs = dataset.forager_effort.values
+effort_pred = idata.posterior_predictive.effort.values.reshape(-1, len(effort_obs))
+obs_prop = effort_obs.mean()
+pred_props = effort_pred.mean(axis=1)
+ax.hist(pred_props, bins=30, density=True, alpha=0.7, color='#2E86AB', edgecolor='white')
+ax.axvline(obs_prop, color='red', linewidth=2, label=f'Observed: {obs_prop:.2f}')
+ax.axvline(pred_props.mean(), color='black', linestyle='--', linewidth=1.5, label=f'Predicted: {pred_props.mean():.2f}')
+ax.set_xlabel('Proportion went foraging')
+ax.set_ylabel('Density')
+ax.set_title('Effort (Binary)')
+ax.legend(fontsize=9)
+
+# Effort Minutes PPC (KDE)
+ax = axes[1]
+from scipy import stats
+minutes_obs = dataset.effort_minutes.values
+minutes_pred = idata.posterior_predictive.minutes.values.reshape(-1, len(minutes_obs))
+
+kde_obs = stats.gaussian_kde(minutes_obs)
+x_grid = np.linspace(0, np.percentile(minutes_obs, 99), 200)
+ax.plot(x_grid, kde_obs(x_grid), color='red', linewidth=2, label='Observed')
+
+for i in range(min(100, minutes_pred.shape[0])):
+    kde_pred = stats.gaussian_kde(np.clip(minutes_pred[i], 1, None))  # Clip for KDE stability
+    ax.plot(x_grid, kde_pred(x_grid), color='#2E86AB', alpha=0.05, linewidth=0.5)
+
+ax.set_xlabel('Minutes foraging')
+ax.set_ylabel('Density')
+ax.set_title('Effort (Minutes)')
+ax.legend(fontsize=9)
+ax.set_xlim(0, np.percentile(minutes_obs, 99))
+
+# Success PPC (proportion)
+ax = axes[2]
+success_obs = dataset.forager_success.values
+success_pred = idata.posterior_predictive.non_zero_prod.values.reshape(-1, len(success_obs))
+obs_prop = success_obs.mean()
+pred_props = success_pred.mean(axis=1)
+ax.hist(pred_props, bins=30, density=True, alpha=0.7, color='#A23B72', edgecolor='white')
+ax.axvline(obs_prop, color='red', linewidth=2, label=f'Observed: {obs_prop:.2f}')
+ax.axvline(pred_props.mean(), color='black', linestyle='--', linewidth=1.5, label=f'Predicted: {pred_props.mean():.2f}')
+ax.set_xlabel('Proportion returned with food')
+ax.set_ylabel('Density')
+ax.set_title('Success')
+ax.legend(fontsize=9)
+
+# kcal PPC (KDE on original scale)
+ax = axes[3]
+kcal_obs = dataset.kcal.values * foraging_model.kcal_scale
+kcal_pred = idata.posterior_predictive.kcal.values.reshape(-1, len(kcal_obs)) * foraging_model.kcal_scale
+
+kde_obs = stats.gaussian_kde(kcal_obs)
+x_grid = np.linspace(0, np.percentile(kcal_obs, 99), 200)
+ax.plot(x_grid, kde_obs(x_grid), color='red', linewidth=2, label='Observed')
+
+for i in range(min(100, kcal_pred.shape[0])):
+    kde_pred = stats.gaussian_kde(kcal_pred[i])
+    ax.plot(x_grid, kde_pred(x_grid), color='#F18F01', alpha=0.05, linewidth=0.5)
+
+ax.set_xlabel('kcal')
+ax.set_ylabel('Density')
+ax.set_title('Returns (kcal)')
+ax.legend(fontsize=9)
+ax.set_xlim(0, np.percentile(kcal_obs, 99))
+
+plt.tight_layout()
+plt.show()
+```
+
+## Temporal Effects (Gaussian Processes)
+
+The model includes Gaussian Process components to capture day-to-day variation in foraging effort (binary and minutes), success, and returns. Each GP uses a shared lengthscale but separate amplitudes.
+
+```{python}
+#| label: fig-gp-temporal
+#| fig-cap: "Prior vs Posterior Gaussian Process temporal effects"
+
+# Get date information
+dates = pd.to_datetime(dataset.unique_date.values)
+date_numeric = dataset.date_numeric.values
+
+# Extract prior and posterior GP samples
+gp_effort_prior = idata.prior.gp_effort.values.reshape(-1, len(dates))
+gp_effort_minutes_prior = idata.prior.gp_effort_minutes.values.reshape(-1, len(dates))
+gp_success_prior = idata.prior.gp_success.values.reshape(-1, len(dates))
+gp_returns_prior = idata.prior.gp_returns.values.reshape(-1, len(dates))
+
+gp_effort_post = idata.posterior.gp_effort.values.reshape(-1, len(dates))
+gp_effort_minutes_post = idata.posterior.gp_effort_minutes.values.reshape(-1, len(dates))
+gp_success_post = idata.posterior.gp_success.values.reshape(-1, len(dates))
+gp_returns_post = idata.posterior.gp_returns.values.reshape(-1, len(dates))
+
+# Create figure
+fig, axes = plt.subplots(4, 2, figsize=(10, 10), sharex='col')
+
+gp_data = [
+    ('Effort Binary (log-odds)', gp_effort_prior, gp_effort_post, '#2E86AB'),
+    ('Effort Minutes (log)', gp_effort_minutes_prior, gp_effort_minutes_post, '#5DADE2'),
+    ('Success (log-odds)', gp_success_prior, gp_success_post, '#A23B72'),
+    ('Returns (log scale)', gp_returns_prior, gp_returns_post, '#F18F01'),
+]
+
+for i, (name, prior, post, color) in enumerate(gp_data):
+    # Prior
+    ax = axes[i, 0]
+    for j in range(min(50, prior.shape[0])):
+        ax.plot(dates, prior[j], color=color, alpha=0.1, linewidth=0.5)
+    ax.axhline(0, color='black', linestyle='--', alpha=0.3)
+    ax.set_ylabel(name)
+    if i == 0:
+        ax.set_title('Prior', fontsize=12)
+    if i == 3:
+        ax.set_xlabel('Date')
+    ax.tick_params(axis='x', rotation=45)
+    
+    # Posterior
+    ax = axes[i, 1]
+    # Show posterior draws
+    for j in range(min(50, post.shape[0])):
+        ax.plot(dates, post[j], color=color, alpha=0.1, linewidth=0.5)
+    # Show posterior mean and CI
+    post_mean = post.mean(axis=0)
+    post_lower = np.percentile(post, 5, axis=0)
+    post_upper = np.percentile(post, 95, axis=0)
+    ax.plot(dates, post_mean, color=color, linewidth=2, label='Mean')
+    ax.fill_between(dates, post_lower, post_upper, color=color, alpha=0.2, label='90% CI')
+    ax.axhline(0, color='black', linestyle='--', alpha=0.3)
+    if i == 0:
+        ax.set_title('Posterior', fontsize=12)
+    if i == 3:
+        ax.set_xlabel('Date')
+    ax.tick_params(axis='x', rotation=45)
+
+plt.tight_layout()
+plt.show()
+
+# Print GP hyperparameter summaries
+print("GP Hyperparameters (posterior mean [90% CI]):")
+lengthscale = az.extract(idata, group="posterior")["gp_lengthscale"]
+sigma_effort = az.extract(idata, group="posterior")["gp_sigma_effort"]
+sigma_effort_minutes = az.extract(idata, group="posterior")["gp_sigma_effort_minutes"]
+sigma_success = az.extract(idata, group="posterior")["gp_sigma_success"]
+sigma_returns = az.extract(idata, group="posterior")["gp_sigma_returns"]
+
+print(f"  Lengthscale:      {lengthscale.mean().values:.1f} [{np.percentile(lengthscale, 5):.1f}, {np.percentile(lengthscale, 95):.1f}] days")
+print(f"  σ_effort:         {sigma_effort.mean().values:.2f} [{np.percentile(sigma_effort, 5):.2f}, {np.percentile(sigma_effort, 95):.2f}]")
+print(f"  σ_effort_minutes: {sigma_effort_minutes.mean().values:.2f} [{np.percentile(sigma_effort_minutes, 5):.2f}, {np.percentile(sigma_effort_minutes, 95):.2f}]")
+print(f"  σ_success:        {sigma_success.mean().values:.2f} [{np.percentile(sigma_success, 5):.2f}, {np.percentile(sigma_success, 95):.2f}]")
+print(f"  σ_returns:        {sigma_returns.mean().values:.2f} [{np.percentile(sigma_returns, 5):.2f}, {np.percentile(sigma_returns, 95):.2f}]")
+```
+
+## Group Size Scaling
+
+The function $g(k) = e^{\alpha_\mu} \cdot k^{\beta_n}$ determines how expected returns scale with group size. When $\beta_n < 1$, there are diminishing marginal returns.
+
+```{python, echo = False}
+#| label: fig-group-scaling
+#| fig-cap: "Posterior group size scaling function g(k)"
+
+# Extract posterior parameters
+intercept_mu = az.extract(idata, group="posterior")["intercept_mu"]
+b_groupsize_mu = az.extract(idata, group="posterior")["b_groupsize_mu"]
+
+# Create k grid
+k_grid = np.arange(1, 16)
+
+# Compute g(k) for each posterior sample
+g_k = np.exp(intercept_mu.values[None, :] + b_groupsize_mu.values[None, :] * np.log(k_grid)[:, None])
+
+fig, axes = plt.subplots(1, 2, figsize=(8, 3))
+
+# Left: g(k) curves
+ax = axes[0]
+for i in range(min(100, g_k.shape[1])):
+    ax.plot(k_grid, g_k[:, i], color="steelblue", alpha=0.05)
+ax.plot(k_grid, g_k.mean(axis=1), color="steelblue", linewidth=2, label="Mean")
+ax.fill_between(k_grid, 
+                np.percentile(g_k, 5, axis=1), 
+                np.percentile(g_k, 95, axis=1), 
+                color="steelblue", alpha=0.2, label="90% CI")
+ax.set_xlabel("Group size k")
+ax.set_ylabel("g(k)")
+ax.set_title("Group Size Scaling")
+ax.legend()
+
+# Right: Marginal contribution (derivative approximation)
+ax = axes[1]
+marginal = g_k[1:, :] - g_k[:-1, :]  # g(k) - g(k-1)
+for i in range(min(100, marginal.shape[1])):
+    ax.plot(k_grid[1:], marginal[:, i], color="coral", alpha=0.05)
+ax.plot(k_grid[1:], marginal.mean(axis=1), color="coral", linewidth=2)
+ax.fill_between(k_grid[1:], 
+                np.percentile(marginal, 5, axis=1), 
+                np.percentile(marginal, 95, axis=1), 
+                color="coral", alpha=0.2)
+ax.axhline(0, color="black", linestyle="--", alpha=0.5)
+ax.set_xlabel("Group size k")
+ax.set_ylabel("g(k) - g(k-1)")
+ax.set_title("Marginal Gain from Adding Member")
+
+plt.tight_layout()
+plt.show()
+
+# Print summary
+print(f"Posterior mean β_n: {b_groupsize_mu.mean().values:.3f}")
+print(f"90% CI: [{np.percentile(b_groupsize_mu, 5):.3f}, {np.percentile(b_groupsize_mu, 95):.3f}]")
+if b_groupsize_mu.mean() < 1:
+    print("β_n < 1 indicates diminishing marginal returns to group size")
+```
+
+## Skill Curves
+
+The model estimates age-dependent skill curves. We visualize the different components:
+
+- **S(x)**: Combined skill curve
+- **M(x)**: Senescence component (physical decline)
+- **K(x)**: Knowledge component (skill acquisition)
+- **Harvest**: Expected solo forager return (kcal)
+
+```{python}
+#| label: fig-skill-curves
+#| fig-cap: "Estimated skill curves across the lifespan"
+#| fig-height: 5
+
+# Extract posterior parameters
+parameters = az.extract(idata, group="posterior")
+age_scale = foraging_model.age_scale
+ndraws = 100
+
+# Create age grid
+age_grid = np.linspace(0, 1, 100)
+
+# Build dataset with parameters
+S_grid = xr.Dataset({
+    "m": parameters["m"],
+    "k": parameters["k"],
+    "b": parameters["b"],
+})
+
+for param in ["intercept_mu", "eta_mu", "eta_success", "alpha_success"]:
+    if param in parameters:
+        S_grid[param] = parameters[param]
+
+S_grid = S_grid.expand_dims({"age_scaled": age_grid})
+S_grid["age"] = S_grid.age_scaled * age_scale
+
+# Calculate curves
+S_grid["K_x"] = 1 - np.exp(-S_grid.k * S_grid.age_scaled)
+S_grid["M_x"] = np.exp(-S_grid.m * S_grid.age_scaled)
+S_grid["S_x"] = S_grid.M_x * S_grid.K_x**S_grid.b
+S_grid["mu"] = np.exp(S_grid.intercept_mu) * S_grid.S_x**S_grid.eta_mu
+S_grid["success_prob"] = 2 * (sp.expit(S_grid.S_x**S_grid.eta_success * S_grid.alpha_success) - 0.5)
+
+# Create multi-panel figure (2x2 for 4 curves)
+fig, axes = plt.subplots(2, 2, figsize=(8, 5))
+axes = axes.flatten()
+
+curves = [
+    ("S_x", "S(x)", "Skill"),
+    ("M_x", "M(x)", "Senescence"),
+    ("K_x", "K(x)", "Knowledge"),
+    ("mu", "E[kcal]", "Expected Harvest (Solo)"),
+]
+
+for idx, (var_name, ylabel, title) in enumerate(curves):
+    ax = axes[idx]
+    var = S_grid[var_name]
+    
+    # Spaghetti plot
+    for i in range(min(ndraws, len(var.sample))):
+        ax.plot(S_grid.age, var.isel(sample=i).values, color="darkorange", alpha=0.05)
+    
+    # Mean line
+    ax.plot(S_grid.age, var.mean(dim="sample").values, color="darkorange", linewidth=2)
+    
+    ax.set_xlabel("Age")
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Skill vs Effort by Age
+
+This plot shows knowledge, effort probability, and effort minutes as functions of age. All curves are normalized by their maximum value for comparison on the same scale.
+
+```{python}
+#| label: fig-knowledge-effort-combined
+#| fig-cap: "Knowledge and effort curves by age (normalized by max)"
+
+# Get effort binary parameters (still polynomial)
+effort_intercept = parameters["effort_intercept"].values
+effort_age = parameters["effort_age"].values
+effort_age2 = parameters["effort_age2"].values
+
+# Z-score the age grid (matching model)
+age_raw = dataset.age.values
+age_mean = age_raw.mean()
+age_std = age_raw.std()
+age_z_grid = (age_grid * age_scale - age_mean) / age_std
+
+# Calculate effort probability (binary) - polynomial model
+effort_linear = effort_intercept[None, :] + effort_age[None, :] * age_z_grid[:, None] + effort_age2[None, :] * age_z_grid[:, None]**2
+effort_prob = 1 / (1 + np.exp(-effort_linear))
+
+# Get effort minutes mixture parameters
+# Two-component mixture: short trips vs long trips
+# Mixture weight varies by age: logit(p_short) = intercept + slope * age_z
+effort_min_intercept_1 = parameters["effort_minutes_intercept_1"].values
+effort_min_offset = parameters["effort_minutes_offset"].values
+effort_min_intercept_2 = effort_min_intercept_1 + effort_min_offset  # Derived
+mix_intercept = parameters["effort_minutes_mix_intercept"].values
+mix_age_slope = parameters["effort_minutes_mix_age"].values
+
+# Get forager ages and sort by age for plotting
+forager_ages = dataset.age.values
+sort_idx = np.argsort(forager_ages)
+sorted_ages = forager_ages[sort_idx]
+
+# Compute age-varying mixture weights at forager ages
+# Z-score ages to match model
+age_z_foragers = (forager_ages - forager_ages.mean()) / forager_ages.std()
+# p_short = sigmoid(intercept + slope * age_z)
+mix_logit = mix_intercept[:, None] + mix_age_slope[:, None] * age_z_foragers[None, :]
+p_short = 1 / (1 + np.exp(-mix_logit))  # (n_samples, n_foragers)
+
+# Component means (base intercepts only - no GP age effect in current model)
+# The model uses: mu_k = exp(intercept_k + gp_date) but for marginal expectation over dates,
+# we just use the base intercepts
+mu_1 = np.exp(effort_min_intercept_1)  # Short trips mean (n_samples,)
+mu_2 = np.exp(effort_min_intercept_2)  # Long trips mean (n_samples,)
+
+# Expected minutes as weighted average of two components (age-varying weights)
+# p_short varies by forager, mu_1/mu_2 are scalars per sample
+mu_minutes_forager = p_short * mu_1[:, None] + (1 - p_short) * mu_2[:, None]  # (n_samples, n_foragers)
+
+# Sort by age
+mu_minutes_sorted = mu_minutes_forager[:, sort_idx]
+
+# Get knowledge curve K(x)
+knowledge_mean = S_grid["K_x"].mean(dim="sample").values
+knowledge_lower = S_grid["K_x"].quantile(0.05, dim="sample").values
+knowledge_upper = S_grid["K_x"].quantile(0.95, dim="sample").values
+
+# Get effort prob summary (on smooth grid)
+effort_mean = effort_prob.mean(axis=1)
+effort_lower = np.percentile(effort_prob, 5, axis=1)
+effort_upper = np.percentile(effort_prob, 95, axis=1)
+
+# Get minutes summary (at forager ages)
+minutes_mean = mu_minutes_sorted.mean(axis=0)
+minutes_lower = np.percentile(mu_minutes_sorted, 5, axis=0)
+minutes_upper = np.percentile(mu_minutes_sorted, 95, axis=0)
+
+# Compute effort probability at forager ages (for multiplication with minutes)
+age_z_sorted = (sorted_ages - age_mean) / age_std
+effort_at_forager_ages = 1 / (1 + np.exp(-(
+    effort_intercept[:, None] + 
+    effort_age[:, None] * age_z_sorted[None, :] + 
+    effort_age2[:, None] * age_z_sorted[None, :]**2
+)))
+
+# Compute expected total minutes = P(foraging) * E[minutes | foraging]
+expected_total_minutes = effort_at_forager_ages * mu_minutes_sorted
+total_minutes_mean = expected_total_minutes.mean(axis=0)
+total_minutes_lower = np.percentile(expected_total_minutes, 5, axis=0)
+total_minutes_upper = np.percentile(expected_total_minutes, 95, axis=0)
+
+# Normalize each by its max
+knowledge_max = knowledge_mean.max()
+effort_max = effort_mean.max()
+total_minutes_max = total_minutes_mean.max()
+
+# Create figure
+fig, ax = plt.subplots(figsize=(8, 5))
+
+# Knowledge curve (normalized) - on smooth grid
+ages = S_grid.age.values
+color_know = '#2E86AB'  # Blue
+ax.plot(ages, knowledge_mean / knowledge_max, color=color_know, linewidth=2.5, label=f'Knowledge K(x) (max={knowledge_max:.2f})')
+ax.fill_between(ages, knowledge_lower / knowledge_max, knowledge_upper / knowledge_max, color=color_know, alpha=0.15)
+
+# Effort probability (normalized) - on smooth grid
+color_effort = '#E94F37'  # Red/Orange
+ax.plot(ages, effort_mean / effort_max, color=color_effort, linewidth=2.5, linestyle='--', label=f'P(foraging) (max={effort_max:.2f})')
+ax.fill_between(ages, effort_lower / effort_max, effort_upper / effort_max, color=color_effort, alpha=0.15)
+
+# Expected total minutes = P(foraging) * E[minutes|foraging] (normalized)
+color_minutes = '#27AE60'  # Green
+ax.plot(sorted_ages, total_minutes_mean / total_minutes_max, color=color_minutes, linewidth=2.5, linestyle=':', label=f'P(go)×E[min] (max={total_minutes_max:.0f})')
+ax.fill_between(sorted_ages, total_minutes_lower / total_minutes_max, total_minutes_upper / total_minutes_max, color=color_minutes, alpha=0.15)
+
+ax.set_xlabel('Age (years)', fontsize=11)
+ax.set_ylabel('Normalized Value (proportion of max)', fontsize=11)
+ax.set_ylim(0, 1.1)
+ax.legend(loc='lower right', fontsize=10)
+ax.set_title('Knowledge, Effort, and Time Investment by Age', fontsize=12)
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+## Model Comparison: Top-K vs Mean Skill Aggregation
+
+We compare two approaches for aggregating individual skills into group-level expected returns:
+
+1. **Best Top-K**: Optimizes over subset sizes, selecting the k highest-skilled foragers
+2. **Mean**: Simple average of all foragers' skills
+ 
+```{python}
+#| label: fit-mean-model
+
+# Fit alternative model with mean skill aggregation
+foraging_model_mean = ForagingModel(
+    data=dataset,
+    aggregation_method='mean',  # Changed from 'best_top_k'
+    effort_type='hurdle',       # Same hurdle model
+    target_scaling='mean',
+    age_scaling='max',
+)
+
+idata_mean = foraging_model_mean.fit(
+    tune=250,
+    draws=250,
+    chains=4,
+    random_seed=42,
+    target_accept=0.95,
+    low_rank_modified_mass_matrix=True,
+)
+
+# Compute log likelihood for LOO comparison
+with foraging_model_mean.model:
+    pm.compute_log_likelihood(idata_mean, var_names=['kcal'])
+```
+
+```{python}
+#| label: loo-comparison
+#| tbl-cap: "LOO-CV model comparison"
+
+# Compute LOO for both models
+# Note: LOO is computed on the Gamma likelihood (kcal)
+loo_topk = az.loo(idata, var_name='kcal')
+loo_mean = az.loo(idata_mean, var_name='kcal')
+
+# Compare models
+comparison = az.compare({
+    'Best Top-K': idata,
+    'Mean Skill': idata_mean
+}, var_name='kcal')
+
+print("LOO Model Comparison (lower ELPD is worse)")
+print("=" * 60)
+comparison
+```
+
+```{python}
+#| label: fig-loo-comparison
+#| fig-cap: "LOO-CV comparison between skill aggregation methods"
+
+az.plot_compare(comparison, figsize=(6, 3))
+plt.tight_layout()
+plt.show()
+```
+
+## Summary
+
+This tutorial demonstrated:
+
+1. **Data preparation** using `ForagingData` to structure multiple data sources
+2. **Model specification** with the M-K-B skill curve parametrization
+3. **Model fitting** using the nutpie sampler via `ForagingModel.fit()`
+4. **Diagnostics** including parameter summaries and prior-posterior comparison
+5. **Posterior predictive checks** to assess model fit
+6. **Skill curve visualization** showing how foraging ability changes with age
+
+### Next Steps
+
+## Shapley Attribution (Joint Sampling)
+
+We can attribute group returns to individual foragers using Shapley values. In the
+**joint-sampling** mode, we sample **one permutation per posterior draw** and reuse
+it across all groups of the same size. This treats permutation uncertainty as part
+of each draw, and is efficient when groups are conditionally independent.
+
+```{python}
+#| label: shapley-joint
+#| echo: true
+
+shapley_ds = foraging_model.compute_shapley(
+    method="joint",
+    n_posterior_samples=200,
+    random_seed=RANDOM_SEED,
+)
+
+shapley_ds
+```
+
+### Visualize Contributions for a Single Group
+
+```{python}
+#| label: shapley-group-bar
+#| echo: true
+
+group_idx = 13
+
+group_contrib = (
+    shapley_ds["shapley_contribution"]
+    .isel(group=group_idx)
+    .mean(dim="sample")
+)
+
+fig, ax = plt.subplots(figsize=(7, 3))
+ax.bar(group_contrib["forager"].values, group_contrib.values, color="slateblue")
+ax.set_xlabel("Forager ID")
+ax.set_ylabel("Mean Shapley Contribution (kcal)")
+ax.set_title(f"Group {group_idx} Shapley Contributions (Joint Sampling)")
+plt.tight_layout()
+plt.show()
+```
+
+### Aggregate Across Groups
+
+```{python}
+#| label: shapley-forager-total
+#| echo: true
+
+forager_totals = (
+    shapley_ds["shapley_contribution"]
+    .sum(dim="group")
+    .mean(dim="sample")
+)
+
+fig, ax = plt.subplots(figsize=(7, 3))
+ax.bar(forager_totals["forager"].values, forager_totals.values, color="teal")
+ax.set_xlabel("Forager ID")
+ax.set_ylabel("Mean Total Contribution (kcal)")
+ax.set_title("Total Shapley Contribution per Forager")
+plt.tight_layout()
+plt.show()
+```
+
+### Next Steps
+
+- **Shapley values**: Use `foraging_model.compute_shapley(method="joint")` to
+  attribute group returns to individual foragers
+- **Model comparison**: Compare aggregation methods ("best_top_k" vs "mean") using LOO-CV
+- **Prior sensitivity**: Test model robustness with different prior specifications

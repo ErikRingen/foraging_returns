@@ -124,18 +124,12 @@ class ForagingData:
             .set_coords(['date', 'forager'])
         )
 
-        # Create forager-daily success indicator
-        # Rules:
-        #   1. Only create observations where in_camp == 1 AND total.minutes > 0
-        #   2. For those observations: success = 1 if forager was in ANY group on that date with kcal > 0, else 0
-        #   3. Only include eligible (forager, date) pairs - no NaN entries
-        
-        # First, build mapping: (forager_id, date) -> list of groups with kcal > 0
+        # Build mapping: (forager_id, date) -> list of groups with kcal > 0
         forager_date_to_groups = {}
         if 'forager_ids' in production_successful.columns and 'date' in production_successful.columns:
             for _, row in production_successful.iterrows():
                 group_date = pd.to_datetime(row['date'])
-                if row[self.target_column] > 0:  # Only groups with kcal > 0
+                if row[self.target_column] > 0:
                     forager_ids_in_group = row['forager_ids']
                     if hasattr(forager_ids_in_group, '__iter__') and not isinstance(forager_ids_in_group, str):
                         for forager_id in forager_ids_in_group:
@@ -145,11 +139,11 @@ class ForagingData:
                                 forager_date_to_groups[key] = []
                             forager_date_to_groups[key].append(row[self.group_id_col])
         
-        # Merge days_in_camp with time_allocation to get (forager, date) pairs where 
-        # in_camp == 1 AND total.minutes > 0
         time_id_col = 'id' if 'id' in self.time_allocation_df.columns else self.forager_id_col
+        forager_id_to_idx = {str(id): idx for idx, id in enumerate(self.foragers_df[self.forager_id_col])}
         
-        # Create merged dataframe for eligible observations
+        datasets_to_merge = [ds_foragers, ds_production, ds_forager_days_in_camp, ds_time_allocation]
+        
         if ('date' in self.days_in_camp_df.columns and 'forager_id' in self.days_in_camp_df.columns and
             'date' in self.time_allocation_df.columns and time_id_col in self.time_allocation_df.columns):
             
@@ -159,63 +153,143 @@ class ForagingData:
                 self.time_allocation_df[[time_id_col, 'date', 'total.minutes']],
                 left_on=['forager_id', 'date'],
                 right_on=[time_id_col, 'date'],
-                how='inner'
+                how='left'  # Left join to keep all in_camp records
             )
+            merged_df['total.minutes'] = merged_df['total.minutes'].fillna(0)
             
-            # Filter to only (forager, date) pairs where in_camp == 1 AND total.minutes > 0
-            eligible = merged_df[
-                (merged_df['in_camp'] == 1) & 
-                (merged_df['total.minutes'] > 0)
-            ].copy()
+            # =====================================================================
+            # EFFORT: P(went foraging | in camp)
+            # Eligibility: in_camp == 1
+            # Outcome: 1 if total.minutes > 0 OR if forager has returns (in-camp foraging)
+            # =====================================================================
+            effort_eligible = merged_df[merged_df['in_camp'] == 1].copy()
             
-            if len(eligible) > 0:
-                # Create mapping forager ID -> index
-                forager_id_to_idx = {str(id): idx for idx, id in enumerate(self.foragers_df[self.forager_id_col])}
+            if len(effort_eligible) > 0:
+                effort_forager_indices = []
+                effort_values = []
+                effort_dates = []
                 
-                # Create long-format arrays: only eligible observations
-                n_observations = len(eligible)
-                forager_indices = []
-                dates = []
-                success_values = []
-                
-                for _, row in eligible.iterrows():
+                for _, row in effort_eligible.iterrows():
                     forager_id = str(row['forager_id'])
                     date = pd.to_datetime(row['date'])
                     
                     if forager_id in forager_id_to_idx:
-                        forager_idx = forager_id_to_idx[forager_id]
-                        # Check if forager was in any group on this date with kcal > 0
-                        key = (forager_id, date)
-                        success = 1 if key in forager_date_to_groups else 0
+                        effort_forager_indices.append(forager_id_to_idx[forager_id])
+                        effort_dates.append(date)
                         
-                        forager_indices.append(forager_idx)
-                        dates.append(date)
-                        success_values.append(success)
+                        # Effort = 1 if went out OR foraged in-camp (has returns but no minutes)
+                        has_returns = (forager_id, date) in forager_date_to_groups
+                        effort = 1 if row['total.minutes'] > 0 or has_returns else 0
+                        effort_values.append(effort)
                 
-                # Create long-format dataset
-                # Use integer indices for forager_date dimension
-                # Rename date to forager_date_date to avoid merge conflicts with other datasets' date coordinates
+                ds_effort = xr.Dataset({
+                    'forager_effort': (['effort_obs'], np.array(effort_values, dtype=np.int32)),
+                    'effort_forager_idx': (['effort_obs'], np.array(effort_forager_indices, dtype=np.int32)),
+                    'effort_date': (['effort_obs'], np.array(effort_dates, dtype='datetime64[ns]')),
+                }, coords={
+                    'effort_obs': np.arange(len(effort_values))
+                })
+                datasets_to_merge.append(ds_effort)
+            
+            # =====================================================================
+            # SUCCESS: P(returned with food | went foraging)
+            # Eligibility: in_camp == 1 AND (total.minutes > 0 OR has returns)
+            # Outcome: 1 if in any group with kcal > 0, else 0
+            # =====================================================================
+            # First, identify in-camp foragers (those with returns but no minutes)
+            success_forager_indices = []
+            success_values = []
+            success_dates = []
+            
+            for _, row in merged_df[merged_df['in_camp'] == 1].iterrows():
+                forager_id = str(row['forager_id'])
+                date = pd.to_datetime(row['date'])
+                
+                if forager_id in forager_id_to_idx:
+                    has_returns = (forager_id, date) in forager_date_to_groups
+                    went_foraging = row['total.minutes'] > 0 or has_returns
+                    
+                    # Only include if they went foraging (out or in-camp)
+                    if went_foraging:
+                        forager_idx = forager_id_to_idx[forager_id]
+                        success = 1 if has_returns else 0
+                        
+                        success_forager_indices.append(forager_idx)
+                        success_values.append(success)
+                        success_dates.append(date)
+            
+            if len(success_values) > 0:
+                
                 ds_forager_success = xr.Dataset({
                     'forager_success': (['forager_date'], np.array(success_values, dtype=np.int32)),
-                    'forager_idx': (['forager_date'], np.array(forager_indices, dtype=np.int32)),
-                    'forager_date_date': (['forager_date'], np.array(dates))  # Renamed to avoid conflict
+                    'forager_idx': (['forager_date'], np.array(success_forager_indices, dtype=np.int32)),
+                    'success_date': (['forager_date'], np.array(success_dates, dtype='datetime64[ns]')),
                 }, coords={
-                    'forager_date': np.arange(len(success_values))  # Simple integer index
+                    'forager_date': np.arange(len(success_values))
                 })
-                
-                # Add to merge list
-                datasets_to_merge = [ds_foragers, ds_production, ds_forager_days_in_camp, ds_time_allocation, ds_forager_success]
-            else:
-                # No eligible observations
-                datasets_to_merge = [ds_foragers, ds_production, ds_forager_days_in_camp, ds_time_allocation]
-        else:
-            datasets_to_merge = [ds_foragers, ds_production, ds_forager_days_in_camp, ds_time_allocation]
+                datasets_to_merge.append(ds_forager_success)
         
         # Merge all datasets
         combined_ds = xr.merge(
             datasets_to_merge,
             join='outer'  # Explicitly use outer join for compatibility
         )
+        
+        # =====================================================================
+        # DATE PROCESSING FOR GAUSSIAN PROCESSES
+        # Create unique date indices and numeric date values
+        # =====================================================================
+        all_dates = set()
+        
+        # Collect dates from production (groups)
+        if 'date' in production_successful.columns:
+            group_dates = pd.to_datetime(production_successful['date'])
+            all_dates.update(group_dates)
+        
+        # Collect dates from effort/success/minutes
+        if 'effort_date' in combined_ds:
+            all_dates.update(pd.to_datetime(combined_ds.effort_date.values))
+        if 'success_date' in combined_ds:
+            all_dates.update(pd.to_datetime(combined_ds.success_date.values))
+        
+        if all_dates:
+            # Create sorted unique dates
+            unique_dates = np.array(sorted(all_dates), dtype='datetime64[ns]')
+            min_date = unique_dates.min()
+            
+            # Convert to numeric (days since first date)
+            date_numeric = (unique_dates - min_date).astype('timedelta64[D]').astype(float)
+            
+            # Create date mapping: datetime -> index
+            date_to_idx = {pd.Timestamp(d): i for i, d in enumerate(unique_dates)}
+            
+            # Add unique dates as coordinate
+            combined_ds = combined_ds.assign_coords(unique_date=unique_dates)
+            combined_ds['date_numeric'] = ('unique_date', date_numeric)
+            
+            # Map group dates to indices
+            if 'date' in production_successful.columns:
+                group_date_idx = np.array([
+                    date_to_idx[pd.Timestamp(d)] 
+                    for d in pd.to_datetime(production_successful['date'])
+                ], dtype=np.int32)
+                combined_ds['group_date_idx'] = ('group', group_date_idx)
+            
+            # Map effort dates to indices
+            if 'effort_date' in combined_ds:
+                effort_date_idx = np.array([
+                    date_to_idx[pd.Timestamp(d)] 
+                    for d in pd.to_datetime(combined_ds.effort_date.values)
+                ], dtype=np.int32)
+                combined_ds['effort_date_idx'] = ('effort_obs', effort_date_idx)
+            
+            # Map success dates to indices
+            if 'success_date' in combined_ds:
+                success_date_idx = np.array([
+                    date_to_idx[pd.Timestamp(d)] 
+                    for d in pd.to_datetime(combined_ds.success_date.values)
+                ], dtype=np.int32)
+                combined_ds['success_date_idx'] = ('forager_date', success_date_idx)
 
         return combined_ds
         

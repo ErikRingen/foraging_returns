@@ -1,0 +1,670 @@
+---
+title: "Shapley Value Exploration: Skill vs Effort"
+author: "Erik Ringen"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    code-tools: true
+    theme: cosmo
+execute:
+  warning: false
+  echo: false
+---
+
+## Setup
+
+```{python}
+#| label: setup
+#| message: false
+#| echo: true
+
+import pandas as pd
+import numpy as np
+import xarray as xr
+import pymc as pm
+import arviz as az
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pyprojroot.here import here
+from scipy import stats
+import sys
+sys.path.append(str(here()))
+
+from preprocessing import preprocess_data
+from foraging_model.data import ForagingData
+from foraging_model.model import ForagingModel
+```
+
+```{python}
+# Notebook configuration
+plt.style.use('seaborn-v0_8-whitegrid')
+sns.set_palette("colorblind")
+pd.set_option("display.max_columns", None)
+```
+
+## Data Loading
+
+```{python}
+#| label: load-data
+#| echo: true
+
+raw_data_dir = "raw_data/"
+
+df_foragers, df_time_agg, df_production, df_days_long = preprocess_data(
+    returns_file=here(raw_data_dir + 'returns.csv'),
+    recall_file=here(raw_data_dir + 'recall.csv'),
+    kcal_file=here(raw_data_dir + 'kcal.csv'),
+    group_file=here(raw_data_dir + 'groups.csv'),
+    camp_members_file=here(raw_data_dir + 'camp_members.csv'),
+    days_in_camp_file=here(raw_data_dir + 'daysincamp.csv'),
+    combine_returns_recall=True,
+    output_dir=here('data')
+)
+```
+
+## Model Fitting
+
+We need to fit the model first to get posterior samples for Shapley computation.
+
+```{python}
+#| label: prepare-data
+
+data = ForagingData(
+    foragers_df=df_foragers,
+    time_allocation_df=df_time_agg,
+    production_df=df_production,
+    days_in_camp_df=df_days_long,
+    target_column='kcal',
+    group_id_col='group_id',
+    forager_id_col='id',
+)
+
+dataset = data.to_dataset()
+print(f"Dataset dimensions:")
+for dim, size in dataset.dims.items():
+    print(f"  {dim}: {size}")
+```
+
+```{python}
+#| label: build-model
+
+foraging_model = ForagingModel(
+    data=dataset,
+    effort_type='hurdle',
+    target_scaling='mean',
+    age_scaling='max',
+)
+```
+
+```{python}
+#| label: fit-model
+
+idata = foraging_model.fit(
+    tune=250,
+    draws=250,
+    chains=4,
+    random_seed=42,
+    target_accept=0.95,
+    low_rank_modified_mass_matrix=True,
+)
+```
+
+## Shapley Value Computation
+
+Shapley values attribute group returns to individual foragers based on their marginal contributions. This gives us a principled measure of each forager's "contribution" to production.
+
+```{python}
+#| label: compute-shapley
+#| echo: true
+
+# Compute Shapley values for all groups
+shapley_ds = foraging_model.compute_shapley(
+    method='auto',
+    n_posterior_samples=100,
+    n_permutations=100,
+    random_seed=42,
+)
+
+print(f"Shapley dataset shape: {shapley_ds.shapley_contribution.shape}")
+print(f"  Dimensions: {shapley_ds.shapley_contribution.dims}")
+```
+
+## Aggregating Individual Contributions
+
+Each forager participates in multiple groups across the study period. We aggregate their Shapley contributions to get individual-level measures of skill.
+
+```{python}
+#| label: aggregate-shapley
+#| echo: true
+
+# Get Shapley contributions: (sample, group, forager)
+shapley_vals = shapley_ds.shapley_contribution.values
+
+# Aggregate by forager: sum and mean across groups
+# Note: NaN means forager wasn't in that group
+n_samples, n_groups, n_foragers = shapley_vals.shape
+
+# For each forager, compute:
+# 1. Total Shapley contribution (sum across all groups)
+# 2. Mean Shapley contribution per group
+# 3. Number of groups participated in
+
+forager_shapley = []
+forager_ids = dataset.forager.values
+
+for f_idx, fid in enumerate(forager_ids):
+    # Get all contributions for this forager across groups
+    forager_contributions = shapley_vals[:, :, f_idx]  # (n_samples, n_groups)
+    
+    # Mask NaN (groups forager wasn't in)
+    valid_mask = ~np.isnan(forager_contributions[0, :])  # Same for all samples
+    n_groups_in = valid_mask.sum()
+    
+    if n_groups_in > 0:
+        # Sum and mean across groups (for each posterior sample)
+        total_contrib = np.nansum(forager_contributions, axis=1)  # (n_samples,)
+        mean_contrib = np.nanmean(forager_contributions, axis=1)  # (n_samples,)
+        
+        forager_shapley.append({
+            'forager_id': fid,
+            'n_groups': n_groups_in,
+            'total_shapley_mean': total_contrib.mean(),
+            'total_shapley_std': total_contrib.std(),
+            'mean_shapley_mean': mean_contrib.mean(),
+            'mean_shapley_std': mean_contrib.std(),
+            'total_shapley_lower': np.percentile(total_contrib, 5),
+            'total_shapley_upper': np.percentile(total_contrib, 95),
+        })
+
+shapley_df = pd.DataFrame(forager_shapley)
+
+# Add demographics
+shapley_df = shapley_df.merge(
+    df_foragers[['id', 'age', 'sex']],
+    left_on='forager_id',
+    right_on='id',
+    how='left'
+).drop(columns=['id'])
+
+print(f"Foragers with Shapley values: {len(shapley_df)}")
+print(shapley_df.head(10))
+```
+
+## Effort Measures
+
+Now we compute effort measures for each forager to relate to their Shapley contributions.
+
+```{python}
+#| label: compute-effort
+#| echo: true
+
+# Merge days in camp with time allocation
+effort_data = (
+    df_days_long[df_days_long['in_camp'] == 1]
+    .merge(
+        df_time_agg[['id', 'date', 'total.minutes']],
+        left_on=['forager_id', 'date'],
+        right_on=['id', 'date'],
+        how='left'
+    )
+)
+effort_data['total.minutes'] = effort_data['total.minutes'].fillna(0)
+effort_data['went_foraging'] = (effort_data['total.minutes'] > 0).astype(int)
+
+# Aggregate by forager
+effort_summary = (
+    effort_data
+    .groupby('forager_id')
+    .agg(
+        days_in_camp=('in_camp', 'sum'),
+        days_foraging=('went_foraging', 'sum'),
+        total_minutes=('total.minutes', 'sum'),
+        mean_minutes_when_foraging=('total.minutes', lambda x: x[x > 0].mean() if (x > 0).any() else 0),
+    )
+    .reset_index()
+)
+effort_summary['prop_foraging'] = effort_summary['days_foraging'] / effort_summary['days_in_camp']
+effort_summary['forager_id'] = effort_summary['forager_id'].astype(str)
+
+# Merge with Shapley data
+shapley_df['forager_id'] = shapley_df['forager_id'].astype(str)
+analysis_df = shapley_df.merge(effort_summary, on='forager_id', how='inner')
+
+print(f"Analysis dataset: {len(analysis_df)} foragers")
+print(analysis_df.head())
+```
+
+## Skill vs Effort Relationship
+
+### Total Shapley Contribution vs Effort
+
+```{python}
+#| label: fig-shapley-vs-effort
+#| fig-cap: "Relationship between total Shapley contribution (skill proxy) and foraging effort measures."
+
+fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+
+colors = {'male': '#2E86AB', 'female': '#E94F37'}
+
+# Top-left: Total Shapley vs Proportion of days foraging
+ax = axes[0, 0]
+for sex in analysis_df['sex'].dropna().unique():
+    subset = analysis_df[analysis_df['sex'] == sex]
+    ax.scatter(subset['prop_foraging'], subset['total_shapley_mean'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Proportion of In-Camp Days Foraging')
+ax.set_ylabel('Total Shapley Contribution (kcal)')
+ax.set_title('Skill vs Effort (Binary)')
+ax.legend()
+
+# Add correlation
+r, p = stats.pearsonr(analysis_df['prop_foraging'], analysis_df['total_shapley_mean'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10)
+
+# Top-right: Total Shapley vs Total minutes
+ax = axes[0, 1]
+for sex in analysis_df['sex'].dropna().unique():
+    subset = analysis_df[analysis_df['sex'] == sex]
+    ax.scatter(subset['total_minutes'], subset['total_shapley_mean'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Total Minutes Foraging')
+ax.set_ylabel('Total Shapley Contribution (kcal)')
+ax.set_title('Skill vs Effort (Total Time)')
+ax.legend()
+
+r, p = stats.pearsonr(analysis_df['total_minutes'], analysis_df['total_shapley_mean'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10)
+
+# Bottom-left: Mean Shapley per group vs Prop foraging
+ax = axes[1, 0]
+for sex in analysis_df['sex'].dropna().unique():
+    subset = analysis_df[analysis_df['sex'] == sex]
+    ax.scatter(subset['prop_foraging'], subset['mean_shapley_mean'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Proportion of In-Camp Days Foraging')
+ax.set_ylabel('Mean Shapley Contribution per Group (kcal)')
+ax.set_title('Per-Group Skill vs Effort')
+ax.legend()
+
+r, p = stats.pearsonr(analysis_df['prop_foraging'], analysis_df['mean_shapley_mean'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10)
+
+# Bottom-right: Mean Shapley vs Mean minutes when foraging
+ax = axes[1, 1]
+for sex in analysis_df['sex'].dropna().unique():
+    subset = analysis_df[analysis_df['sex'] == sex]
+    ax.scatter(subset['mean_minutes_when_foraging'], subset['mean_shapley_mean'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Mean Minutes When Foraging')
+ax.set_ylabel('Mean Shapley Contribution per Group (kcal)')
+ax.set_title('Per-Group Skill vs Effort Intensity')
+ax.legend()
+
+r, p = stats.pearsonr(analysis_df['mean_minutes_when_foraging'].dropna(), 
+                      analysis_df.loc[analysis_df['mean_minutes_when_foraging'].notna(), 'mean_shapley_mean'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Age-Adjusted Analysis
+
+The key hypothesis is about the relationship between skill and effort **after controlling for age**. We compute residuals from age curves for both measures.
+
+```{python}
+#| label: age-adjusted
+#| echo: true
+
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+
+# Fit polynomial regression of Shapley on age
+X_age = analysis_df['age'].values.reshape(-1, 1)
+poly = PolynomialFeatures(degree=2)
+X_age_poly = poly.fit_transform(X_age)
+
+# Shapley ~ age
+model_shapley = LinearRegression().fit(X_age_poly, analysis_df['total_shapley_mean'])
+shapley_predicted = model_shapley.predict(X_age_poly)
+analysis_df['shapley_residual'] = analysis_df['total_shapley_mean'] - shapley_predicted
+
+# Effort (prop foraging) ~ age
+model_effort = LinearRegression().fit(X_age_poly, analysis_df['prop_foraging'])
+effort_predicted = model_effort.predict(X_age_poly)
+analysis_df['effort_residual'] = analysis_df['prop_foraging'] - effort_predicted
+
+# Total minutes ~ age
+model_minutes = LinearRegression().fit(X_age_poly, analysis_df['total_minutes'])
+minutes_predicted = model_minutes.predict(X_age_poly)
+analysis_df['minutes_residual'] = analysis_df['total_minutes'] - minutes_predicted
+
+print("Age-adjustment complete")
+print(f"R² for Shapley ~ age: {model_shapley.score(X_age_poly, analysis_df['total_shapley_mean']):.3f}")
+print(f"R² for Effort ~ age: {model_effort.score(X_age_poly, analysis_df['prop_foraging']):.3f}")
+print(f"R² for Minutes ~ age: {model_minutes.score(X_age_poly, analysis_df['total_minutes']):.3f}")
+```
+
+```{python}
+#| label: fig-age-adjusted-correlation
+#| fig-cap: "Relationship between age-adjusted skill (Shapley residuals) and age-adjusted effort."
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+
+# Left: Shapley residual vs Effort residual (binary)
+ax = axes[0]
+for sex in analysis_df['sex'].dropna().unique():
+    subset = analysis_df[analysis_df['sex'] == sex]
+    ax.scatter(subset['effort_residual'], subset['shapley_residual'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.axhline(0, color='black', linestyle='--', alpha=0.3)
+ax.axvline(0, color='black', linestyle='--', alpha=0.3)
+ax.set_xlabel('Effort Residual (prop foraging, age-adjusted)')
+ax.set_ylabel('Skill Residual (Shapley, age-adjusted)')
+ax.set_title('Age-Adjusted: Skill vs Effort (Binary)')
+ax.legend()
+
+r, p = stats.pearsonr(analysis_df['effort_residual'], analysis_df['shapley_residual'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=11, fontweight='bold')
+
+# Right: Shapley residual vs Minutes residual
+ax = axes[1]
+for sex in analysis_df['sex'].dropna().unique():
+    subset = analysis_df[analysis_df['sex'] == sex]
+    ax.scatter(subset['minutes_residual'], subset['shapley_residual'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.axhline(0, color='black', linestyle='--', alpha=0.3)
+ax.axvline(0, color='black', linestyle='--', alpha=0.3)
+ax.set_xlabel('Effort Residual (total minutes, age-adjusted)')
+ax.set_ylabel('Skill Residual (Shapley, age-adjusted)')
+ax.set_title('Age-Adjusted: Skill vs Effort (Minutes)')
+ax.legend()
+
+r, p = stats.pearsonr(analysis_df['minutes_residual'], analysis_df['shapley_residual'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=11, fontweight='bold')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Interpretation
+
+```{python}
+#| label: interpretation
+
+print("=" * 60)
+print("SKILL-EFFORT RELATIONSHIP SUMMARY")
+print("=" * 60)
+
+# Raw correlations
+r_raw_binary, p_raw_binary = stats.pearsonr(analysis_df['prop_foraging'], analysis_df['total_shapley_mean'])
+r_raw_minutes, p_raw_minutes = stats.pearsonr(analysis_df['total_minutes'], analysis_df['total_shapley_mean'])
+
+print(f"\nRaw correlations (confounded by age):")
+print(f"  Shapley vs Prop Foraging: r = {r_raw_binary:.3f}, p = {p_raw_binary:.4f}")
+print(f"  Shapley vs Total Minutes: r = {r_raw_minutes:.3f}, p = {p_raw_minutes:.4f}")
+
+# Age-adjusted correlations
+r_adj_binary, p_adj_binary = stats.pearsonr(analysis_df['effort_residual'], analysis_df['shapley_residual'])
+r_adj_minutes, p_adj_minutes = stats.pearsonr(analysis_df['minutes_residual'], analysis_df['shapley_residual'])
+
+print(f"\nAge-adjusted correlations (key result):")
+print(f"  Shapley residual vs Effort residual (binary): r = {r_adj_binary:.3f}, p = {p_adj_binary:.4f}")
+print(f"  Shapley residual vs Effort residual (minutes): r = {r_adj_minutes:.3f}, p = {p_adj_minutes:.4f}")
+
+if r_adj_binary < 0 and p_adj_binary < 0.05:
+    print("\n→ NEGATIVE correlation: Higher-skill foragers (for their age) invest LESS effort")
+    print("  This supports the target foraging / efficiency hypothesis")
+elif r_adj_binary > 0 and p_adj_binary < 0.05:
+    print("\n→ POSITIVE correlation: Higher-skill foragers invest MORE effort")
+    print("  This suggests practice/learning effects dominate")
+else:
+    print("\n→ No significant relationship between age-adjusted skill and effort")
+```
+
+## Efficiency Analysis
+
+If skilled foragers are more efficient, they should achieve higher returns per day of foraging.
+
+```{python}
+#| label: fig-efficiency
+#| fig-cap: "Foraging efficiency: Shapley contribution per day of foraging."
+
+# Compute efficiency: Shapley per foraging day
+# This measures average daily returns when foraging
+analysis_df['efficiency'] = analysis_df['total_shapley_mean'] / analysis_df['days_foraging'].replace(0, np.nan)
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+
+# Left: Efficiency by age
+ax = axes[0]
+for sex in analysis_df['sex'].dropna().unique():
+    subset = analysis_df[analysis_df['sex'] == sex].dropna(subset=['efficiency'])
+    ax.scatter(subset['age'], subset['efficiency'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Efficiency (kcal per foraging day)')
+ax.set_title('Foraging Efficiency by Age')
+ax.legend()
+
+# Right: Efficiency vs Effort
+ax = axes[1]
+eff_data = analysis_df.dropna(subset=['efficiency'])
+for sex in eff_data['sex'].dropna().unique():
+    subset = eff_data[eff_data['sex'] == sex]
+    ax.scatter(subset['prop_foraging'], subset['efficiency'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Proportion of Days Foraging')
+ax.set_ylabel('Efficiency (kcal per foraging day)')
+ax.set_title('Efficiency vs Effort')
+ax.legend()
+
+r, p = stats.pearsonr(eff_data['prop_foraging'], eff_data['efficiency'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10)
+
+plt.tight_layout()
+plt.show()
+
+print(f"Efficiency statistics:")
+print(f"  Mean: {eff_data['efficiency'].mean():.0f} kcal/day")
+print(f"  Median: {eff_data['efficiency'].median():.0f} kcal/day")
+print(f"  Range: {eff_data['efficiency'].min():.0f} - {eff_data['efficiency'].max():.0f} kcal/day")
+```
+
+## Model Random Effects Comparison
+
+We can also compare the Shapley-derived skill measure to the model's estimated random effects.
+
+```{python}
+#| label: compare-random-effects
+
+# Compute deterministics to get random effects
+with foraging_model.model:
+    deterministics = pm.compute_deterministics(
+        dataset=idata.posterior, 
+        var_names=['re', 'S']
+    )
+
+# Extract random effects
+re_posterior = deterministics.re  # (chain, draw, forager, re_response)
+re_mean = re_posterior.mean(dim=['chain', 'draw'])
+
+# Random effect names depend on effort_type
+re_names = ['effort_binary', 'effort_minutes', 'skill']
+
+# Create comparison dataframe
+re_df = pd.DataFrame({
+    'forager_id': [str(f) for f in dataset.forager.values],
+})
+for i, name in enumerate(re_names):
+    re_df[f're_{name}'] = re_mean.isel(re_response=i).values
+
+# Merge with analysis_df
+comparison_df = analysis_df.merge(re_df, on='forager_id', how='inner')
+```
+
+```{python}
+#| label: fig-model-comparison
+#| fig-cap: "Comparison of Shapley-derived skill measure vs model random effects."
+
+fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+
+# Left: Shapley vs Skill RE
+ax = axes[0]
+ax.scatter(comparison_df['re_skill'], comparison_df['total_shapley_mean'], 
+           alpha=0.7, s=50, c=comparison_df['age'], cmap='viridis',
+           edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Model Skill Random Effect')
+ax.set_ylabel('Total Shapley Contribution')
+ax.set_title('Shapley vs Model Skill RE')
+r, p = stats.pearsonr(comparison_df['re_skill'], comparison_df['total_shapley_mean'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10)
+
+# Middle: Effort RE vs Prop foraging
+ax = axes[1]
+ax.scatter(comparison_df['re_effort_binary'], comparison_df['prop_foraging'], 
+           alpha=0.7, s=50, c=comparison_df['age'], cmap='viridis',
+           edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Model Effort Random Effect (binary)')
+ax.set_ylabel('Observed Prop Foraging')
+ax.set_title('Effort RE vs Observed Effort')
+r, p = stats.pearsonr(comparison_df['re_effort_binary'], comparison_df['prop_foraging'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10)
+
+# Right: Skill RE vs Effort RE (model correlation)
+ax = axes[2]
+for sex in comparison_df['sex'].dropna().unique():
+    subset = comparison_df[comparison_df['sex'] == sex]
+    ax.scatter(subset['re_effort_binary'], subset['re_skill'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.axhline(0, color='black', linestyle='--', alpha=0.3)
+ax.axvline(0, color='black', linestyle='--', alpha=0.3)
+ax.set_xlabel('Effort Random Effect (binary)')
+ax.set_ylabel('Skill Random Effect')
+ax.set_title('Model: Skill vs Effort RE')
+ax.legend()
+r, p = stats.pearsonr(comparison_df['re_effort_binary'], comparison_df['re_skill'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10, fontweight='bold')
+
+plt.tight_layout()
+plt.show()
+
+print(f"\nModel random effects correlation (Skill vs Effort):")
+print(f"  Binary effort: r = {stats.pearsonr(comparison_df['re_effort_binary'], comparison_df['re_skill'])[0]:.3f}")
+print(f"  Minutes effort: r = {stats.pearsonr(comparison_df['re_effort_minutes'], comparison_df['re_skill'])[0]:.3f}")
+```
+
+### Efficiency vs Model Random Effects
+
+How does empirical efficiency (Shapley per foraging day) relate to the model's latent skill and effort estimates?
+
+```{python}
+#| label: fig-efficiency-vs-re
+#| fig-cap: "Foraging efficiency (kcal per foraging day) vs model random effects."
+
+# Add efficiency to comparison_df (kcal per foraging day)
+comparison_df['efficiency'] = comparison_df['total_shapley_mean'] / comparison_df['days_foraging'].replace(0, np.nan)
+eff_comparison = comparison_df.dropna(subset=['efficiency'])
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+
+# Left: Efficiency vs Skill RE
+ax = axes[0]
+for sex in eff_comparison['sex'].dropna().unique():
+    subset = eff_comparison[eff_comparison['sex'] == sex]
+    ax.scatter(subset['re_skill'], subset['efficiency'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Model Skill Random Effect')
+ax.set_ylabel('Efficiency (kcal per foraging day)')
+ax.set_title('Efficiency vs Skill RE')
+ax.legend()
+r, p = stats.pearsonr(eff_comparison['re_skill'], eff_comparison['efficiency'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10, fontweight='bold')
+
+# Middle: Efficiency vs Effort RE (binary)
+ax = axes[1]
+for sex in eff_comparison['sex'].dropna().unique():
+    subset = eff_comparison[eff_comparison['sex'] == sex]
+    ax.scatter(subset['re_effort_binary'], subset['efficiency'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Model Effort Random Effect (binary)')
+ax.set_ylabel('Efficiency (kcal per foraging day)')
+ax.set_title('Efficiency vs Effort RE (binary)')
+ax.legend()
+r, p = stats.pearsonr(eff_comparison['re_effort_binary'], eff_comparison['efficiency'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10, fontweight='bold')
+
+# Right: Efficiency vs Effort RE (minutes)
+ax = axes[2]
+for sex in eff_comparison['sex'].dropna().unique():
+    subset = eff_comparison[eff_comparison['sex'] == sex]
+    ax.scatter(subset['re_effort_minutes'], subset['efficiency'], 
+               alpha=0.7, color=colors.get(sex, 'gray'), label=sex.capitalize(), s=50,
+               edgecolor='white', linewidth=0.5)
+ax.set_xlabel('Model Effort Random Effect (minutes)')
+ax.set_ylabel('Efficiency (kcal per foraging day)')
+ax.set_title('Efficiency vs Effort RE (minutes)')
+ax.legend()
+r, p = stats.pearsonr(eff_comparison['re_effort_minutes'], eff_comparison['efficiency'])
+ax.annotate(f'r = {r:.2f}, p = {p:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=10, fontweight='bold')
+
+plt.tight_layout()
+plt.show()
+
+# Print efficiency correlations
+print("\nEfficiency correlations with model random effects:")
+print(f"  Efficiency vs Skill RE: r = {stats.pearsonr(eff_comparison['re_skill'], eff_comparison['efficiency'])[0]:.3f}")
+print(f"  Efficiency vs Effort RE (binary): r = {stats.pearsonr(eff_comparison['re_effort_binary'], eff_comparison['efficiency'])[0]:.3f}")
+print(f"  Efficiency vs Effort RE (minutes): r = {stats.pearsonr(eff_comparison['re_effort_minutes'], eff_comparison['efficiency'])[0]:.3f}")
+
+# Interpretation
+r_skill = stats.pearsonr(eff_comparison['re_skill'], eff_comparison['efficiency'])[0]
+r_effort = stats.pearsonr(eff_comparison['re_effort_binary'], eff_comparison['efficiency'])[0]
+
+print("\nInterpretation:")
+if r_skill > 0.2:
+    print("  → Positive Efficiency-Skill correlation: Higher skill RE → higher returns per foraging day")
+if r_effort < -0.2:
+    print("  → Negative Efficiency-Effort correlation: Higher effort RE → lower returns per day")
+    print("     This suggests high-effort foragers are LESS efficient (go out more but bring back less per trip)")
+elif r_effort > 0.2:
+    print("  → Positive Efficiency-Effort correlation: Higher effort RE → higher returns per day")
+```
+
+## Summary
+
+```{python}
+#| label: summary
+
+print("=" * 70)
+print("SHAPLEY VALUE ANALYSIS SUMMARY")
+print("=" * 70)
+
+print(f"\nForagers analyzed: {len(analysis_df)}")
+print(f"Total groups: {n_groups}")
+
+print(f"\nShapley contribution statistics:")
+print(f"  Mean total contribution: {analysis_df['total_shapley_mean'].mean():.0f} kcal")
+print(f"  Std total contribution: {analysis_df['total_shapley_mean'].std():.0f} kcal")
+print(f"  Mean per-group contribution: {analysis_df['mean_shapley_mean'].mean():.0f} kcal")
+
+print(f"\nKey correlations:")
+print(f"  Raw Shapley vs Effort (binary): r = {r_raw_binary:.3f}")
+print(f"  Age-adjusted Shapley vs Effort: r = {r_adj_binary:.3f}")
+print(f"  Model Skill RE vs Effort RE: r = {stats.pearsonr(comparison_df['re_effort_binary'], comparison_df['re_skill'])[0]:.3f}")
+```
+

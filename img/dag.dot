@@ -1,0 +1,46 @@
+// Causal DAG for Foraging Returns Model
+// Style follows Science Advances Figure 2 conventions:
+// - Squares/rectangles: observed variables
+// - Circles/ellipses: unobserved/latent variables
+
+digraph ForagingDAG {
+    // Graph settings
+    rankdir=TB;
+    splines=true;
+    nodesep=0.8;
+    ranksep=0.8;
+    fontname="Helvetica";
+    fontsize=12;
+    
+    // Node defaults
+    node [fontname="Helvetica", fontsize=11];
+    edge [fontname="Helvetica", fontsize=10];
+    
+    // Observed variables (rectangles)
+    Age [shape=rect, style=filled, fillcolor=white, label="Age"];
+    Sex [shape=rect, style=filled, fillcolor=white, label="Gender"];
+    Returns [shape=rect, style=filled, fillcolor=white, label="Returns"];
+    GroupSize [shape=rect, style=filled, fillcolor=white, label="Group size"];
+    
+    // Latent variables (circles)
+    Skill [shape=circle, style=filled, fillcolor=white, label="Skill"];
+    Effort [shape=circle, style=filled, fillcolor=white, label="Effort"];
+    U [shape=circle, style=filled, fillcolor=white, label="U"];
+    
+    // Rank constraints for layout
+    {rank=same; Age; Gender;}
+    {rank=same; Skill; Effort; U;}
+    {rank=same; Returns; GroupSize;}
+    
+    // Causal relationships
+    Age -> Skill;
+    Age -> GroupSize;
+    Gender -> Skill;
+    Gender -> GroupSize;
+    Gender -> Returns;
+    Skill -> Returns;
+    Effort -> Returns;
+    GroupSize -> Returns;
+    U -> Skill;
+    U -> Effort;
+}
