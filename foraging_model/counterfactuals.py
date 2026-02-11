@@ -9,7 +9,7 @@ import numpy as np
 import xarray as xr
 import warnings
 from itertools import combinations
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, cast
 
 
 def compute_mu_for_subset(
@@ -424,7 +424,7 @@ def shapley_monte_carlo(
     rng = np.random.RandomState(random_seed)
     
     for _ in range(n_samples):
-        perm = rng.permutation(group_members).tolist()
+        perm: list[int] = cast(list[int], list(rng.permutation(group_members)))
         
         for i, member in enumerate(perm):
             predecessors = frozenset(perm[:i])
@@ -432,11 +432,11 @@ def shapley_monte_carlo(
             
             if predecessors not in mu_cache:
                 mu_cache[predecessors] = compute_mu_for_subset(
-                    list(predecessors), S_x, intercept_mu, b_groupsize_mu, eta_mu
+                    cast(List[int], list(predecessors)), S_x, intercept_mu, b_groupsize_mu, eta_mu
                 )
             if predecessors_with_member not in mu_cache:
                 mu_cache[predecessors_with_member] = compute_mu_for_subset(
-                    list(predecessors_with_member), S_x, intercept_mu, b_groupsize_mu, eta_mu
+                    cast(List[int], list(predecessors_with_member)), S_x, intercept_mu, b_groupsize_mu, eta_mu
                 )
             
             marginal = mu_cache[predecessors_with_member] - mu_cache[predecessors]
@@ -498,7 +498,7 @@ def shapley_monte_carlo_vectorized(
     rng = np.random.RandomState(random_seed)
     
     for _ in range(n_permutations):
-        perm = rng.permutation(group_members).tolist()
+        perm: list[int] = cast(list[int], list(rng.permutation(group_members)))
         
         for i, member in enumerate(perm):
             predecessors = frozenset(perm[:i])
@@ -507,13 +507,13 @@ def shapley_monte_carlo_vectorized(
             # Compute mu for predecessors if not cached
             if predecessors not in mu_cache:
                 mu_cache[predecessors] = compute_mu_for_subset_vectorized(
-                    list(predecessors), S_x, intercept_mu, b_groupsize_mu, eta_mu
+                    cast(List[int], list(predecessors)), S_x, intercept_mu, b_groupsize_mu, eta_mu
                 )
             
             # Compute mu for predecessors + member if not cached
             if predecessors_with_member not in mu_cache:
                 mu_cache[predecessors_with_member] = compute_mu_for_subset_vectorized(
-                    list(predecessors_with_member), S_x, 
+                    cast(List[int], list(predecessors_with_member)), S_x,
                     intercept_mu, b_groupsize_mu, eta_mu
                 )
             
