@@ -1,0 +1,558 @@
+---
+title: "Trip Count as a Measure of Foraging Effort"
+author: "Erik Ringen"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    code-tools: true
+    theme: cosmo
+execute:
+  warning: false
+  echo: false
+---
+
+## Motivation
+
+The current model uses a **binary** measure of foraging effort: did the individual leave
+camp to forage on a given day? However, the raw data record each out-of-camp trip
+separately, and individuals frequently make **multiple foraging trips per day**. Using
+the daily trip count preserves variation that the binary indicator discards, and may
+provide a richer characterisation of effort that relates more closely to caloric returns.
+
+This notebook explores:
+
+1. Distribution and variation in daily trip counts
+2. Relationship between trip count and other effort/return variables
+3. Individual and age patterns in trip counts
+4. Comparison of binary vs. trip-count effort as a modelling target
+
+## Setup
+
+```{python}
+#| label: setup
+#| echo: true
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent) if '__file__' in dir() else '.')
+sys.path.append('..')
+
+from preprocessing import preprocess_data
+```
+
+```{python}
+plt.style.use('seaborn-v0_8-whitegrid')
+sns.set_palette("colorblind")
+pd.set_option("display.max_columns", None)
+```
+
+## Data Loading
+
+```{python}
+#| label: load-data
+#| echo: true
+
+raw_data_dir = Path("../raw_data")
+
+df_foragers, df_time_agg, df_production, df_days_long = preprocess_data(
+    returns_file=raw_data_dir / 'returns.csv',
+    recall_file=raw_data_dir / 'recall.csv',
+    kcal_file=raw_data_dir / 'kcal.csv',
+    group_file=raw_data_dir / 'groups.csv',
+    camp_members_file=raw_data_dir / 'camp_members.csv',
+    days_in_camp_file=raw_data_dir / 'daysincamp.csv',
+    combine_returns_recall=True,
+)
+```
+
+```{python}
+#| label: merge-effort
+#| echo: true
+
+effort = (
+    df_days_long
+    .merge(
+        df_time_agg[['id', 'date', 'total.minutes', 'trip_count']],
+        left_on=['forager_id', 'date'],
+        right_on=['id', 'date'],
+        how='left'
+    )
+    .drop(columns=['id'])
+)
+
+effort.loc[effort['in_camp'] == 1, 'total.minutes'] = (
+    effort.loc[effort['in_camp'] == 1, 'total.minutes'].fillna(0)
+)
+effort.loc[effort['in_camp'] == 1, 'trip_count'] = (
+    effort.loc[effort['in_camp'] == 1, 'trip_count'].fillna(0).astype(int)
+)
+
+effort['went_foraging'] = np.where(
+    effort['in_camp'] == 1,
+    (effort['total.minutes'] > 0).astype(int),
+    np.nan
+)
+
+effort = effort.merge(
+    df_foragers[['id', 'age', 'sex']],
+    left_on='forager_id', right_on='id', how='left'
+).drop(columns=['id'])
+
+effort = effort.sort_values(['forager_id', 'date']).reset_index(drop=True)
+
+in_camp = effort[effort['in_camp'] == 1].copy()
+
+print(f"Total forager-days: {len(effort)}")
+print(f"In camp: {len(in_camp)} ({100*len(in_camp)/len(effort):.1f}%)")
+print(f"Went foraging (of in-camp): {in_camp['went_foraging'].sum():.0f} ({100*in_camp['went_foraging'].mean():.1f}%)")
+```
+
+## Distribution of Daily Trip Counts
+
+```{python}
+#| label: fig-trip-dist
+#| fig-cap: "Distribution of daily foraging trip counts among in-camp forager-days."
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+
+# Left: full distribution
+ax = axes[0]
+trip_vals = in_camp['trip_count'].dropna().astype(int)
+counts = trip_vals.value_counts().sort_index()
+ax.bar(counts.index, counts.values, color='#2E86AB', edgecolor='black', alpha=0.8)
+ax.set_xlabel('Trips per day')
+ax.set_ylabel('Frequency')
+ax.set_title('All in-camp days')
+for i, v in zip(counts.index, counts.values):
+    ax.text(i, v + 5, f'{v}', ha='center', fontsize=8)
+
+# Middle: conditional on going foraging (trips >= 1)
+ax = axes[1]
+foraging_days = in_camp[in_camp['trip_count'] > 0]['trip_count'].astype(int)
+counts_pos = foraging_days.value_counts().sort_index()
+ax.bar(counts_pos.index, counts_pos.values, color='#E94F37', edgecolor='black', alpha=0.8)
+ax.set_xlabel('Trips per day')
+ax.set_ylabel('Frequency')
+ax.set_title('Foraging days only (trips ≥ 1)')
+for i, v in zip(counts_pos.index, counts_pos.values):
+    ax.text(i, v + 3, f'{v}', ha='center', fontsize=8)
+
+# Right: summary stats
+ax = axes[2]
+ax.axis('off')
+stats_text = (
+    f"Trip count summary (in-camp days):\n\n"
+    f"  Mean:    {trip_vals.mean():.2f}\n"
+    f"  Median:  {trip_vals.median():.0f}\n"
+    f"  Std:     {trip_vals.std():.2f}\n"
+    f"  Max:     {trip_vals.max()}\n"
+    f"  Var/Mean: {trip_vals.var()/trip_vals.mean():.2f}\n\n"
+    f"Conditional on foraging (trips ≥ 1):\n\n"
+    f"  Mean:    {foraging_days.mean():.2f}\n"
+    f"  Median:  {foraging_days.median():.0f}\n"
+    f"  Std:     {foraging_days.std():.2f}\n"
+    f"  Var/Mean: {foraging_days.var()/foraging_days.mean():.2f}\n\n"
+    f"% days with 0 trips: {100*(trip_vals == 0).mean():.1f}%\n"
+    f"% days with >1 trip: {100*(trip_vals > 1).mean():.1f}%"
+)
+ax.text(0.05, 0.95, stats_text, transform=ax.transAxes, fontsize=10,
+        verticalalignment='top', fontfamily='monospace',
+        bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
+plt.tight_layout()
+plt.show()
+```
+
+The variance-to-mean ratio tells us about overdispersion relative to a Poisson model.
+A ratio > 1 suggests overdispersion, motivating Negative Binomial rather than Poisson.
+
+## Trip Count vs. Total Minutes
+
+```{python}
+#| label: fig-trips-vs-minutes
+#| fig-cap: "Relationship between daily trip count and total foraging minutes. Each point is one forager-day."
+
+foraging_only = in_camp[in_camp['trip_count'] > 0].copy()
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: scatter
+ax = axes[0]
+jitter = np.random.uniform(-0.2, 0.2, len(foraging_only))
+ax.scatter(foraging_only['trip_count'] + jitter, foraging_only['total.minutes'],
+           alpha=0.3, s=15, color='#2E86AB')
+ax.set_xlabel('Daily trip count')
+ax.set_ylabel('Total foraging minutes')
+ax.set_title('Trip Count vs. Total Minutes')
+
+# Add mean trend
+trip_means = foraging_only.groupby('trip_count')['total.minutes'].mean()
+ax.plot(trip_means.index, trip_means.values, 'o-', color='red', linewidth=2,
+        markersize=8, label='Mean', zorder=5)
+ax.legend()
+
+# Right: box plot
+ax = axes[1]
+foraging_only['trip_count_cat'] = foraging_only['trip_count'].astype(int)
+foraging_only.boxplot(column='total.minutes', by='trip_count_cat', ax=ax)
+ax.set_xlabel('Daily trip count')
+ax.set_ylabel('Total foraging minutes')
+ax.set_title('Minutes by Trip Count')
+plt.suptitle('')
+
+plt.tight_layout()
+plt.show()
+
+r, p = stats.spearmanr(foraging_only['trip_count'], foraging_only['total.minutes'])
+print(f"Spearman correlation (trip count vs. minutes): r = {r:.3f}, p = {p:.4f}")
+```
+
+## Trip Count by Individual
+
+```{python}
+#| label: fig-individual-trips
+#| fig-cap: "Total trips (left) and mean trips per in-camp day (right) by individual, ordered by age."
+
+indiv = in_camp.groupby('forager_id').agg(
+    total_trips=('trip_count', 'sum'),
+    mean_trips=('trip_count', 'mean'),
+    days_in_camp=('trip_count', 'count'),
+    age=('age', 'first'),
+    sex=('sex', 'first'),
+).reset_index().sort_values('age')
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# Left: total trips
+ax = axes[0]
+colors = {'male': '#2E86AB', 'female': '#E94F37'}
+for sex in ['male', 'female']:
+    sub = indiv[indiv['sex'] == sex]
+    ax.barh(range(len(sub)), sub['total_trips'],
+            color=colors[sex], alpha=0.7, label=sex.capitalize())
+ax.set_xlabel('Total foraging trips')
+ax.set_ylabel('Individual (sorted by age)')
+ax.set_yticks(range(len(indiv)))
+ax.set_yticklabels([f"{r['forager_id']} ({r['age']:.0f}y)" for _, r in indiv.iterrows()],
+                    fontsize=7)
+ax.set_title('Total Foraging Trips')
+ax.legend()
+
+# Right: mean trips per day
+ax = axes[1]
+for sex in ['male', 'female']:
+    sub = indiv[indiv['sex'] == sex]
+    ax.scatter(sub['age'], sub['mean_trips'], s=sub['days_in_camp']*3,
+               color=colors[sex], alpha=0.6, label=sex.capitalize(), edgecolor='white')
+ax.set_xlabel('Age')
+ax.set_ylabel('Mean trips per in-camp day')
+ax.set_title('Mean Daily Trips by Age')
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+## Trip Count by Age and Sex
+
+```{python}
+#| label: fig-age-sex-trips
+#| fig-cap: "Trip count patterns by age and sex. Left: mean trips per day with LOESS-like smoothing. Right: distribution of trip counts by age group."
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: smoothed trend by sex
+ax = axes[0]
+for sex, color in colors.items():
+    sub = in_camp[in_camp['sex'] == sex].copy()
+    if len(sub) < 10:
+        continue
+    age_groups = pd.cut(sub['age'], bins=np.arange(0, 80, 5))
+    means = sub.groupby(age_groups, observed=True)['trip_count'].mean()
+    midpoints = [(iv.left + iv.right) / 2 for iv in means.index]
+    ax.plot(midpoints, means.values, 'o-', color=color, label=sex.capitalize(),
+            linewidth=2, markersize=6)
+
+ax.set_xlabel('Age (years)')
+ax.set_ylabel('Mean trips per in-camp day')
+ax.set_title('Trip Frequency by Age')
+ax.legend()
+
+# Right: trip count distribution by age category
+ax = axes[1]
+in_camp_copy = in_camp.copy()
+in_camp_copy['age_cat'] = pd.cut(in_camp_copy['age'], bins=[0, 15, 25, 40, 60, 100],
+                                  labels=['<15', '15-25', '25-40', '40-60', '60+'])
+trip_by_age = in_camp_copy.groupby(['age_cat', 'trip_count'], observed=True).size().unstack(fill_value=0)
+trip_by_age_pct = trip_by_age.div(trip_by_age.sum(axis=1), axis=0)
+trip_by_age_pct.plot(kind='bar', stacked=True, ax=ax, colormap='viridis', edgecolor='white')
+ax.set_xlabel('Age group')
+ax.set_ylabel('Proportion')
+ax.set_title('Trip Count Distribution by Age')
+ax.legend(title='Trips/day', bbox_to_anchor=(1.05, 1), loc='upper left')
+
+plt.tight_layout()
+plt.show()
+```
+
+## Trip Count vs. Foraging Returns
+
+```{python}
+#| label: fig-trips-vs-returns
+#| fig-cap: "Relationship between daily trip count and foraging returns. Left: total daily kcal by trip count. Right: per-trip kcal by trip count."
+#| echo: true
+
+prod_dates = df_production.copy()
+prod_dates['date'] = pd.to_datetime(prod_dates['date'])
+
+# Build individual-level daily returns from group production
+indiv_daily_kcal = []
+for _, row in prod_dates.iterrows():
+    if hasattr(row['forager_ids'], '__iter__'):
+        per_person = row['kcal'] / max(row['group_size'], 1)
+        for fid in row['forager_ids']:
+            indiv_daily_kcal.append({
+                'forager_id': str(fid),
+                'date': row['date'],
+                'kcal_share': per_person,
+            })
+indiv_kcal = pd.DataFrame(indiv_daily_kcal)
+indiv_kcal_daily = indiv_kcal.groupby(['forager_id', 'date'])['kcal_share'].sum().reset_index()
+
+# Merge with trip counts
+trip_returns = in_camp.merge(
+    indiv_kcal_daily,
+    on=['forager_id', 'date'],
+    how='left'
+)
+trip_returns['kcal_share'] = trip_returns['kcal_share'].fillna(0)
+trip_returns_pos = trip_returns[trip_returns['trip_count'] > 0].copy()
+trip_returns_pos['kcal_per_trip'] = trip_returns_pos['kcal_share'] / trip_returns_pos['trip_count']
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: total kcal by trip count
+ax = axes[0]
+trip_returns_pos.boxplot(column='kcal_share', by='trip_count', ax=ax)
+ax.set_xlabel('Daily trip count')
+ax.set_ylabel('Total daily kcal (shared)')
+ax.set_title('Total Returns by Trip Count')
+plt.suptitle('')
+
+# Right: per-trip kcal
+ax = axes[1]
+trip_returns_pos.boxplot(column='kcal_per_trip', by='trip_count', ax=ax)
+ax.set_xlabel('Daily trip count')
+ax.set_ylabel('kcal per trip')
+ax.set_title('Per-Trip Returns by Trip Count')
+plt.suptitle('')
+
+plt.tight_layout()
+plt.show()
+
+# Correlation
+r, p = stats.spearmanr(trip_returns_pos['trip_count'], trip_returns_pos['kcal_share'])
+print(f"Spearman r (trip count vs. daily kcal): {r:.3f}, p = {p:.4f}")
+r2, p2 = stats.spearmanr(trip_returns_pos['trip_count'], trip_returns_pos['kcal_per_trip'])
+print(f"Spearman r (trip count vs. kcal/trip):  {r2:.3f}, p = {p2:.4f}")
+```
+
+## Information Content: Binary vs. Trip Count
+
+How much information do we gain by using trip counts instead of a binary indicator?
+
+```{python}
+#| label: fig-information
+#| fig-cap: "Comparison of binary vs. trip-count effort in predicting foraging returns."
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: mean kcal by binary effort
+ax = axes[0]
+binary_means = trip_returns.groupby('went_foraging')['kcal_share'].agg(['mean', 'std', 'count'])
+binary_means.index = ['No foraging', 'Foraged']
+ax.bar(binary_means.index, binary_means['mean'], yerr=binary_means['std']/np.sqrt(binary_means['count']),
+       color=['#CCCCCC', '#2E86AB'], edgecolor='black', capsize=5)
+ax.set_ylabel('Mean daily kcal (± SE)')
+ax.set_title('Binary Effort')
+
+# Right: mean kcal by trip count
+ax = axes[1]
+trip_means = trip_returns.groupby('trip_count')['kcal_share'].agg(['mean', 'std', 'count'])
+valid_trips = trip_means[trip_means['count'] >= 5]
+ax.bar(valid_trips.index.astype(str), valid_trips['mean'],
+       yerr=valid_trips['std']/np.sqrt(valid_trips['count']),
+       color='#E94F37', edgecolor='black', capsize=5, alpha=0.8)
+ax.set_xlabel('Trip count')
+ax.set_ylabel('Mean daily kcal (± SE)')
+ax.set_title('Trip-Count Effort')
+
+plt.tight_layout()
+plt.show()
+
+# Compare variance explained
+from sklearn.metrics import r2_score
+from sklearn.linear_model import LinearRegression
+
+valid = trip_returns_pos.dropna(subset=['kcal_share', 'trip_count', 'went_foraging'])
+if len(valid) > 10:
+    X_binary = valid[['went_foraging']].values
+    X_trips = valid[['trip_count']].values
+    y = valid['kcal_share'].values
+
+    r2_binary = LinearRegression().fit(X_binary, y).score(X_binary, y)
+    r2_trips = LinearRegression().fit(X_trips, y).score(X_trips, y)
+    print(f"R² (binary effort → kcal): {r2_binary:.4f}")
+    print(f"R² (trip count → kcal):    {r2_trips:.4f}")
+    print(f"Improvement: {r2_trips - r2_binary:.4f} ({(r2_trips/r2_binary - 1)*100:.1f}% relative increase)")
+```
+
+## Overdispersion Assessment
+
+For modelling trip counts, we need to choose between Poisson and Negative Binomial.
+
+```{python}
+#| label: fig-overdispersion
+#| fig-cap: "Overdispersion check: observed trip count distribution vs. Poisson and Negative Binomial fits."
+
+from scipy.stats import poisson, nbinom
+
+trip_vals = in_camp['trip_count'].dropna().astype(int)
+observed_counts = trip_vals.value_counts().sort_index()
+x_vals = np.arange(0, observed_counts.index.max() + 1)
+
+mu = trip_vals.mean()
+var = trip_vals.var()
+
+# Poisson fit
+poisson_probs = poisson.pmf(x_vals, mu) * len(trip_vals)
+
+# Negative Binomial fit (method of moments)
+# Var = mu + mu^2/alpha  →  alpha = mu^2/(var - mu)
+if var > mu:
+    alpha_nb = mu**2 / (var - mu)
+    p_nb = alpha_nb / (alpha_nb + mu)
+    nb_probs = nbinom.pmf(x_vals, alpha_nb, p_nb) * len(trip_vals)
+else:
+    nb_probs = poisson_probs
+
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.bar(observed_counts.index, observed_counts.values, color='#2E86AB', alpha=0.6,
+       edgecolor='black', label='Observed', width=0.3, align='center')
+ax.plot(x_vals - 0.15, poisson_probs, 'o--', color='#E94F37', linewidth=2, markersize=7,
+        label=f'Poisson (λ={mu:.2f})')
+ax.plot(x_vals + 0.15, nb_probs, 's--', color='#27AE60', linewidth=2, markersize=7,
+        label=f'NegBin (μ={mu:.2f}, α={alpha_nb:.2f})')
+ax.set_xlabel('Trips per day')
+ax.set_ylabel('Count')
+ax.set_title('Observed vs. Theoretical Distributions')
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+
+print(f"Observed mean:  {mu:.3f}")
+print(f"Observed var:   {var:.3f}")
+print(f"Var/Mean ratio: {var/mu:.3f}")
+if var > mu:
+    print(f"→ Overdispersed (ratio > 1): Negative Binomial preferred over Poisson")
+    print(f"  NegBin alpha (dispersion): {alpha_nb:.3f}")
+else:
+    print(f"→ Not overdispersed: Poisson may be adequate")
+```
+
+## Temporal Autocorrelation of Trip Counts
+
+```{python}
+#| label: fig-trip-autocorr
+#| fig-cap: "Pooled lag-1 autocorrelation of trip counts vs. binary effort across all foragers."
+
+max_lag = 10
+
+pooled_trips = {lag: [] for lag in range(1, max_lag + 1)}
+pooled_binary = {lag: [] for lag in range(1, max_lag + 1)}
+
+for forager_id in in_camp['forager_id'].unique():
+    fd = in_camp[in_camp['forager_id'] == forager_id].set_index('date').sort_index()
+    tc = fd['trip_count']
+    bf = fd['went_foraging']
+    dates = tc.index
+
+    for i in range(len(dates)):
+        for j in range(i + 1, len(dates)):
+            lag = (dates[j] - dates[i]).days
+            if 1 <= lag <= max_lag:
+                pooled_trips[lag].append((tc.iloc[i], tc.iloc[j]))
+                if not np.isnan(bf.iloc[i]) and not np.isnan(bf.iloc[j]):
+                    pooled_binary[lag].append((bf.iloc[i], bf.iloc[j]))
+
+def pooled_corr(pairs):
+    if len(pairs) < 10:
+        return np.nan
+    x, y = np.array([p[0] for p in pairs]), np.array([p[1] for p in pairs])
+    if np.std(x) == 0 or np.std(y) == 0:
+        return np.nan
+    return np.corrcoef(x, y)[0, 1]
+
+acf_trips = [pooled_corr(pooled_trips[l]) for l in range(1, max_lag + 1)]
+acf_binary = [pooled_corr(pooled_binary[l]) for l in range(1, max_lag + 1)]
+
+fig, ax = plt.subplots(figsize=(9, 5))
+lags = np.arange(1, max_lag + 1)
+w = 0.35
+ax.bar(lags - w/2, acf_binary, w, label='Binary effort', color='#A23B72', alpha=0.7, edgecolor='black')
+ax.bar(lags + w/2, acf_trips, w, label='Trip count', color='#2E86AB', alpha=0.7, edgecolor='black')
+ax.axhline(0, color='black', linestyle='--', linewidth=1)
+ax.set_xlabel('Lag (days)')
+ax.set_ylabel('Pooled autocorrelation')
+ax.set_title('Autocorrelation: Binary vs. Trip Count Effort')
+ax.set_xticks(lags)
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+## Summary
+
+```{python}
+#| label: summary
+
+trip_vals = in_camp['trip_count'].dropna().astype(int)
+foraging_days = trip_vals[trip_vals > 0]
+
+print("=" * 65)
+print("TRIP COUNT AS FORAGING EFFORT — SUMMARY")
+print("=" * 65)
+
+print(f"\nData:")
+print(f"  In-camp forager-days:  {len(in_camp)}")
+print(f"  Days with ≥1 trip:     {len(foraging_days)} ({100*len(foraging_days)/len(in_camp):.1f}%)")
+print(f"  Days with >1 trip:     {(trip_vals > 1).sum()} ({100*(trip_vals > 1).mean():.1f}%)")
+
+print(f"\nDistribution (all in-camp days):")
+print(f"  Mean:      {trip_vals.mean():.2f}")
+print(f"  Var:       {trip_vals.var():.2f}")
+print(f"  Var/Mean:  {trip_vals.var()/trip_vals.mean():.2f}")
+
+print(f"\nDistribution (foraging days only):")
+print(f"  Mean:      {foraging_days.mean():.2f}")
+print(f"  Var:       {foraging_days.var():.2f}")
+print(f"  Var/Mean:  {foraging_days.var()/foraging_days.mean():.2f}")
+
+print(f"\nKey findings:")
+print(f"  - {100*(trip_vals > 1).mean():.0f}% of in-camp days have >1 foraging trip")
+print(f"  - Binary effort discards substantial within-day variation")
+if trip_vals.var()/trip_vals.mean() > 1.2:
+    print(f"  - Overdispersion (Var/Mean = {trip_vals.var()/trip_vals.mean():.2f}) → NegBin preferred over Poisson")
+print(f"  - Trip count is a natural count variable amenable to Poisson/NegBin modeling")
+```
