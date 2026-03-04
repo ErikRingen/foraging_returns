@@ -6,7 +6,7 @@ This document provides the mathematical specification for the foraging returns m
 
 The model has three components:
 
-1. **Effort (Bernoulli)**: Models probability of going foraging (binary)
+1. **Effort (Bernoulli or NegativeBinomial)**: Models foraging participation — either binary (went/stayed) or daily trip count
 2. **Success (Bernoulli)**: Models probability of returning with food given foraging
 3. **Returns (Gamma)**: Models group-level return magnitude
 
@@ -56,21 +56,41 @@ where $K(t, t') = \sigma^2 \exp\left(-\frac{(t-t')^2}{2\ell^2}\right)$ (squared 
 
 Separate amplitude parameters ($\sigma$) for effort, success, and returns; shared lengthscale ($\ell$).
 
-## Component 1: Effort (Bernoulli)
+## Component 1: Effort
 
-For each (forager $i$, date $t$) when in camp:
+The effort component models foraging participation for each (forager $i$, date $t$) when in camp. Two effort types are supported.
+
+### Effort Type: Binary (default)
 
 $$\text{effort}_{i,t} \sim \text{Bernoulli}(p_{i,t})$$
 
-where the probability of going foraging is:
-
 $$\text{logit}(p_{i,t}) = \beta_0 + \beta_1 \cdot \text{age}_z + \beta_2 \cdot \text{age}_z^2 + u_{\text{effort},i} + \text{GP}_{\text{effort}}(t)$$
+
+### Effort Type: Trip Count
+
+Instead of binary participation, the number of foraging trips per day is modeled as a count variable:
+
+$$\text{trips}_{i,t} \sim \text{NegativeBinomial}(\mu_{i,t}, \alpha)$$
+
+$$\log(\mu_{i,t}) = \beta_0 + \beta_1 \cdot \text{age}_z + \beta_2 \cdot \text{age}_z^2 + u_{\text{effort},i} + \text{GP}_{\text{effort}}(t)$$
+
+where $\alpha$ is an overdispersion parameter. The Negative Binomial reduces to Poisson when $\alpha \to \infty$. The trip-count formulation preserves within-day variation that the binary indicator collapses (42% of forager-days have >1 trip, up to 5 trips/day).
+
+**Shared across both types**:
 
 - $\text{age}_z$ = z-scored age for numerical stability
 - $u_{\text{effort},i}$ = individual random effect (correlated with skill)
 - $\text{GP}_{\text{effort}}(t)$ = temporal Gaussian process effect
 
 **Eligibility**: Forager was in camp (`in_camp == 1`)
+
+```python
+# Binary (default)
+model = ForagingModel(data, effort_type="binary")
+
+# Trip count
+model = ForagingModel(data, effort_type="trip_count")
+```
 
 ## Component 2: Success (Bernoulli)
 
@@ -138,6 +158,7 @@ This finds the optimal subset size $k$ that balances:
 | `effort_intercept` | `normal` | mu=0, sigma=1 | Effort intercept |
 | `effort_age` | `normal` | mu=0, sigma=1 | Effort age coefficient |
 | `effort_age2` | `normal` | mu=0, sigma=1 | Effort age² coefficient |
+| `effort_overdispersion` | `exponential` | lam=1 | NegBin overdispersion (trip_count only) |
 | **Success** | | | |
 | `intercept_success` | `normal` | mu=0, sigma=0.5 | Log success intercept |
 | `eta_success0` | `normal` | mu=0, sigma=1 | Log skill elasticity (success) |
