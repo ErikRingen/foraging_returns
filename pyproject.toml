@@ -17,6 +17,7 @@ filterwarnings = [
     "error",
     "ignore::UserWarning",
     "ignore::DeprecationWarning",
+    "ignore::FutureWarning",
 ]
 
 [tool.coverage.run]

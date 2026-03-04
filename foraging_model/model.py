@@ -53,10 +53,13 @@ DEFAULT_PRIORS = {
     "intercept_success": {"dist": "normal", "mu": 0, "sigma": 0.5},
     "eta_success0": {"dist": "normal", "mu": 0, "sigma": 1},
     
-    # Effort component (age polynomial) - binary
+    # Effort component (age polynomial) - shared by binary and trip_count
     "effort_intercept": {"dist": "normal", "mu": 0, "sigma": 1},
     "effort_age": {"dist": "normal", "mu": 0, "sigma": 1},
     "effort_age2": {"dist": "normal", "mu": 0, "sigma": 1},
+    
+    # Trip-count effort: overdispersion parameter for NegativeBinomial
+    "effort_overdispersion": {"dist": "exponential", "lam": 1},
     
     # Correlated random effects: (effort, skill)
     "sigma_re": {"dist": "exponential", "lam": 3},  # SD for each random effect
@@ -103,6 +106,10 @@ class ForagingModel:
         Method for aggregating forager skills to group level:
         - "best_top_k": Select optimal k foragers
         - "mean": Simple average of all forager skills
+    effort_type : str, default="binary"
+        How to model foraging effort:
+        - "binary": Bernoulli model of whether forager went out (default)
+        - "trip_count": Negative Binomial model of number of daily trips
     priors : dict, optional
         Dictionary of prior specifications. Keys are parameter names,
         values are dicts with "dist" (distribution name) and parameters.
@@ -123,25 +130,26 @@ class ForagingModel:
     ...     "shape": {"dist": "exponential", "lam": 0.1},
     ... })
     
-    >>> # Use HalfNormal for positive parameters
-    >>> model = ForagingModel(data, priors={
-    ...     "eta_mu0": {"dist": "halfnormal", "sigma": 1},
-    ... })
+    >>> # Use trip count as effort measure
+    >>> model = ForagingModel(data, effort_type="trip_count")
     """
     
     VALID_AGGREGATION_METHODS = ("best_top_k", "mean")
     VALID_SCALING_OPTIONS = ("mean", "max", None)
+    VALID_EFFORT_TYPES = ("binary", "trip_count")
     
     def __init__(
         self,
         data: xr.Dataset,
         aggregation_method: str = "best_top_k",
+        effort_type: str = "binary",
         priors: Optional[Dict[str, Dict[str, Any]]] = None,
         target_scaling: str | None = None,
         age_scaling: str | None = None,
     ) -> None:
         self.data = data
         self.aggregation_method = aggregation_method
+        self.effort_type = effort_type
         self.target_scaling = target_scaling
         self.age_scaling = age_scaling
         
@@ -167,6 +175,16 @@ class ForagingModel:
             raise ValueError(
                 f"aggregation_method must be one of {self.VALID_AGGREGATION_METHODS}, "
                 f"got '{self.aggregation_method}'"
+            )
+        if self.effort_type not in self.VALID_EFFORT_TYPES:
+            raise ValueError(
+                f"effort_type must be one of {self.VALID_EFFORT_TYPES}, "
+                f"got '{self.effort_type}'"
+            )
+        if self.effort_type == "trip_count" and 'effort_trip_count' not in self.data:
+            raise ValueError(
+                "effort_type='trip_count' requires 'effort_trip_count' in the dataset. "
+                "Ensure trip_count is computed in preprocessing and included in ForagingData."
             )
         if self.target_scaling not in self.VALID_SCALING_OPTIONS:
             raise ValueError(
@@ -410,12 +428,18 @@ class ForagingModel:
                 dims="forager_date"
             )
             
-            # Effort data
+            # Effort data (binary and/or trip count)
             forager_effort = pm.Data(
                 'forager_effort',
                 self.data.forager_effort.values,
                 dims="effort_obs"
             )
+            if self.effort_type == "trip_count":
+                effort_trip_count = pm.Data(
+                    'effort_trip_count',
+                    self.data.effort_trip_count.values,
+                    dims="effort_obs"
+                )
             effort_forager_idx = pm.Data(
                 'effort_forager_idx',
                 self.data.effort_forager_idx.values,
@@ -579,7 +603,7 @@ class ForagingModel:
             )
 
             # =================================================================
-            # Effort Component: P(went foraging | in camp)
+            # Effort Component
             # Uses z-scored age for numerical stability in polynomial
             # Includes GP for temporal effects
             # =================================================================
@@ -590,17 +614,38 @@ class ForagingModel:
                 + re_effort[effort_forager_idx]
                 + gp_effort[effort_date_idx]  # Temporal GP effect
             )
-            p_effort = pm.Deterministic(
-                "p_effort",
-                pt.sigmoid(effort_linear),
-                dims="effort_obs"
-            )
-            pm.Bernoulli(
-                "effort",
-                p=p_effort,
-                observed=forager_effort,
-                dims="effort_obs"
-            )
+            
+            if self.effort_type == "binary":
+                # Binary: P(went foraging | in camp)
+                p_effort = pm.Deterministic(
+                    "p_effort",
+                    pt.sigmoid(effort_linear),
+                    dims="effort_obs"
+                )
+                pm.Bernoulli(
+                    "effort",
+                    p=p_effort,
+                    observed=forager_effort,
+                    dims="effort_obs"
+                )
+            else:
+                # Trip count: NegativeBinomial model of daily trip count
+                # log(mu) = effort_linear, so mu = exp(effort_linear)
+                effort_overdispersion = _create_prior(
+                    "effort_overdispersion", self.priors["effort_overdispersion"]
+                )
+                mu_effort = pm.Deterministic(
+                    "mu_effort",
+                    pt.exp(effort_linear),
+                    dims="effort_obs"
+                )
+                pm.NegativeBinomial(
+                    "effort",
+                    mu=mu_effort,
+                    alpha=effort_overdispersion,
+                    observed=effort_trip_count,
+                    dims="effort_obs"
+                )
 
             # =================================================================
             # Success Component: P(returned with food | went foraging)

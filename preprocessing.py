@@ -64,7 +64,7 @@ def preprocess_data(
     df_days_long['forager_id'] = df_days_long['forager_id'].astype(str)
     df_days_long.drop(columns=['date_str'], inplace=True)
 
-    # --- Time Allocation --- 
+    # --- Time Allocation & Trip Counts --- 
     # Prepare group data for time aggregation
     df_group_time = df_group[df_group['activity.type'] == "Foraging"].copy()
     df_group_time['id'] = df_group_time['id'].astype(str)
@@ -74,8 +74,12 @@ def preprocess_data(
     all_dates = df_group_time['date'].unique()
     multi_index = pd.MultiIndex.from_product([all_forager_ids, all_dates], names=['id', 'date'])
 
-    # Aggregate time, reindex to include all combinations, and sort
-    df_time_agg = df_group_time.groupby(['id', 'date']).agg({'total.minutes': 'sum'})
+    # Aggregate time and trip counts per (forager, date)
+    # Each row in raw groups.csv is one trip, so count rows = number of trips
+    df_time_agg = df_group_time.groupby(['id', 'date']).agg(
+        **{'total.minutes': ('total.minutes', 'sum'),
+           'trip_count': ('total.minutes', 'size')}
+    )
     df_time_agg = df_time_agg.reindex(multi_index).reset_index().sort_values(by=['id', 'date'])
 
     # Merge with days_in_camp to identify time spent outside camp
@@ -87,9 +91,14 @@ def preprocess_data(
         how='left'
     )
 
-    # Fill NaN time with 0 *only* if the forager was in camp (in_camp == 1)
+    # Fill NaN time/trips with 0 *only* if the forager was in camp (in_camp == 1)
     fill_condition = (df_time_agg['total.minutes'].isna()) & (df_time_agg['in_camp'] == 1)
     df_time_agg.loc[fill_condition, 'total.minutes'] = 0
+    df_time_agg.loc[fill_condition, 'trip_count'] = 0
+
+    # Ensure trip_count is integer (NaN -> keep as NaN for out-of-camp days)
+    in_camp_mask = df_time_agg['trip_count'].notna()
+    df_time_agg.loc[in_camp_mask, 'trip_count'] = df_time_agg.loc[in_camp_mask, 'trip_count'].astype(int)
 
     # Clean up temporary columns
     df_time_agg.drop(columns=['forager_id', 'in_camp'], inplace=True)

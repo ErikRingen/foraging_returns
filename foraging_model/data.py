@@ -147,26 +147,35 @@ class ForagingData:
         if ('date' in self.days_in_camp_df.columns and 'forager_id' in self.days_in_camp_df.columns and
             'date' in self.time_allocation_df.columns and time_id_col in self.time_allocation_df.columns):
             
-            # Merge days_in_camp with time_allocation
+            # Merge days_in_camp with time_allocation (including trip_count if available)
+            time_cols = [time_id_col, 'date', 'total.minutes']
+            has_trip_count = 'trip_count' in self.time_allocation_df.columns
+            if has_trip_count:
+                time_cols.append('trip_count')
+            
             merged_df = pd.merge(
                 self.days_in_camp_df[['forager_id', 'date', 'in_camp']],
-                self.time_allocation_df[[time_id_col, 'date', 'total.minutes']],
+                self.time_allocation_df[time_cols],
                 left_on=['forager_id', 'date'],
                 right_on=[time_id_col, 'date'],
                 how='left'  # Left join to keep all in_camp records
             )
             merged_df['total.minutes'] = merged_df['total.minutes'].fillna(0)
+            if has_trip_count:
+                merged_df['trip_count'] = merged_df['trip_count'].fillna(0).astype(int)
             
             # =====================================================================
             # EFFORT: P(went foraging | in camp)
             # Eligibility: in_camp == 1
-            # Outcome: 1 if total.minutes > 0 OR if forager has returns (in-camp foraging)
+            # Outcome (binary): 1 if total.minutes > 0 OR if forager has returns
+            # Outcome (trip_count): number of foraging trips that day (0 if stayed)
             # =====================================================================
             effort_eligible = merged_df[merged_df['in_camp'] == 1].copy()
             
             if len(effort_eligible) > 0:
                 effort_forager_indices = []
                 effort_values = []
+                effort_trip_counts = []
                 effort_dates = []
                 
                 for _, row in effort_eligible.iterrows():
@@ -177,16 +186,27 @@ class ForagingData:
                         effort_forager_indices.append(forager_id_to_idx[forager_id])
                         effort_dates.append(date)
                         
-                        # Effort = 1 if went out OR foraged in-camp (has returns but no minutes)
                         has_returns = (forager_id, date) in forager_date_to_groups
                         effort = 1 if row['total.minutes'] > 0 or has_returns else 0
                         effort_values.append(effort)
+                        
+                        # Trip count: from raw data if available, else infer from binary
+                        if has_trip_count:
+                            tc = int(row['trip_count'])
+                            # If no recorded trips but has returns, count as 1 trip
+                            if tc == 0 and has_returns:
+                                tc = 1
+                            effort_trip_counts.append(tc)
+                        else:
+                            effort_trip_counts.append(effort)
                 
-                ds_effort = xr.Dataset({
+                effort_data_vars = {
                     'forager_effort': (['effort_obs'], np.array(effort_values, dtype=np.int32)),
+                    'effort_trip_count': (['effort_obs'], np.array(effort_trip_counts, dtype=np.int32)),
                     'effort_forager_idx': (['effort_obs'], np.array(effort_forager_indices, dtype=np.int32)),
                     'effort_date': (['effort_obs'], np.array(effort_dates, dtype='datetime64[ns]')),
-                }, coords={
+                }
+                ds_effort = xr.Dataset(effort_data_vars, coords={
                     'effort_obs': np.arange(len(effort_values))
                 })
                 datasets_to_merge.append(ds_effort)
