@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Production Model Explorer</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:flex;height:100vh;overflow:hidden;background:#f8fafc;color:#334155}
+#sidebar{width:220px;min-width:220px;background:#1e293b;color:#e2e8f0;display:flex;flex-direction:column;padding:0;overflow-y:auto}
+#sidebar h1{font-size:15px;padding:20px 16px 8px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+#sidebar h2{font-size:11px;padding:4px 16px 12px;color:#64748b;font-weight:400}
+.tab-btn{display:flex;align-items:center;gap:10px;padding:11px 16px;border:none;background:none;color:#94a3b8;font-size:13px;cursor:pointer;text-align:left;width:100%;transition:all .15s}
+.tab-btn:hover{background:#334155;color:#e2e8f0}
+.tab-btn.active{background:#3b82f6;color:#fff}
+.tab-btn .icon{font-size:16px;width:20px;text-align:center}
+#content{flex:1;overflow-y:auto;padding:28px 32px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.card{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card-label{font-size:11px;text-transform:uppercase;color:#64748b;letter-spacing:.5px;margin-bottom:4px}
+.card-value{font-size:22px;font-weight:700;color:#1e293b}
+.card-value.green{color:#16a34a}
+.card-value.yellow{color:#eab308}
+.card-value.red{color:#dc2626}
+.config-table{width:100%;border-collapse:collapse;margin-top:12px;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.config-table th,.config-table td{padding:10px 14px;text-align:left;font-size:13px;border-bottom:1px solid #f1f5f9}
+.config-table th{background:#f8fafc;color:#64748b;font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.5px}
+.config-table tr:last-child td{border-bottom:none}
+h3{font-size:18px;font-weight:600;margin-bottom:14px;color:#1e293b}
+h4{font-size:14px;font-weight:600;margin:16px 0 8px;color:#475569}
+.load-btn{background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:15px;cursor:pointer;transition:background .15s;margin-bottom:20px}
+.load-btn:hover{background:#2563eb}
+.toggle-group{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.toggle-btn{padding:6px 14px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;transition:all .15s}
+.toggle-btn.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.plot-container{width:100%;min-height:400px;margin-bottom:18px}
+.plot-half{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.plot-half .plot-container{min-height:350px}
+.grid-2x2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-2x2 .plot-container{min-height:340px}
+.msg-box{background:#fff;border-radius:10px;padding:40px;text-align:center;color:#64748b;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-top:20px}
+.sub-toggle{display:flex;gap:6px;margin-bottom:14px}
+.sortable-table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);font-size:12px}
+.sortable-table th{background:#f8fafc;padding:8px 10px;cursor:pointer;user-select:none;color:#64748b;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.5px;border-bottom:1px solid #e2e8f0;white-space:nowrap}
+.sortable-table th:hover{background:#e2e8f0}
+.sortable-table td{padding:7px 10px;border-bottom:1px solid #f1f5f9}
+.sortable-table tr.warn{background:#fef2f2}
+.param-filter{margin-bottom:14px}
+.param-filter select{padding:6px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;min-width:200px}
+.section{margin-bottom:28px}
+.img-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;max-width:960px}
+.img-grid.single{grid-template-columns:1fr;max-width:500px}
+.img-grid img{width:100%;max-height:320px;object-fit:contain;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);background:#fff}
+.img-section{margin-bottom:18px;max-width:500px}
+.img-section img{max-width:100%;max-height:320px;object-fit:contain;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);background:#fff}
+.status-bar{padding:8px 16px;font-size:12px;color:#64748b;border-top:1px solid #334155;margin-top:auto}
+input[type="file"]{display:none}
+.img-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;cursor:zoom-out;align-items:center;justify-content:center}
+.img-modal-overlay.active{display:flex}
+.img-modal-overlay img{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+.model-indicator{display:flex;gap:8px;margin-bottom:12px;font-size:12px}
+.model-badge{padding:3px 10px;border-radius:12px;font-weight:600}
+.model-badge.primary{background:#dbeafe;color:#1d4ed8}
+.model-badge.comparison{background:#ffedd5;color:#c2410c}
+.compare-btn{background:transparent;border:2px solid #f97316;color:#f97316;padding:8px 18px;border-radius:8px;cursor:pointer;margin-left:8px;font-weight:600}
+.compare-btn:hover{background:#fff7ed}
+.clear-compare-btn{background:transparent;border:1px solid #dc2626;color:#dc2626;padding:6px 14px;border-radius:8px;cursor:pointer;margin-left:8px;font-size:12px}
+.clear-compare-btn:hover{background:#fef2f2}
+.model-switch{display:inline-flex;gap:4px;margin-bottom:12px;padding:3px;background:#f1f5f9;border-radius:8px}
+.model-switch button{padding:5px 14px;border:none;border-radius:6px;font-size:12px;cursor:pointer;background:transparent;color:#64748b;font-weight:500}
+.model-switch button.active{background:#fff;color:#1e293b;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+</style>
+</head>
+<body>
+
+<div class="img-modal-overlay" id="imgModal" onclick="this.classList.remove('active')"><img id="imgModalImg" src="" alt=""></div>
+<div id="sidebar">
+  <h1>Food Production Explorer</h1>
+  <h2>Bayesian Model Dashboard</h2>
+  <button class="tab-btn active" onclick="switchTab(0)"><span class="icon">&#9776;</span> Overview</button>
+  <button class="tab-btn" onclick="switchTab(1)"><span class="icon">&#9883;</span> Life History</button>
+  <button class="tab-btn" onclick="switchTab(2)"><span class="icon">&#9881;</span> Effort &amp; Success</button>
+  <button class="tab-btn" onclick="switchTab(3)"><span class="icon">&#9632;</span> Prior / Posterior</button>
+  <button class="tab-btn" onclick="switchTab(4)"><span class="icon">&#9888;</span> Diagnostics</button>
+  <button class="tab-btn" onclick="switchTab(5)"><span class="icon">&#9679;</span> Pareto k / LOO</button>
+  <button class="tab-btn" onclick="switchTab(6)"><span class="icon">&#9634;</span> Predictive Checks</button>
+  <button class="tab-btn" onclick="switchTab(7)"><span class="icon">&#9733;</span> Shapley Values</button>
+  <button class="tab-btn" onclick="switchTab(8)"><span class="icon">&#9998;</span> Estimates</button>
+  <button class="tab-btn" onclick="switchTab(9)"><span class="icon">&#8651;</span> Effort-Skill</button>
+  <div class="status-bar" id="statusBar">No data loaded</div>
+</div>
+
+<div id="content">
+  <!-- Tab 0: Overview -->
+  <div class="tab-panel active" id="tab0">
+    <h3>Overview</h3>
+    <div style="display:flex;align-items:center;margin-bottom:20px">
+      <button class="load-btn" style="margin-bottom:0" onclick="loadData()">Load Primary Model</button>
+      <button class="compare-btn" onclick="loadComparisonData()">Load Comparison Model</button>
+      <button class="clear-compare-btn" id="clearCompareBtn" style="display:none" onclick="clearComparison()">Clear Comparison</button>
+    </div>
+    <input type="file" id="folderInput" webkitdirectory multiple onchange="handleFolderInput(event, 0)">
+    <input type="file" id="folderInputCompare" webkitdirectory multiple onchange="handleFolderInput(event, 1)">
+    <div id="comparisonBanner" style="display:none"></div>
+    <div id="overviewContent">
+      <div class="msg-box">Select a <code>results/{variant}/exports/</code> folder to begin.</div>
+    </div>
+  </div>
+
+  <!-- Tab 1: Life History Curves -->
+  <div class="tab-panel" id="tab1">
+    <h3>Life History Curves</h3>
+    <div class="toggle-group" id="lhSourceToggle"></div>
+    <div class="toggle-group" id="lhGenderToggle"></div>
+    <div class="grid-2x2" id="lhPlots">
+      <div class="plot-container" id="plotS"></div>
+      <div class="plot-container" id="plotM"></div>
+      <div class="plot-container" id="plotK"></div>
+      <div class="plot-container" id="plotSMK"></div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Effort & Success -->
+  <div class="tab-panel" id="tab2">
+    <h3>Effort &amp; Success Curves</h3>
+    <div class="toggle-group" id="esSourceToggle"></div>
+    <div class="toggle-group" id="esGenderToggle"></div>
+    <div class="plot-container" id="plotEffort"></div>
+    <div class="plot-container" id="plotSuccess"></div>
+  </div>
+
+  <!-- Tab 3: Prior / Posterior Forest Plot -->
+  <div class="tab-panel" id="tab3">
+    <h3>Prior / Posterior Comparison</h3>
+    <div class="param-filter">
+      <label>Filter parameters: </label>
+      <select id="forestParamFilter" multiple size="6" onchange="renderForestPlot()"></select>
+      <button class="toggle-btn" style="margin-left:8px" onclick="selectAllForestParams()">Select All</button>
+    </div>
+    <div class="plot-container" id="plotForest" style="min-height:600px"></div>
+  </div>
+
+  <!-- Tab 4: Diagnostics -->
+  <div class="tab-panel" id="tab4">
+    <h3>Diagnostics</h3>
+    <div class="toggle-group" id="diagSubToggle"></div>
+    <div id="diagContent">
+      <div class="msg-box">Load data to view diagnostics.</div>
+    </div>
+  </div>
+
+  <!-- Tab 5: Pareto k / LOO -->
+  <div class="tab-panel" id="tab5">
+    <h3>Pareto k / LOO</h3>
+    <div id="paretoContent">
+      <div class="msg-box">Load data to view Pareto k diagnostics.</div>
+    </div>
+  </div>
+
+  <!-- Tab 6: Predictive Checks -->
+  <div class="tab-panel" id="tab6">
+    <h3>Predictive Checks</h3>
+    <div class="toggle-group" id="ppcComponentToggle"></div>
+    <div class="toggle-group" id="ppcTypeToggle"></div>
+    <div id="ppcImageArea"></div>
+    <div class="section" id="ppcLooPit"></div>
+  </div>
+
+  <!-- Tab 7: Shapley Values -->
+  <div class="tab-panel" id="tab7">
+    <h3>Shapley Values</h3>
+    <div id="shapleyContent">
+      <div class="msg-box">Load data to view Shapley values.</div>
+    </div>
+  </div>
+
+  <!-- Tab 8: Estimates -->
+  <div class="tab-panel" id="tab8">
+    <h3>Key Estimates</h3>
+    <div id="estimatesContent">
+      <div class="msg-box">Load data to view key estimates.</div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab9">
+    <h3>Effort-Skill Tradeoff</h3>
+    <p style="color:#64748b;font-size:13px;margin-bottom:14px">Marginal effects of &plusmn;1 SD skill on effort, success, and returns. Counterfactual: shift each forager's latent skill while propagating the implied effort change through &psi;.</p>
+    <div id="tradeoffContent">
+      <div class="msg-box">Load data to view effort-skill tradeoff.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Global State =====
+window.models = [null, null];
+window.dashData = {};
+window.models[0] = window.dashData;
+window.activeModel = 0;
+let currentTab = 0;
+const tabRendered = {};
+const COLORS = {population: '#3b82f6', male: '#14b8a6', female: '#f97316'};
+const COMP_COLORS = {population: '#f97316', male: '#dc2626', female: '#7c3aed'};
+const PLOTLY_CFG = {displayModeBar: false};
+
+// ===== CSV Parser =====
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).filter(l => l.trim()).map(line => {
+    const vals = line.split(',');
+    const obj = {};
+    headers.forEach((h, i) => {
+      const v = (vals[i] || '').trim().replace(/^"|"$/g, '');
+      obj[h || 'parameter'] = v === '' ? null : isNaN(+v) ? v : +v;
+    });
+    return obj;
+  });
+}
+
+// ===== File Reading Helpers =====
+async function readFileText(dirHandle, filename) {
+  try {
+    const fh = await dirHandle.getFileHandle(filename);
+    const file = await fh.getFile();
+    return await file.text();
+  } catch { return null; }
+}
+
+async function readFileJSON(dirHandle, filename) {
+  const text = await readFileText(dirHandle, filename);
+  return text ? JSON.parse(text) : null;
+}
+
+async function readFileAsURL(dirHandle, filename) {
+  try {
+    const fh = await dirHandle.getFileHandle(filename);
+    const file = await fh.getFile();
+    return URL.createObjectURL(file);
+  } catch { return null; }
+}
+
+// Fallback: read from File list (webkitdirectory input)
+function findFileInList(files, filename) {
+  return Array.from(files).find(f => {
+    const parts = f.webkitRelativePath ? f.webkitRelativePath.split('/') : [f.name];
+    return parts[parts.length - 1] === filename;
+  });
+}
+
+async function readFileTextFromList(files, filename) {
+  const f = findFileInList(files, filename);
+  return f ? await f.text() : null;
+}
+
+async function readFileJSONFromList(files, filename) {
+  const text = await readFileTextFromList(files, filename);
+  return text ? JSON.parse(text) : null;
+}
+
+function readFileAsURLFromList(files, filename) {
+  const f = findFileInList(files, filename);
+  return f ? URL.createObjectURL(f) : null;
+}
+
+// ===== Tab Switching =====
+function switchTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+  document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+  currentTab = idx;
+  const primary = window.models[0];
+  if (primary && primary.loaded && !tabRendered[idx]) {
+    renderTab(idx);
+  }
+}
+
+function getActiveModelData() {
+  // For tabs that show one model at a time (diagnostics, pareto, ppc, shapley)
+  return window.models[window.activeModel] || window.models[0];
+}
+
+function modelName(slot) {
+  const m = window.models[slot];
+  if (!m || !m.manifest) return slot === 0 ? 'Primary' : 'Comparison';
+  return m.manifest.variant || (slot === 0 ? 'Primary' : 'Comparison');
+}
+
+function hasComparison() {
+  return window.models[1] && window.models[1].loaded;
+}
+
+function updateComparisonUI() {
+  const banner = document.getElementById('comparisonBanner');
+  const clearBtn = document.getElementById('clearCompareBtn');
+  if (hasComparison()) {
+    banner.style.display = 'block';
+    banner.innerHTML = `<div class="model-indicator"><span class="model-badge primary">${modelName(0)}</span><span class="model-badge comparison">${modelName(1)}</span></div>`;
+    clearBtn.style.display = 'inline-block';
+  } else {
+    banner.style.display = 'none';
+    clearBtn.style.display = 'none';
+  }
+}
+
+function buildModelSwitch(containerId) {
+  if (!hasComparison()) return '';
+  return `<div class="model-switch" id="${containerId}"><button class="${window.activeModel === 0 ? 'active' : ''}" onclick="switchActiveModel(0, '${containerId}')">Primary: ${modelName(0)}</button><button class="${window.activeModel === 1 ? 'active' : ''}" onclick="switchActiveModel(1, '${containerId}')">Comparison: ${modelName(1)}</button></div>`;
+}
+
+function switchActiveModel(slot, containerId) {
+  window.activeModel = slot;
+  window.dashData = window.models[slot];
+  // Re-render current tab
+  delete tabRendered[currentTab];
+  renderTab(currentTab);
+}
+
+function renderTab(idx) {
+  const fns = [renderTab0, renderTab1, renderTab2, renderTab3, renderTab4, renderTab5, renderTab6, renderTab7, renderTab8, renderTab9];
+  if (fns[idx]) fns[idx]();
+  tabRendered[idx] = true;
+}
+
+// ===== Data Loading =====
+async function loadData() {
+  if (window.showDirectoryPicker) {
+    try {
+      const dirHandle = await window.showDirectoryPicker();
+      await loadFromDirHandle(dirHandle, 0);
+    } catch (e) {
+      if (e.name !== 'AbortError') console.error(e);
+    }
+  } else {
+    document.getElementById('folderInput').click();
+  }
+}
+
+async function loadComparisonData() {
+  if (window.showDirectoryPicker) {
+    try {
+      const dirHandle = await window.showDirectoryPicker();
+      await loadFromDirHandle(dirHandle, 1);
+    } catch (e) {
+      if (e.name !== 'AbortError') console.error(e);
+    }
+  } else {
+    document.getElementById('folderInputCompare').click();
+  }
+}
+
+function clearComparison() {
+  window.models[1] = null;
+  window.activeModel = 0;
+  window.dashData = window.models[0];
+  updateComparisonUI();
+  Object.keys(tabRendered).forEach(k => delete tabRendered[k]);
+  renderTab(currentTab);
+}
+
+async function handleFolderInput(event, slot = 0) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+  await loadFromFileList(files, slot);
+}
+
+async function loadFromDirHandle(dh, slot = 0) {
+  const d = {};
+  d.source = 'dirHandle';
+  d.dirHandle = dh;
+  document.getElementById('statusBar').textContent = 'Loading ' + (slot === 0 ? 'primary' : 'comparison') + '...';
+
+  d.manifest = await readFileJSON(dh, 'manifest.json');
+  d.diagnostics_meta = await readFileJSON(dh, 'diagnostics_meta.json');
+  d.pareto_k_summary = await readFileJSON(dh, 'pareto_k_summary.json');
+  d.trace_index = await readFileJSON(dh, 'trace_index.json') || [];
+  d.skill_landmarks = await readFileJSON(dh, 'skill_landmarks.json');
+  d.estimates = await readFileJSON(dh, 'estimates.json');
+
+  // Eagerly load all PNG images (including trace plots)
+  const traceFiles = (d.trace_index || []).map(n => `trace_${n}.png`);
+  const pngFiles = [
+    'ppc_dens_kcal.png','ppc_ecdf_kcal.png','prior_ppc_dens_kcal.png','loo_pit_ecdf_kcal.png',
+    'ppc_bars_effort.png','ppc_bars_success.png',
+    'prior_ppc_bars_effort.png','prior_ppc_bars_success.png',
+    'calibration_effort.png','calibration_success.png',
+    'psens_plot.png',
+    'psens_posteriors.png',
+    'model_graph.png',
+    ...traceFiles
+  ];
+  d.images = {};
+  await Promise.all(pngFiles.map(async fn => {
+    d.images[fn] = await readFileAsURL(dh, fn);
+  }));
+
+  // Lazy CSV loading helpers
+  d._csv = {};
+  d.loadCSV = async (name) => {
+    if (!d._csv[name]) {
+      const text = await readFileText(dh, name);
+      d._csv[name] = text ? parseCSV(text) : [];
+    }
+    return d._csv[name];
+  };
+
+  d.loaded = true;
+  window.models[slot] = d;
+  if (slot === 0) window.dashData = d;
+  document.getElementById('statusBar').textContent = d.manifest ? d.manifest.variant : 'Loaded';
+  updateComparisonUI();
+  Object.keys(tabRendered).forEach(k => delete tabRendered[k]);
+  renderTab(currentTab);
+}
+
+async function loadFromFileList(files, slot = 0) {
+  const d = {};
+  d.source = 'fileList';
+  d.files = files;
+  document.getElementById('statusBar').textContent = 'Loading ' + (slot === 0 ? 'primary' : 'comparison') + '...';
+
+  const mText = await readFileTextFromList(files, 'manifest.json');
+  d.manifest = mText ? JSON.parse(mText) : null;
+  const dmText = await readFileTextFromList(files, 'diagnostics_meta.json');
+  d.diagnostics_meta = dmText ? JSON.parse(dmText) : null;
+  const pkText = await readFileTextFromList(files, 'pareto_k_summary.json');
+  d.pareto_k_summary = pkText ? JSON.parse(pkText) : null;
+  const tiText = await readFileTextFromList(files, 'trace_index.json');
+  d.trace_index = tiText ? JSON.parse(tiText) : [];
+  const slText = await readFileTextFromList(files, 'skill_landmarks.json');
+  d.skill_landmarks = slText ? JSON.parse(slText) : null;
+  const estText = await readFileTextFromList(files, 'estimates.json');
+  d.estimates = estText ? JSON.parse(estText) : null;
+
+  const traceFiles2 = (d.trace_index || []).map(n => `trace_${n}.png`);
+  const pngFiles = [
+    'ppc_dens_kcal.png','ppc_ecdf_kcal.png','prior_ppc_dens_kcal.png','loo_pit_ecdf_kcal.png',
+    'ppc_bars_effort.png','ppc_bars_success.png',
+    'prior_ppc_bars_effort.png','prior_ppc_bars_success.png',
+    'calibration_effort.png','calibration_success.png',
+    'psens_plot.png',
+    'psens_posteriors.png',
+    'model_graph.png',
+    ...traceFiles2
+  ];
+  d.images = {};
+  pngFiles.forEach(fn => {
+    d.images[fn] = readFileAsURLFromList(files, fn);
+  });
+
+  d._csv = {};
+  d.loadCSV = async (name) => {
+    if (!d._csv[name]) {
+      const text = await readFileTextFromList(files, name);
+      d._csv[name] = text ? parseCSV(text) : [];
+    }
+    return d._csv[name];
+  };
+
+  d.loaded = true;
+  window.models[slot] = d;
+  if (slot === 0) window.dashData = d;
+  document.getElementById('statusBar').textContent = d.manifest ? d.manifest.variant : 'Loaded';
+  updateComparisonUI();
+  Object.keys(tabRendered).forEach(k => delete tabRendered[k]);
+  renderTab(currentTab);
+}
+
+// ===== Tab 0: Overview =====
+function renderTab0() {
+  const d = window.models[0];
+  if (!d || !d.manifest) {
+    document.getElementById('overviewContent').innerHTML = '<div class="msg-box">manifest.json not found.</div>';
+    return;
+  }
+
+  let html = '';
+  // Render primary model
+  html += renderModelOverview(d, 'Primary');
+  // Render comparison model if loaded
+  if (hasComparison()) {
+    html += '<hr style="margin:24px 0;border:none;border-top:2px dashed #f97316">';
+    html += renderModelOverview(window.models[1], 'Comparison');
+  }
+  document.getElementById('overviewContent').innerHTML = html;
+}
+
+function renderModelOverview(d, label) {
+  const m = d.manifest;
+  const dm = d.diagnostics_meta;
+  if (!m) return `<div class="msg-box">${label}: manifest.json not found.</div>`;
+
+  const badgeClass = label === 'Primary' ? 'primary' : 'comparison';
+  let html = `<div style="margin-bottom:8px"><span class="model-badge ${badgeClass}">${label}: ${m.variant || '?'}</span></div>`;
+  html += '<div class="cards">';
+  html += card('Variant', m.variant || '?');
+  html += card('Foragers', m.n_foragers);
+  html += card('Groups', m.n_groups);
+  html += card('Dates', m.n_dates);
+  html += card('Chains', m.n_chains);
+  html += card('Draws', m.n_draws);
+  html += '</div>';
+
+  if (dm) {
+    html += '<div class="cards">';
+    html += cardColored('Divergences', dm.total_divergences, dm.total_divergences === 0 ? 'green' : dm.total_divergences < 10 ? 'yellow' : 'red');
+    html += cardColored('Max R-hat', fmt(dm.max_rhat), dm.max_rhat <= 1.01 ? 'green' : dm.max_rhat <= 1.05 ? 'yellow' : 'red');
+    html += cardColored('Min ESS Bulk', Math.round(dm.min_ess_bulk), dm.min_ess_bulk >= 400 ? 'green' : dm.min_ess_bulk >= 100 ? 'yellow' : 'red');
+    html += cardColored('Min ESS Tail', Math.round(dm.min_ess_tail), dm.min_ess_tail >= 400 ? 'green' : dm.min_ess_tail >= 100 ? 'yellow' : 'red');
+    html += '</div>';
+  }
+
+  if (m.config) {
+    html += '<h4>Model Configuration</h4><table class="config-table"><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>';
+    for (const [k, v] of Object.entries(m.config)) {
+      html += `<tr><td>${k}</td><td>${typeof v === 'object' ? JSON.stringify(v) : v}</td></tr>`;
+    }
+    html += '</tbody></table>';
+  }
+
+  // Model graph (click to zoom)
+  const graphImg = d.images && d.images['model_graph.png'];
+  if (graphImg) {
+    html += '<h4>Model Graph <span style="font-size:11px;color:#94a3b8;font-weight:400">(click to zoom)</span></h4>';
+    html += '<div style="margin:12px 0;max-width:100%;overflow-x:auto;cursor:zoom-in" onclick="document.getElementById(\'imgModalImg\').src=this.querySelector(\'img\').src;document.getElementById(\'imgModal\').classList.add(\'active\')">';
+    html += '<img src="' + graphImg + '" alt="PyMC Model Graph" style="max-width:100%;max-height:400px;object-fit:contain;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);background:#fff">';
+    html += '</div>';
+  }
+
+  html += `<p style="margin-top:16px;font-size:12px;color:#94a3b8">Exported: ${m.exported_at || 'unknown'}</p>`;
+  return html;
+}
+
+function card(label, value) {
+  return `<div class="card"><div class="card-label">${label}</div><div class="card-value">${value ?? '?'}</div></div>`;
+}
+function cardColored(label, value, cls) {
+  return `<div class="card"><div class="card-label">${label}</div><div class="card-value ${cls}">${value}</div></div>`;
+}
+function fmt(v, d=4) { return v != null ? Number(v).toFixed(d) : '?'; }
+
+// ===== Tab 1: Life History Curves =====
+async function renderTab1() {
+  const data = await window.models[0].loadCSV('skill_curves.csv');
+  if (!data.length) { document.getElementById('lhPlots').innerHTML = '<div class="msg-box">skill_curves.csv not found.</div>'; return; }
+
+  // Source toggle (Prior / Posterior)
+  const hasPrior = data.some(r => r.source === 'prior');
+  const srcEl = document.getElementById('lhSourceToggle');
+  if (hasPrior) {
+    srcEl.innerHTML = ['Posterior', 'Prior'].map((l, i) =>
+      `<button class="toggle-btn${i === 0 ? ' active' : ''}" data-val="${l.toLowerCase()}" onclick="toggleSingleSelect(this, 'lhSourceToggle', () => renderTab1Plot(window._lhData))">${l}</button>`
+    ).join('');
+  } else {
+    srcEl.innerHTML = '';
+  }
+  window._lhData = data;
+
+  buildGenderToggle('lhGenderToggle', () => renderTab1Plot(data));
+  renderTab1Plot(data);
+}
+
+function toggleSingleSelect(btn, containerId, cb) {
+  document.querySelectorAll(`#${containerId} .toggle-btn`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (cb) cb();
+}
+
+async function renderTab1Plot(data) {
+  const genders = getSelectedGenders('lhGenderToggle');
+  const srcBtn = document.querySelector('#lhSourceToggle .toggle-btn.active');
+  const source = srcBtn ? srcBtn.dataset.val : 'posterior';
+  const filtered = data.filter(r => r.source === source);
+
+  // Load comparison data if available
+  let compFiltered = null;
+  if (hasComparison()) {
+    const compData = await window.models[1].loadCSV('skill_curves.csv');
+    if (compData.length) compFiltered = compData.filter(r => r.source === source);
+  }
+
+  const curves = ['S', 'M', 'K'];
+  const ids = ['plotS', 'plotM', 'plotK'];
+  const titles = ['S(x) - Skill', 'M(x) - Senescence', 'K(x) - Learning'];
+
+  curves.forEach((c, ci) => {
+    const traces = buildCurveTraces(filtered, c, genders, modelName(0));
+    // Add comparison overlay
+    if (compFiltered) {
+      const compTraces = buildComparisonCurveTraces(compFiltered, c, genders, modelName(1));
+      traces.push(...compTraces);
+    }
+    const layout = basePlotLayout(titles[ci], 'Age (years)', c + '(x)');
+
+    // Add landmark lines to S(x) plot (posterior only)
+    if (c === 'S' && source === 'posterior') {
+      const lm = window.models[0].skill_landmarks;
+      if (lm) {
+        layout.shapes = [
+          {type: 'line', x0: lm.peak_age_median, x1: lm.peak_age_median, y0: 0, y1: 1,
+           line: {color: '#dc2626', dash: 'dash', width: 1.5}},
+          {type: 'line', x0: lm.age_80pct_median, x1: lm.age_80pct_median, y0: 0, y1: 1,
+           line: {color: '#f97316', dash: 'dot', width: 1.5}},
+        ];
+        layout.annotations = [
+          {x: lm.peak_age_median, y: 1.02, xref: 'x', yref: 'paper', text: `Peak: ${lm.peak_age_median.toFixed(0)}y`,
+           showarrow: false, font: {size: 10, color: '#dc2626'}},
+          {x: lm.age_80pct_median, y: 1.02, xref: 'x', yref: 'paper', text: `80%: ${lm.age_80pct_median.toFixed(0)}y`,
+           showarrow: false, font: {size: 10, color: '#f97316'}},
+        ];
+      }
+    }
+
+    Plotly.newPlot(ids[ci], traces, layout, PLOTLY_CFG);
+  });
+
+  // 4th panel: overlay all three curves for population
+  const overlayTraces = [];
+  const overlayColors = {S: '#3b82f6', M: '#14b8a6', K: '#f97316'};
+  curves.forEach(c => {
+    const sub = filtered.filter(r => r.curve === c && r.gender === 'population');
+    if (!sub.length) return;
+    const x = sub.map(r => r.age_years);
+    overlayTraces.push({x, y: sub.map(r => r.median), mode: 'lines', name: c + (hasComparison() ? ' (' + modelName(0) + ')' : ''), line: {color: overlayColors[c], width: 2}});
+  });
+  if (compFiltered) {
+    const compOverlayColors = {S: '#93c5fd', M: '#5eead4', K: '#fdba74'};
+    curves.forEach(c => {
+      const sub = compFiltered.filter(r => r.curve === c && r.gender === 'population');
+      if (!sub.length) return;
+      const x = sub.map(r => r.age_years);
+      overlayTraces.push({x, y: sub.map(r => r.median), mode: 'lines', name: c + ' (' + modelName(1) + ')', line: {color: compOverlayColors[c], width: 2, dash: 'dash'}});
+    });
+  }
+  Plotly.newPlot('plotSMK', overlayTraces, basePlotLayout('All Curves (' + source + ')', 'Age (years)', 'Value'), PLOTLY_CFG);
+}
+
+function buildComparisonCurveTraces(data, curveName, genders, name) {
+  const traces = [];
+  genders.forEach(g => {
+    const sub = data.filter(r => r.curve === curveName && r.gender === g).sort((a,b) => a.age_years - b.age_years);
+    if (!sub.length) return;
+    const x = sub.map(r => r.age_years);
+    const col = COMP_COLORS[g] || '#f97316';
+    // Dashed median line only (no bands)
+    traces.push({x, y: sub.map(r => r.median), mode: 'lines', name: g + ' (' + name + ')', line: {color: col, width: 2, dash: 'dash'}, showlegend: true});
+  });
+  return traces;
+}
+
+function buildCurveTraces(data, curveName, genders, mName) {
+  const traces = [];
+  const suffix = mName && hasComparison() ? ' (' + mName + ')' : '';
+  genders.forEach(g => {
+    const sub = data.filter(r => r.curve === curveName && r.gender === g).sort((a,b) => a.age_years - b.age_years);
+    if (!sub.length) return;
+    const x = sub.map(r => r.age_years);
+    const col = COLORS[g] || '#3b82f6';
+    // q025-q975 lighter band
+    traces.push(bandTrace(x, sub.map(r => r.q025), sub.map(r => r.q975), col, 0.12, g + ' 95%'));
+    // q10-q90 darker band
+    traces.push(bandTrace(x, sub.map(r => r.q10), sub.map(r => r.q90), col, 0.22, g + ' 80%'));
+    // median line
+    traces.push({x, y: sub.map(r => r.median), mode: 'lines', name: g + suffix, line: {color: col, width: 2.5}, showlegend: true});
+  });
+  return traces;
+}
+
+function bandTrace(x, lo, hi, color, opacity, name) {
+  return {
+    x: x.concat([...x].reverse()),
+    y: lo.concat([...hi].reverse()),
+    fill: 'toself', fillcolor: hexToRGBA(color, opacity),
+    line: {color: 'transparent'}, showlegend: false, name, hoverinfo: 'skip', type: 'scatter'
+  };
+}
+
+function hexToRGBA(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function basePlotLayout(title, xtitle, ytitle) {
+  return {
+    title: {text: title, font: {size: 14}},
+    xaxis: {title: xtitle, gridcolor: '#f1f5f9'},
+    yaxis: {title: ytitle, gridcolor: '#f1f5f9'},
+    plot_bgcolor: '#fff', paper_bgcolor: '#fff',
+    margin: {l: 50, r: 20, t: 40, b: 45},
+    legend: {x: 1, y: 1, xanchor: 'right', bgcolor: 'rgba(255,255,255,0.8)'},
+    autosize: true
+  };
+}
+
+// ===== Gender Toggle Builder =====
+function buildGenderToggle(containerId, onChange) {
+  const el = document.getElementById(containerId);
+  if (el.dataset.built) return;
+  el.dataset.built = '1';
+  const labels = ['Population', 'Male', 'Female', 'All'];
+  const values = ['population', 'male', 'female', 'all'];
+  el.innerHTML = labels.map((l, i) =>
+    `<button class="toggle-btn${i === 0 ? ' active' : ''}" data-val="${values[i]}" onclick="toggleGender(this, '${containerId}')">${l}</button>`
+  ).join('');
+  el._onChange = onChange;
+}
+
+function toggleGender(btn, containerId) {
+  const group = document.getElementById(containerId);
+  group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (group._onChange) group._onChange();
+}
+
+function getSelectedGenders(containerId) {
+  const active = document.getElementById(containerId).querySelector('.toggle-btn.active');
+  const val = active ? active.dataset.val : 'population';
+  if (val === 'all') return ['population', 'male', 'female'];
+  return [val];
+}
+
+// ===== Tab 2: Effort & Success =====
+async function renderTab2() {
+  const effort = await window.models[0].loadCSV('effort_curves.csv');
+  const success = await window.models[0].loadCSV('success_curves.csv');
+  window._esData = {effort, success};
+
+  const hasPrior = effort.some(r => r.source === 'prior');
+  const srcEl = document.getElementById('esSourceToggle');
+  if (hasPrior) {
+    srcEl.innerHTML = ['Posterior', 'Prior'].map((l, i) =>
+      `<button class="toggle-btn${i === 0 ? ' active' : ''}" data-val="${l.toLowerCase()}" onclick="toggleSingleSelect(this, 'esSourceToggle', () => renderTab2Plots(window._esData.effort, window._esData.success))">${l}</button>`
+    ).join('');
+  }
+
+  buildGenderToggle('esGenderToggle', () => renderTab2Plots(effort, success));
+  renderTab2Plots(effort, success);
+}
+
+async function renderTab2Plots(effort, success) {
+  const genders = getSelectedGenders('esGenderToggle');
+  const srcBtn = document.querySelector('#esSourceToggle .toggle-btn.active');
+  const source = srcBtn ? srcBtn.dataset.val : 'posterior';
+
+  // Load comparison data if available
+  let compEffortF = null, compSuccessF = null;
+  if (hasComparison()) {
+    const compEffort = await window.models[1].loadCSV('effort_curves.csv');
+    const compSuccess = await window.models[1].loadCSV('success_curves.csv');
+    if (compEffort.length) compEffortF = compEffort.filter(r => r.source === source);
+    if (compSuccess.length) compSuccessF = compSuccess.filter(r => r.source === source);
+  }
+
+  const effortF = effort.filter(r => r.source === source);
+  const successF = success.filter(r => r.source === source);
+
+  if (effortF.length) {
+    const traces = buildCurveTraces(effortF, 'effort', genders, modelName(0));
+    if (compEffortF) traces.push(...buildComparisonCurveTraces(compEffortF, 'effort', genders, modelName(1)));
+    Plotly.newPlot('plotEffort', traces, basePlotLayout('P(Effort) - ' + source, 'Age (years)', 'P(effort)'), PLOTLY_CFG);
+  }
+
+  if (successF.length) {
+    const traces = buildCurveTraces(successF, 'success', genders, modelName(0));
+    if (compSuccessF) traces.push(...buildComparisonCurveTraces(compSuccessF, 'success', genders, modelName(1)));
+    Plotly.newPlot('plotSuccess', traces, basePlotLayout('P(Success) - ' + source, 'Age (years)', 'P(success)'), PLOTLY_CFG);
+  }
+}
+
+// ===== Tab 3: Prior / Posterior Forest Plot =====
+async function renderTab3() {
+  const data = await window.models[0].loadCSV('forest_plot.csv');
+  if (!data.length) { document.getElementById('plotForest').innerHTML = '<div class="msg-box">forest_plot.csv not found.</div>'; return; }
+
+  window._forestData = data;
+  window._forestDataComp = null;
+  if (hasComparison()) {
+    window._forestDataComp = await window.models[1].loadCSV('forest_plot.csv');
+  }
+
+  // Merge parameter lists from both models
+  const allParams = [...new Set(data.map(r => r.parameter))];
+  if (window._forestDataComp && window._forestDataComp.length) {
+    window._forestDataComp.forEach(r => { if (!allParams.includes(r.parameter)) allParams.push(r.parameter); });
+  }
+  const sel = document.getElementById('forestParamFilter');
+  sel.innerHTML = allParams.map(p => `<option value="${p}" selected>${p}</option>`).join('');
+  renderForestPlot();
+}
+
+function renderForestPlot() {
+  const data = window._forestData;
+  if (!data) return;
+  const compData = window._forestDataComp;
+  const sel = document.getElementById('forestParamFilter');
+  const selected = new Set(Array.from(sel.selectedOptions).map(o => o.value));
+  if (selected.size === 0) {
+    data.forEach(r => selected.add(r.parameter));
+    if (compData) compData.forEach(r => selected.add(r.parameter));
+  }
+
+  const params = [...new Set(data.map(r => r.parameter).concat(compData ? compData.map(r => r.parameter) : []))].filter(p => selected.has(p));
+  const traces = [];
+  const priorColor = '#9ca3af';
+  const postColor = '#3b82f6';
+  const compPostColor = '#f97316';
+
+  // Primary model: prior & posterior
+  buildForestTraces(data, params, traces, 'prior', priorColor, 0.2, selected, modelName(0));
+  buildForestTraces(data, params, traces, 'posterior', postColor, hasComparison() ? 0.0 : -0.2, selected, modelName(0));
+
+  // Comparison model: posterior only (offset below)
+  if (compData && compData.length && hasComparison()) {
+    buildForestTraces(compData, params, traces, 'posterior', compPostColor, -0.2, selected, modelName(1));
+  }
+
+  const height = Math.max(400, params.length * 30 + 80);
+  const layout = {
+    title: {text: hasComparison() ? 'Prior vs Posterior (Model Comparison)' : 'Prior vs Posterior', font: {size: 14}},
+    xaxis: {title: 'Value', gridcolor: '#f1f5f9', zeroline: true, zerolinecolor: '#cbd5e1'},
+    yaxis: {
+      tickvals: params.map((_, i) => i),
+      ticktext: params,
+      autorange: 'reversed',
+      gridcolor: '#f1f5f9'
+    },
+    plot_bgcolor: '#fff', paper_bgcolor: '#fff',
+    margin: {l: 160, r: 30, t: 40, b: 45},
+    height,
+    legend: {x: 1, y: 0, xanchor: 'right'},
+    autosize: true
+  };
+  document.getElementById('plotForest').style.minHeight = height + 'px';
+  Plotly.newPlot('plotForest', traces, layout, PLOTLY_CFG);
+}
+
+function buildForestTraces(data, params, traces, group, color, offset, selected, mName) {
+  const subset = data.filter(r => r.group === group && selected.has(r.parameter));
+  if (!subset.length) return;
+
+  const legendLabel = hasComparison() ? group.charAt(0).toUpperCase() + group.slice(1) + ' (' + mName + ')' : group.charAt(0).toUpperCase() + group.slice(1);
+
+  // Individual line segments
+  subset.forEach(r => {
+    traces.push({
+      x: [r.hdi_3, r.hdi_97],
+      y: [params.indexOf(r.parameter) + offset, params.indexOf(r.parameter) + offset],
+      mode: 'lines',
+      line: {color, width: 3},
+      showlegend: false,
+      hoverinfo: 'text',
+      text: `${r.parameter} (${legendLabel})<br>Mean: ${fmt(r.mean)}<br>HDI: [${fmt(r.hdi_3)}, ${fmt(r.hdi_97)}]`,
+      type: 'scatter'
+    });
+  });
+
+  // Mean dots
+  traces.push({
+    x: subset.map(r => r.mean),
+    y: subset.map(r => params.indexOf(r.parameter) + offset),
+    mode: 'markers',
+    marker: {color, size: 8, symbol: 'circle'},
+    name: legendLabel,
+    showlegend: true,
+    hoverinfo: 'text',
+    text: subset.map(r => `${r.parameter} (${legendLabel})<br>Mean: ${fmt(r.mean)}<br>Median: ${fmt(r.median)}<br>SD: ${fmt(r.sd)}<br>HDI: [${fmt(r.hdi_3)}, ${fmt(r.hdi_97)}]`),
+    type: 'scatter'
+  });
+}
+
+function selectAllForestParams() {
+  const sel = document.getElementById('forestParamFilter');
+  Array.from(sel.options).forEach(o => o.selected = true);
+  renderForestPlot();
+}
+
+// ===== Tab 4: Diagnostics =====
+async function renderTab4() {
+  const d = getActiveModelData();
+  const switchHtml = hasComparison() ? buildModelSwitch('diagModelSwitch') : '';
+  const subEl = document.getElementById('diagSubToggle');
+  // Inject model switch before sub-toggle
+  const existingSwitch = document.getElementById('diagModelSwitch');
+  if (existingSwitch) existingSwitch.remove();
+  if (switchHtml) subEl.insertAdjacentHTML('beforebegin', switchHtml);
+
+  window._diagData = await d.loadCSV('diagnostics.csv');
+
+  const subPages = ['Sampling', 'Trace Plots', 'Prior Sensitivity', 'Parameter Table'];
+  subEl.innerHTML = subPages.map((name, i) =>
+    `<button class="toggle-btn${i === 0 ? ' active' : ''}" data-val="${i}" onclick="toggleSingleSelect(this, 'diagSubToggle', renderDiagSub)">${name}</button>`
+  ).join('');
+  renderDiagSub();
+}
+
+function renderDiagSub() {
+  const btn = document.querySelector('#diagSubToggle .toggle-btn.active');
+  const page = btn ? +btn.dataset.val : 0;
+  const d = getActiveModelData();
+  const dm = d.diagnostics_meta;
+  const data = window._diagData || [];
+  const imgs = d.images || {};
+  const el = document.getElementById('diagContent');
+
+  if (page === 0) {
+    // Sampling diagnostics: ECDF of ESS and R-hat
+    let html = '';
+    if (dm && dm.divergences_per_chain) {
+      html += `<p>Divergences per chain: [${dm.divergences_per_chain.join(', ')}] (total: ${dm.total_divergences})</p>`;
+    }
+    html += '<div class="plot-container" id="plotEssEcdf"></div>';
+    html += '<div class="plot-container" id="plotRhatEcdf"></div>';
+    el.innerHTML = html;
+
+    if (data.length) {
+      const essBulk = data.map(r => r.ess_bulk).filter(v => v != null).sort((a,b) => a - b);
+      const essTail = data.map(r => r.ess_tail).filter(v => v != null).sort((a,b) => a - b);
+      const ecdfY = (arr) => arr.map((_, i) => (i + 1) / arr.length);
+
+      Plotly.newPlot('plotEssEcdf', [
+        {x: essBulk, y: ecdfY(essBulk), mode: 'lines', name: 'ESS Bulk', line: {color: '#3b82f6', width: 2}},
+        {x: essTail, y: ecdfY(essTail), mode: 'lines', name: 'ESS Tail', line: {color: '#f97316', width: 2}},
+        {x: [400, 400], y: [0, 1], mode: 'lines', line: {color: '#dc2626', dash: 'dash', width: 1}, name: 'Threshold (400)', showlegend: true},
+      ], {...basePlotLayout('ECDF of Effective Sample Size', 'ESS', 'Cumulative Proportion'), legend: {x: 0.7, y: 0.3}}, PLOTLY_CFG);
+
+      const rhat = data.map(r => r.r_hat).filter(v => v != null).sort((a,b) => a - b);
+      Plotly.newPlot('plotRhatEcdf', [
+        {x: rhat, y: ecdfY(rhat), mode: 'lines', name: 'R-hat', line: {color: '#3b82f6', width: 2}},
+        {x: [1.01, 1.01], y: [0, 1], mode: 'lines', line: {color: '#dc2626', dash: 'dash', width: 1}, name: 'Threshold (1.01)', showlegend: true},
+      ], {...basePlotLayout('ECDF of R-hat', 'R-hat', 'Cumulative Proportion'), legend: {x: 0.05, y: 0.95}}, PLOTLY_CFG);
+    }
+
+  } else if (page === 1) {
+    // Trace plots
+    let html = '<div class="toggle-group" id="traceToggle"></div>';
+    html += '<div id="traceImageArea" style="max-width:900px"></div>';
+    el.innerHTML = html;
+
+    const traceIndex = d.trace_index || [];
+    if (traceIndex.length) {
+      const toggleEl = document.getElementById('traceToggle');
+      toggleEl.innerHTML = traceIndex.map((name, i) =>
+        `<button class="toggle-btn${i === 0 ? ' active' : ''}" data-val="${name}" onclick="selectTrace(this)">${name.replace(/_/g, ' ')}</button>`
+      ).join('');
+      selectTrace(toggleEl.querySelector('.toggle-btn'));
+    }
+
+  } else if (page === 2) {
+    // Prior sensitivity
+    let html = '';
+    if (imgs['psens_plot.png']) {
+      html += `<div class="img-section"><img src="${imgs['psens_plot.png']}" alt="Power-Scaling Sensitivity" style="max-width:100%;max-height:500px;border-radius:8px"></div>`;
+    }
+    if (imgs['psens_posteriors.png']) {
+      html += `<h4>Power-Scaled Posteriors</h4><div class="img-section"><img src="${imgs['psens_posteriors.png']}" alt="Power-Scaled Posteriors" style="max-width:100%;border-radius:8px"></div>`;
+    }
+    el.innerHTML = html || '<p style="color:#94a3b8">psens plots not available</p>';
+
+  } else if (page === 3) {
+    // Parameter table
+    el.innerHTML = '<div id="diagTable"></div>';
+    if (data.length) buildDiagTable(data);
+  }
+}
+
+function selectTrace(btn) {
+  document.querySelectorAll('#traceToggle .toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const name = btn.dataset.val;
+  const imgs = getActiveModelData().images || {};
+  const key = `trace_${name}.png`;
+  const area = document.getElementById('traceImageArea');
+  if (imgs[key]) {
+    area.innerHTML = `<img src="${imgs[key]}" alt="Trace: ${name}" style="width:100%;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)">`;
+  } else {
+    area.innerHTML = '<p style="color:#94a3b8">Trace plot not available</p>';
+  }
+}
+
+function buildDiagTable(data) {
+  const cols = ['parameter', 'mean', 'sd', 'hdi_3%', 'hdi_97%', 'mcse_mean', 'mcse_sd', 'ess_bulk', 'ess_tail', 'r_hat'];
+  let sortCol = 'r_hat', sortDir = -1;
+
+  function render() {
+    const sorted = [...data].sort((a, b) => {
+      const av = a[sortCol], bv = b[sortCol];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return sortDir * (typeof av === 'string' ? av.localeCompare(bv) : av - bv);
+    });
+
+    let html = '<table class="sortable-table"><thead><tr>';
+    cols.forEach(c => {
+      const arrow = c === sortCol ? (sortDir > 0 ? ' &#9650;' : ' &#9660;') : '';
+      html += `<th data-col="${c}">${c}${arrow}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+    sorted.forEach(r => {
+      const warn = r.r_hat > 1.01 ? ' class="warn"' : '';
+      html += `<tr${warn}>`;
+      cols.forEach(c => {
+        const v = r[c];
+        const display = v == null ? '' : typeof v === 'number' ? (c.startsWith('ess') ? Math.round(v) : Number(v).toFixed(4)) : v;
+        html += `<td>${display}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('diagTable').innerHTML = html;
+
+    // Attach sort handlers
+    document.querySelectorAll('#diagTable th').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        if (col === sortCol) { sortDir *= -1; }
+        else { sortCol = col; sortDir = col === 'parameter' ? 1 : -1; }
+        render();
+      });
+    });
+  }
+  render();
+}
+
+// ===== Tab 5: Pareto k / LOO =====
+async function renderTab5() {
+  const d = getActiveModelData();
+  const switchHtml = hasComparison() ? buildModelSwitch('paretoModelSwitch') : '';
+  const paretoEl = document.getElementById('paretoContent');
+  const existingSwitch = document.getElementById('paretoModelSwitch');
+  if (existingSwitch) existingSwitch.remove();
+  if (switchHtml) paretoEl.insertAdjacentHTML('beforebegin', switchHtml);
+
+  const pk = await d.loadCSV('pareto_k.csv');
+  const summary = d.pareto_k_summary;
+
+  let html = '';
+  if (summary) {
+    html += '<div class="cards">';
+    html += card('LOO Estimate', fmt(summary.loo_estimate, 1));
+    html += card('LOO SE', fmt(summary.loo_se, 1));
+    html += card('p_LOO', fmt(summary.p_loo, 1));
+    html += cardColored('Bad k (>0.7)', summary.n_bad_k, summary.n_bad_k === 0 ? 'green' : summary.n_bad_k <= 5 ? 'yellow' : 'red');
+    html += cardColored('Max k', fmt(summary.max_k), summary.max_k <= 0.7 ? 'green' : summary.max_k <= 1.0 ? 'yellow' : 'red');
+    html += '</div>';
+  }
+
+  html += '<div class="plot-half"><div class="plot-container" id="plotParetoHist"></div><div class="plot-container" id="plotParetoScatter"></div></div>';
+  document.getElementById('paretoContent').innerHTML = html;
+
+  if (pk.length) {
+    const kvals = pk.map(r => r.pareto_k);
+
+    // Histogram
+    Plotly.newPlot('plotParetoHist', [{
+      x: kvals, type: 'histogram',
+      marker: {color: '#3b82f6', line: {color: '#2563eb', width: 1}},
+      nbinsx: 40
+    }], {
+      ...basePlotLayout('Pareto k Distribution', 'Pareto k', 'Count'),
+      shapes: [
+        {type: 'line', x0: 0.7, x1: 0.7, y0: 0, y1: 1, yref: 'paper', line: {color: '#eab308', dash: 'dash', width: 1.5}},
+        {type: 'line', x0: 1.0, x1: 1.0, y0: 0, y1: 1, yref: 'paper', line: {color: '#dc2626', dash: 'dash', width: 1.5}}
+      ]
+    }, PLOTLY_CFG);
+
+    // Scatter
+    const colors = kvals.map(k => k > 1.0 ? '#dc2626' : k > 0.7 ? '#eab308' : '#16a34a');
+    Plotly.newPlot('plotParetoScatter', [{
+      x: pk.map(r => r.group_idx),
+      y: kvals,
+      mode: 'markers',
+      marker: {color: colors, size: 5, opacity: 0.6},
+      type: 'scatter'
+    }], {
+      ...basePlotLayout('Pareto k by Observation', 'Group Index', 'Pareto k'),
+      shapes: [
+        {type: 'line', x0: 0, x1: Math.max(...pk.map(r => r.group_idx)), y0: 0.7, y1: 0.7, line: {color: '#eab308', dash: 'dash', width: 1.5}},
+        {type: 'line', x0: 0, x1: Math.max(...pk.map(r => r.group_idx)), y0: 1.0, y1: 1.0, line: {color: '#dc2626', dash: 'dash', width: 1.5}}
+      ]
+    }, PLOTLY_CFG);
+  }
+}
+
+// ===== Tab 6: Predictive Checks =====
+function renderTab6() {
+  const d = getActiveModelData();
+  const switchHtml = hasComparison() ? buildModelSwitch('ppcModelSwitch') : '';
+  const ppcCompToggle = document.getElementById('ppcComponentToggle');
+  const existingSwitch = document.getElementById('ppcModelSwitch');
+  if (existingSwitch) existingSwitch.remove();
+  if (switchHtml) ppcCompToggle.insertAdjacentHTML('beforebegin', switchHtml);
+
+  buildPPCToggles();
+  renderPPCImages();
+}
+
+function buildPPCToggles() {
+  const compEl = document.getElementById('ppcComponentToggle');
+  const typeEl = document.getElementById('ppcTypeToggle');
+
+  if (!compEl.dataset.built) {
+    compEl.dataset.built = '1';
+    compEl.innerHTML = ['Kcal', 'Effort', 'Success'].map((l, i) =>
+      `<button class="toggle-btn${i === 0 ? ' active' : ''}" data-val="${l.toLowerCase()}" onclick="togglePPC(this, 'ppcComponentToggle')">${l}</button>`
+    ).join('');
+  }
+  if (!typeEl.dataset.built) {
+    typeEl.dataset.built = '1';
+    typeEl.innerHTML = ['Posterior PPC', 'Prior PPC'].map((l, i) =>
+      `<button class="toggle-btn${i === 0 ? ' active' : ''}" data-val="${i === 0 ? 'posterior' : 'prior'}" onclick="togglePPC(this, 'ppcTypeToggle')">${l}</button>`
+    ).join('');
+  }
+}
+
+function togglePPC(btn, containerId) {
+  const group = document.getElementById(containerId);
+  group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPPCImages();
+}
+
+function renderPPCImages() {
+  const imgs = getActiveModelData().images || {};
+  const compBtn = document.querySelector('#ppcComponentToggle .toggle-btn.active');
+  const typeBtn = document.querySelector('#ppcTypeToggle .toggle-btn.active');
+  const comp = compBtn ? compBtn.dataset.val : 'kcal';
+  const type = typeBtn ? typeBtn.dataset.val : 'posterior';
+
+  const area = document.getElementById('ppcImageArea');
+  const isBinary = (comp === 'effort' || comp === 'success');
+  let html = '';
+
+  if (isBinary) {
+    // Binary: bars PPC + calibration
+    const barsKey = type === 'posterior' ? `ppc_bars_${comp}.png` : `prior_ppc_bars_${comp}.png`;
+    const calKey = `calibration_${comp}.png`;
+    if (imgs[barsKey] || imgs[calKey]) {
+      html += '<div class="img-grid">';
+      if (imgs[barsKey]) html += `<img src="${imgs[barsKey]}" alt="${type} PPC (${comp})">`;
+      if (imgs[calKey] && type === 'posterior') html += `<img src="${imgs[calKey]}" alt="Calibration (${comp})">`;
+      html += '</div>';
+    } else {
+      html += `<div class="msg-box">No PPC images found for ${comp}.</div>`;
+    }
+  } else {
+    // Continuous: density + ECDF or prior density
+    if (type === 'posterior') {
+      const densKey = `ppc_dens_${comp}.png`;
+      const ecdfKey = `ppc_ecdf_${comp}.png`;
+      if (imgs[densKey] || imgs[ecdfKey]) {
+        html += '<div class="img-grid">';
+        if (imgs[densKey]) html += `<img src="${imgs[densKey]}" alt="PPC Density (${comp})">`;
+        if (imgs[ecdfKey]) html += `<img src="${imgs[ecdfKey]}" alt="PPC ECDF (${comp})">`;
+        html += '</div>';
+      } else {
+        html += `<div class="msg-box">No posterior PPC images found for ${comp}.</div>`;
+      }
+    } else {
+      const priorKey = `prior_ppc_dens_${comp}.png`;
+      if (imgs[priorKey]) {
+        html += `<div class="img-grid single"><img src="${imgs[priorKey]}" alt="Prior PPC Density (${comp})"></div>`;
+      } else {
+        html += `<div class="msg-box">No prior PPC image found for ${comp}.</div>`;
+      }
+    }
+  }
+
+  area.innerHTML = html;
+
+  // LOO-PIT: only for continuous outcomes
+  const pitEl = document.getElementById('ppcLooPit');
+  let pitHtml = '';
+  if (!isBinary) {
+    const pitKey = `loo_pit_ecdf_${comp}.png`;
+    if (imgs[pitKey]) {
+      pitHtml += `<h4>LOO-PIT ECDF (${comp})</h4><div class="img-section"><img src="${imgs[pitKey]}" alt="LOO-PIT ECDF"></div>`;
+    }
+  }
+  pitEl.innerHTML = pitHtml;
+}
+
+// ===== Tab 7: Shapley Values =====
+async function renderTab7() {
+  const d = getActiveModelData();
+  const switchHtml = hasComparison() ? buildModelSwitch('shapleyModelSwitch') : '';
+  const shapleyEl = document.getElementById('shapleyContent');
+  const existingSwitch = document.getElementById('shapleyModelSwitch');
+  if (existingSwitch) existingSwitch.remove();
+  if (switchHtml) shapleyEl.insertAdjacentHTML('beforebegin', switchHtml);
+
+  let data;
+  try {
+    data = await d.loadCSV('shapley_values.csv');
+  } catch { data = []; }
+
+  if (!data || !data.length) {
+    document.getElementById('shapleyContent').innerHTML = '<div class="msg-box">Shapley values not computed for this model.</div>';
+    return;
+  }
+
+  const meta = await d.loadCSV('forager_metadata.csv');
+
+  // Aggregate by forager
+  const byForager = {};
+  data.forEach(r => {
+    if (!byForager[r.forager_idx]) byForager[r.forager_idx] = {total: 0, count: 0, vals: []};
+    byForager[r.forager_idx].total += r.shapley_mean;
+    byForager[r.forager_idx].count += 1;
+    byForager[r.forager_idx].vals.push(r);
+  });
+
+  const foragers = Object.entries(byForager)
+    .map(([idx, v]) => ({idx: +idx, total: v.total, mean: v.total / v.count, count: v.count}))
+    .sort((a, b) => b.mean - a.mean);
+
+  let html = '<div class="plot-container" id="plotShapleyAge" style="min-height:500px"></div>';
+  html += '<h4>Daily Kcal Contributions by Gender &times; Age</h4>';
+  html += '<div class="plot-container" id="plotShapleyArea"></div>';
+  document.getElementById('shapleyContent').innerHTML = html;
+
+  // Shapley boxplots: daily totals per forager (sum all trips within each day)
+  if (meta.length) {
+    const metaMap = {};
+    meta.forEach(r => { metaMap[r.forager_idx] = r; });
+
+    // Sum shapley_mean by (forager, date) to get daily totals
+    const dailyTotals = {};  // forager_idx -> [daily_sum, ...]
+    const byForagerDate = {};
+    data.forEach(r => {
+      const key = `${r.forager_idx}_${r.date_idx}`;
+      if (!byForagerDate[key]) byForagerDate[key] = {forager: r.forager_idx, total: 0};
+      byForagerDate[key].total += r.shapley_mean;
+    });
+    for (const v of Object.values(byForagerDate)) {
+      if (!dailyTotals[v.forager]) dailyTotals[v.forager] = [];
+      dailyTotals[v.forager].push(v.total);
+    }
+
+    // Build one box trace per gender
+    const genderGroups = {};
+    for (const [fIdx, vals] of Object.entries(dailyTotals)) {
+      const m = metaMap[fIdx];
+      if (!m) continue;
+      const g = m.gender || 'unknown';
+      if (!genderGroups[g]) genderGroups[g] = {ages: [], vals: [], labels: []};
+      genderGroups[g].ages.push(...vals.map(() => +m.age));
+      genderGroups[g].vals.push(...vals);
+      genderGroups[g].labels.push(...vals.map(v => `Forager ${fIdx}, Age ${m.age}<br>${v.toFixed(0)} kcal/day`));
+    }
+
+    const traces = Object.entries(genderGroups).map(([g, d]) => ({
+      x: d.ages,
+      y: d.vals,
+      text: d.labels,
+      hoverinfo: 'text',
+      name: g,
+      type: 'box',
+      marker: {color: COLORS[g] || '#94a3b8', opacity: 0.7, size: 4},
+      line: {color: COLORS[g] || '#94a3b8'},
+      fillcolor: (COLORS[g] || '#94a3b8') + '40',
+      boxpoints: 'all',
+      jitter: 0.2,
+      pointpos: 0,
+      whiskerwidth: 0.5,
+    }));
+    Plotly.newPlot('plotShapleyAge', traces, {
+      ...basePlotLayout('Daily Shapley Values by Forager Age', 'Age (years)', 'Daily Kcal Contribution'),
+      boxmode: 'group',
+    }, PLOTLY_CFG);
+  }
+
+  // Stacked area chart: daily kcal by category
+  let areaData;
+  try { areaData = await d.loadCSV('shapley_area.csv'); } catch { areaData = []; }
+  if (areaData.length) {
+    const catColors = {
+      'male <10': '#93c5fd', 'male 10-20': '#3b82f6', 'male >20': '#1d4ed8',
+      'female <10': '#fdba74', 'female 10-20': '#f97316', 'female >20': '#c2410c',
+    };
+    const categories = [...new Set(areaData.map(r => r.category))].sort();
+    const dateEntries = [...new Map(areaData.map(r => [r.date_idx, r.date_label || r.date_idx]))].sort((a, b) => a[0] - b[0]);
+    const dateIdxs = dateEntries.map(d => d[0]);
+    const dateLabels = dateEntries.map(d => d[1]);
+    const areaTraces = categories.map(cat => {
+      const catRows = areaData.filter(r => r.category === cat);
+      const dateMap = {};
+      catRows.forEach(r => { dateMap[r.date_idx] = r.shapley_mean; });
+      return {
+        x: dateLabels,
+        y: dateIdxs.map(d => dateMap[d] || 0),
+        name: cat,
+        type: 'scatter',
+        mode: 'lines',
+        stackgroup: 'one',
+        fillcolor: catColors[cat] || '#94a3b8',
+        line: {width: 0.5, color: catColors[cat] || '#94a3b8'},
+      };
+    });
+    Plotly.newPlot('plotShapleyArea', areaTraces, {
+      ...basePlotLayout('Daily Kcal Contributions', 'Date', 'Kcal (Shapley)'),
+      height: 400,
+      legend: {orientation: 'h', y: -0.15},
+    }, PLOTLY_CFG);
+  }
+}
+
+// ===== Tab 8: Key Estimates =====
+async function renderTab8() {
+  const est = window.models[0].estimates;
+  if (!est || !est.length) {
+    document.getElementById('estimatesContent').innerHTML = '<div class="msg-box">estimates.json not found.</div>';
+    return;
+  }
+
+  const compEst = hasComparison() ? window.models[1].estimates : null;
+  const compMap = {};
+  if (compEst && compEst.length) {
+    compEst.forEach(e => { compMap[e.name] = e; });
+  }
+
+  let html = '<table class="sortable-table"><thead><tr>';
+  html += '<th>Estimate</th>';
+  if (hasComparison()) {
+    html += `<th>${modelName(0)} Mean</th><th>${modelName(0)} 95% HDI</th>`;
+    html += `<th>${modelName(1)} Mean</th><th>${modelName(1)} 95% HDI</th>`;
+    html += '<th>Diff (Mean)</th>';
+  } else {
+    html += '<th>Mean</th><th>Median</th><th>95% HDI</th><th>SD</th><th>Extra</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  est.forEach(e => {
+    const hdi = `[${Number(e.hdi_lo).toFixed(2)}, ${Number(e.hdi_hi).toFixed(2)}]`;
+    html += `<tr>`;
+    html += `<td style="font-weight:500">${e.name}</td>`;
+
+    if (hasComparison()) {
+      html += `<td>${Number(e.mean).toFixed(3)}</td>`;
+      html += `<td>${hdi}</td>`;
+      const ce = compMap[e.name];
+      if (ce) {
+        const cHdi = `[${Number(ce.hdi_lo).toFixed(2)}, ${Number(ce.hdi_hi).toFixed(2)}]`;
+        html += `<td>${Number(ce.mean).toFixed(3)}</td>`;
+        html += `<td>${cHdi}</td>`;
+        const diff = Number(e.mean) - Number(ce.mean);
+        const diffColor = Math.abs(diff) < 0.01 ? '#64748b' : diff > 0 ? '#1d4ed8' : '#c2410c';
+        html += `<td style="color:${diffColor};font-weight:600">${diff >= 0 ? '+' : ''}${diff.toFixed(3)}</td>`;
+      } else {
+        html += '<td>-</td><td>-</td><td>-</td>';
+      }
+    } else {
+      let extra = '';
+      if (e.prob_negative != null) extra = `P(neg) = ${(e.prob_negative * 100).toFixed(0)}%`;
+      html += `<td>${Number(e.mean).toFixed(3)}</td>`;
+      html += `<td>${Number(e.median).toFixed(3)}</td>`;
+      html += `<td>${hdi}</td>`;
+      html += `<td>${Number(e.sd).toFixed(3)}</td>`;
+      html += `<td>${extra}</td>`;
+    }
+    html += `</tr>`;
+  });
+
+  // Add any comparison-only estimates not in primary
+  if (compEst && compEst.length) {
+    const primaryNames = new Set(est.map(e => e.name));
+    compEst.filter(e => !primaryNames.has(e.name)).forEach(ce => {
+      const cHdi = `[${Number(ce.hdi_lo).toFixed(2)}, ${Number(ce.hdi_hi).toFixed(2)}]`;
+      html += `<tr><td style="font-weight:500">${ce.name}</td><td>-</td><td>-</td>`;
+      html += `<td>${Number(ce.mean).toFixed(3)}</td><td>${cHdi}</td><td>-</td></tr>`;
+    });
+  }
+
+  html += '</tbody></table>';
+  document.getElementById('estimatesContent').innerHTML = html;
+}
+
+// ===== Tab 9: Effort-Skill Tradeoff =====
+async function renderTab9() {
+  const d = getActiveModelData();
+  const switchHtml = hasComparison() ? buildModelSwitch('tradeoffModelSwitch') : '';
+  const el = document.getElementById('tradeoffContent');
+  const existingSwitch = document.getElementById('tradeoffModelSwitch');
+  if (existingSwitch) existingSwitch.remove();
+  if (switchHtml) el.insertAdjacentHTML('beforebegin', switchHtml);
+
+  let data, summary;
+  try { data = await d.loadCSV('effort_skill_tradeoff.csv'); } catch { data = []; }
+  try { summary = await d.loadCSV('effort_skill_summary.csv'); } catch { summary = []; }
+
+  if (!data.length) {
+    el.innerHTML = '<div class="msg-box">effort_skill_tradeoff.csv not found. Re-export with latest script.</div>';
+    return;
+  }
+
+  let html = '';
+  html += '<div class="plot-half">';
+  html += '<div class="plot-container" id="plotTradeoffEffort"></div>';
+  html += '<div class="plot-container" id="plotTradeoffKcal"></div>';
+  html += '</div>';
+  html += '<div class="plot-container" id="plotTradeoffDays" style="min-height:450px"></div>';
+  el.innerHTML = html;
+
+  // Parse data by skill_shift
+  const byShift = {actual: [], high: [], low: []};
+  data.forEach(r => { if (byShift[r.skill_shift]) byShift[r.skill_shift].push(r); });
+
+  // Sort each by age
+  for (const k in byShift) byShift[k].sort((a, b) => a.age - b.age);
+
+  // Plot 1: P(effort) vs age for high/low/actual
+  const effortTraces = [
+    {shift: 'high', color: '#16a34a', name: '+1 SD skill'},
+    {shift: 'actual', color: '#3b82f6', name: 'Actual'},
+    {shift: 'low', color: '#dc2626', name: '-1 SD skill'},
+  ].map(({shift, color, name}) => ({
+    x: byShift[shift].map(r => r.age),
+    y: byShift[shift].map(r => r.p_effort_mean),
+    mode: 'markers',
+    marker: {color, size: 7, opacity: 0.7},
+    name,
+    type: 'scatter',
+  }));
+  Plotly.newPlot('plotTradeoffEffort', effortTraces, {
+    ...basePlotLayout('P(effort) by Skill Level', 'Age (years)', 'P(forage on a given day)'),
+  }, PLOTLY_CFG);
+
+  // Plot 2: Annual kcal vs age for high/low/actual
+  const kcalTraces = [
+    {shift: 'high', color: '#16a34a', name: '+1 SD skill'},
+    {shift: 'actual', color: '#3b82f6', name: 'Actual'},
+    {shift: 'low', color: '#dc2626', name: '-1 SD skill'},
+  ].map(({shift, color, name}) => ({
+    x: byShift[shift].map(r => r.age),
+    y: byShift[shift].map(r => r.annual_kcal_mean),
+    mode: 'markers',
+    marker: {color, size: 7, opacity: 0.7},
+    name,
+    type: 'scatter',
+  }));
+  Plotly.newPlot('plotTradeoffKcal', kcalTraces, {
+    ...basePlotLayout('Annual Expected Kcal by Skill Level', 'Age (years)', 'Annual Kcal'),
+  }, PLOTLY_CFG);
+
+  // Plot 3: Extra subsistence days needed to match
+  if (summary.length) {
+    summary.sort((a, b) => a.age - b.age);
+    const genders = [...new Set(summary.map(r => r.gender))];
+    const dayTraces = genders.map(g => {
+      const rows = summary.filter(r => r.gender === g);
+      return {
+        x: rows.map(r => r.age),
+        y: rows.map(r => r.extra_days_low),
+        mode: 'markers',
+        marker: {color: COLORS[g] || '#94a3b8', size: 9, opacity: 0.8},
+        text: rows.map(r =>
+          `Age: ${r.age}, ${r.gender}<br>` +
+          `Extra days needed: ${(+r.extra_days_low).toFixed(0)}<br>` +
+          `Days to match: ${(+r.days_to_match_low).toFixed(0)}<br>` +
+          `P(effort) low: ${(+r.p_effort_mean_low).toFixed(2)}, high: ${(+r.p_effort_mean_high).toFixed(2)}`
+        ),
+        hoverinfo: 'text',
+        name: g,
+        type: 'scatter',
+      };
+    });
+    // Add reference line at 365
+    dayTraces.push({
+      x: [0, 75], y: [365, 365],
+      mode: 'lines', line: {color: '#94a3b8', dash: 'dash', width: 1},
+      name: '365 days (impossible)', showlegend: true,
+    });
+    Plotly.newPlot('plotTradeoffDays', dayTraces, {
+      ...basePlotLayout(
+        'Extra Subsistence Days for -1 SD Skill to Match +1 SD Annual Kcal',
+        'Age (years)',
+        'Additional Subsistence Days Needed'
+      ),
+      height: 450,
+    }, PLOTLY_CFG);
+  }
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Nothing to do until data is loaded
+});
+</script>
+</body>
+</html>

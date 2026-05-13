@@ -1,0 +1,67 @@
+cff-version: 1.2.0
+message: "If you use this software or the accompanying analyses, please cite the paper below."
+title: "Code and analyses for: Subsistence effort negatively predicts skill among BaYaka foragers"
+abstract: >-
+  Bayesian hierarchical model jointly estimating subsistence effort, success,
+  and food production from a 6-week observational study of BaYaka foragers in
+  the Republic of the Congo. Includes Shapley-value decomposition of group
+  returns, age measurement-error sensitivity, and aggregation-method sensitivity
+  analyses.
+type: software
+authors:
+  - family-names: Lew-Levy
+    given-names: Sheina
+    affiliation: "Department of Psychology, Durham University"
+  - family-names: Ringen
+    given-names: "Erik J."
+    affiliation: "Independent researcher"
+    email: ringen.erik@gmail.com
+  - family-names: Benoit
+    given-names: Lucie
+    affiliation: "École de la Reliance au Vivant"
+  - family-names: Ouamba
+    given-names: "Yann R."
+    affiliation: "École Nationale Supérieure d'Agronomie et de Foresterie, Université Marien Ngouabi"
+  - family-names: Boyette
+    given-names: "Adam H."
+    affiliation: "Department of Human Behavior, Ecology and Culture, Max Planck Institute for Evolutionary Anthropology"
+  - family-names: Pope-Caldwell
+    given-names: Sarah
+    affiliation: "Department of Psychology, Georgia State University"
+  - family-names: Gettler
+    given-names: "Lee T."
+    affiliation: "Department of Anthropology, University of Notre Dame"
+  - family-names: Crittenden
+    given-names: "Alyssa N."
+    affiliation: "Department of Anthropology, University of Nevada, Las Vegas"
+preferred-citation:
+  type: article
+  title: "Subsistence effort negatively predicts skill among BaYaka foragers"
+  year: 2026
+  authors:
+    - family-names: Lew-Levy
+      given-names: Sheina
+    - family-names: Ringen
+      given-names: "Erik J."
+    - family-names: Benoit
+      given-names: Lucie
+    - family-names: Ouamba
+      given-names: "Yann R."
+    - family-names: Boyette
+      given-names: "Adam H."
+    - family-names: Pope-Caldwell
+      given-names: Sarah
+    - family-names: Gettler
+      given-names: "Lee T."
+    - family-names: Crittenden
+      given-names: "Alyssa N."
+  journal: "TBD"
+  doi: "TBD"
+license: MIT
+keywords:
+  - hunter-gatherer
+  - life history
+  - Bayesian hierarchical model
+  - PyMC
+  - Shapley values
+  - BaYaka

@@ -1,0 +1,48 @@
+// Causal DAG for Foraging Returns Model
+// Rectangles: observed variables
+// Circles: latent variables
+// Orange: ψ, the residual effort–skill association
+
+digraph ForagingDAG {
+    rankdir=TB;
+    splines=true;
+    nodesep=0.8;
+    ranksep=0.9;
+    fontname="Helvetica";
+    fontsize=12;
+
+    node [fontname="Helvetica", fontsize=11];
+    edge [fontname="Helvetica", fontsize=10];
+
+    // Observed variables (rectangles)
+    Age       [shape=rect,   style=filled, fillcolor=white, label="Age"];
+    Gender    [shape=rect,   style=filled, fillcolor=white, label="Gender"];
+    Returns   [shape=rect,   style=filled, fillcolor=white, label="Returns"];
+    GroupSize [shape=rect,   style=filled, fillcolor=white, label="Group size"];
+
+    // Latent variables (circles)
+    Skill  [shape=circle, style=filled, fillcolor=white, label="Skill"];
+    Effort [shape=circle, style=filled, fillcolor=white, label="Effort"];
+
+    // Shared latent factor (highlighted)
+    U [shape=circle, style=filled, fillcolor="#e07b39", fontcolor=white,
+       color="#e07b39", label="ψ"];
+
+    {rank=same; Age; Gender;}
+    {rank=same; U; Skill; Effort;}
+    {rank=same; Returns; GroupSize;}
+
+    // Causal relationships
+    Age    -> Skill;
+    Age    -> Effort;
+    Age    -> GroupSize;
+    Gender -> Skill;
+    Gender -> Effort;
+    Gender -> GroupSize;
+    Skill  -> Returns;
+    GroupSize -> Returns;
+
+    // Highlighted: shared latent factor
+    U -> Skill  [color="#e07b39", penwidth=2.0];
+    U -> Effort [color="#e07b39", penwidth=2.0];
+}

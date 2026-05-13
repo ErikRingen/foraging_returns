@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Generated outputs (fitted models, predictions, derived CSVs, etc.)
+results/
+
+# Raw data with real participant IDs — never commit to a public repo.
+# The publishable subset lives in public_data/ (built by
+# scripts/build_public_dataset.py).
+raw_data/
+
+# Auto-generated Quarto / rendered HTML / DOCX
+Interactive - *.ipynb
+*.quarto_ipynb
+docs/**/*_files/
+docs/**/*.html
+docs/**/*.docx
+
+# Office lock files (created by Word/Excel/PowerPoint while a document is open)
+~$*
+
+# Internal author-only scaffolding (audit notes, submission checklist,
+# coordination docs). Kept on disk; never published.
+docs/internal/
+
+# Environment
+.pixi/
+.venv/
+venv/
+env/
+
+# Private secrets — never commit. The anonymization salt for the public
+# data builder lives only in author env or .env (and must NEVER be
+# committed; see scripts/build_public_dataset.py).
+.env
+.env.*
+*.salt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code workspace state (per-author scratch, never published)
+.claude/

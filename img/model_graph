@@ -1,0 +1,173 @@
+digraph {
+	subgraph "clustergroup (1070)" {
+		expected [label="expected
+~
+Deterministic" shape=box]
+		mu [label="mu
+~
+Deterministic" shape=box]
+		alpha_success [label="alpha_success
+~
+Deterministic" shape=box]
+		kcal [label="kcal
+~
+Gamma" shape=ellipse style=filled]
+		kcal_scaled [label="kcal_scaled
+~
+Data" shape=box style="rounded, filled"]
+		rate [label="rate
+~
+Deterministic" shape=box]
+		group_date [label="group_date
+~
+Data" shape=box style="rounded, filled"]
+		alpha_mu [label="alpha_mu
+~
+Deterministic" shape=box]
+		theta [label="theta
+~
+Deterministic" shape=box]
+		group_size [label="group_size
+~
+Deterministic" shape=box]
+		label="group (1070)" labeljust=r labelloc=b style=rounded
+	}
+	subgraph "clustergroup (1070) x forager_in_group (17)" {
+		forager_ids [label="forager_ids
+~
+Data" shape=box style="rounded, filled"]
+		label="group (1070) x forager_in_group (17)" labeljust=r labelloc=b style=rounded
+	}
+	subgraph "clusterforager (49)" {
+		age [label="age
+~
+Data" shape=box style="rounded, filled"]
+		label="forager (49)" labeljust=r labelloc=b style=rounded
+	}
+	subgraph "clusterforager (49) x date (42)" {
+		forager_success_data [label="forager_success_data
+~
+Data" shape=box style="rounded, filled"]
+		success_prob [label="success_prob
+~
+Deterministic" shape=box]
+		forager_success [label="forager_success
+~
+Bernoulli" shape=ellipse style=filled]
+		label="forager (49) x date (42)" labeljust=r labelloc=b style=rounded
+	}
+	eta_mu0 [label="eta_mu0
+~
+Normal" shape=ellipse]
+	k0 [label="k0
+~
+Normal" shape=ellipse]
+	b_groupsize_success [label="b_groupsize_success
+~
+Normal" shape=ellipse]
+	b0 [label="b0
+~
+Normal" shape=ellipse]
+	intercept_mu [label="intercept_mu
+~
+Normal" shape=ellipse]
+	k [label="k
+~
+Deterministic" shape=box]
+	eta_mu [label="eta_mu
+~
+Deterministic" shape=box]
+	m0 [label="m0
+~
+Normal" shape=ellipse]
+	intercept_bernoulli [label="intercept_bernoulli
+~
+Normal" shape=ellipse]
+	eta_bernoulli0 [label="eta_bernoulli0
+~
+Normal" shape=ellipse]
+	eta_success0 [label="eta_success0
+~
+Normal" shape=ellipse]
+	b_groupsize_mu [label="b_groupsize_mu
+~
+Normal" shape=ellipse]
+	shape [label="shape
+~
+Gamma" shape=ellipse]
+	eta_success [label="eta_success
+~
+Deterministic" shape=box]
+	m [label="m
+~
+Deterministic" shape=box]
+	eta_bernoulli [label="eta_bernoulli
+~
+Deterministic" shape=box]
+	intercept_success [label="intercept_success
+~
+Normal" shape=ellipse]
+	b [label="b
+~
+Deterministic" shape=box]
+	subgraph cluster49 {
+		M [label="M
+~
+Deterministic" shape=box]
+		S [label="S
+~
+Deterministic" shape=box]
+		K [label="K
+~
+Deterministic" shape=box]
+		label=49 labeljust=r labelloc=b style=rounded
+	}
+	subgraph cluster1070 {
+		S_x_grouped [label="S_x_grouped
+~
+Deterministic" shape=box]
+		label=1070 labeljust=r labelloc=b style=rounded
+	}
+	kcal -> kcal_scaled
+	forager_success -> forager_success_data
+	forager_ids -> group_size
+	m0 -> m
+	k0 -> k
+	b0 -> b
+	m -> M
+	age -> M
+	k -> K
+	age -> K
+	M -> S
+	b -> S
+	K -> S
+	eta_bernoulli0 -> eta_bernoulli
+	S -> success_prob
+	eta_bernoulli -> success_prob
+	intercept_bernoulli -> success_prob
+	success_prob -> forager_success
+	S -> S_x_grouped
+	forager_ids -> S_x_grouped
+	eta_mu0 -> eta_mu
+	eta_success0 -> eta_success
+	intercept_mu -> alpha_mu
+	b_groupsize_mu -> alpha_mu
+	group_size -> alpha_mu
+	intercept_success -> alpha_success
+	b_groupsize_success -> alpha_success
+	group_size -> alpha_success
+	eta_mu -> mu
+	S_x_grouped -> mu
+	alpha_mu -> mu
+	mu -> rate
+	shape -> rate
+	rate -> kcal
+	shape -> kcal
+	forager_ids -> theta
+	S_x_grouped -> theta
+	eta_success -> theta
+	alpha_success -> theta
+	mu -> expected
+	theta -> expected
+	forager_ids -> expected
+}

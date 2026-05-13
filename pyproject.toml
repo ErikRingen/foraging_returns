@@ -1,0 +1,52 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+filterwarnings = [
+    "error",
+    # Pandas: silence its noisy "could not infer date format" message.
+    # Our production date parser specifies format='mixed' explicitly, but
+    # tests use small fixtures that re-trip this warning.
+    "ignore:Could not infer format:UserWarning",
+    # Pandas Series-of-bool reductions etc. inside arviz / xarray.
+    "ignore:.*Boolean Series:UserWarning",
+    # PyMC/PyTensor occasionally raise informational UserWarnings during
+    # graph compilation; not actionable from our code.
+    "ignore::UserWarning:pymc",
+    "ignore::UserWarning:pytensor",
+    "ignore::UserWarning:nutpie",
+    "ignore::UserWarning:arviz",
+    # Many transitive deps still raise DeprecationWarnings on Python
+    # 3.12; treat them as ignorable but specific to dep code.
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["foraging_model", "preprocessing"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+

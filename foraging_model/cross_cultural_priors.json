@@ -1,0 +1,43 @@
+{
+  "source": "Koster et al. 2020, Science Advances",
+  "osf_url": "https://osf.io/2kzb6/",
+  "model_file": "model_fix_17092018.RData",
+  "ref_age_koster": 80,
+  "age_scale_ours": 70,
+  "adjustment": "log(80/70) added to log_k and log_m",
+  "n_posterior_samples": 1600,
+  "n_sites": 40,
+  "n_individuals": 1821,
+  "priors": {
+    "m0": {
+      "dist": "normal",
+      "mu": -0.36,
+      "sigma": 0.23,
+      "description": "Senescence rate (log scale). Center from cross-cultural global mean, sigma from sqrt(global_posterior_sd\u00b2 + between_site_sd\u00b2)"
+    },
+    "k0": {
+      "dist": "normal",
+      "mu": 1.51,
+      "sigma": 0.31,
+      "description": "Learning rate (log scale)"
+    },
+    "b0": {
+      "dist": "normal",
+      "mu": 0.11,
+      "sigma": 0.37,
+      "description": "Skill curve elasticity / power (log scale)"
+    },
+    "eta_mu0": {
+      "dist": "normal",
+      "mu": -0.14,
+      "sigma": 0.54,
+      "description": "Returns skill elasticity (log scale). From Koster's `seh` posterior (per-society, no formal pooling), pooled across (society x draw). Direct map: Koster's mu_harvest = lm_h * S(x)^exp(seh) matches our mu_returns \u221d S(x)^exp(eta_mu0)."
+    },
+    "eta_success0": {
+      "dist": "normal",
+      "mu": 0.06,
+      "sigma": 0.57,
+      "description": "Success skill elasticity (log scale). From Koster's `sef` posterior, pooled across (society x draw). Maps to our eta_success0 by interpretation (skill->success/failure coupling); link function differs (Koster: 2*(1-inv_logit(...)) for failure; ours: logit(p_success)), but log-scale exponent on S(x) and sign convention match."
+    }
+  }
+}
