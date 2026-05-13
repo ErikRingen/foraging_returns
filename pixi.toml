@@ -1,7 +1,7 @@
 [workspace]
 name = "foraging-returns"
 version = "0.1.0"
-description = "Code and analyses for: Subsistence effort negatively predicts skill among BaYaka foragers"
+description = "Code and analyses for: The development of subsistence effort and skill among BaYaka foragers"
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
 

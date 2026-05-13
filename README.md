@@ -1,8 +1,8 @@
-# Subsistence effort negatively predicts skill among BaYaka foragers
+# The development of subsistence effort and skill among BaYaka foragers
 
 Code, data, and analyses accompanying:
 
-> Lew-Levy S., Ringen E.J., Benoit L., Ouamba Y.R., Boyette A.H., Pope-Caldwell S., Gettler L.T., Crittenden A.N. (2026). *Subsistence effort negatively predicts skill among BaYaka foragers.* (manuscript under review)
+> Lew-Levy S., Ringen E.J., Benoit L., Ouamba Y.R., Boyette A.H., Pope-Caldwell S., Gettler L.T., Crittenden A.N. (2026). *The development of subsistence effort and skill among BaYaka foragers.* (manuscript under review)
 
 ## Reproducing the analysis
 
@@ -156,7 +156,7 @@ If you use this code or the public dataset, please cite the paper above and this
   author = {Lew-Levy, Sheina and Ringen, Erik J. and Benoit, Lucie and
             Ouamba, Yann R. and Boyette, Adam H. and Pope-Caldwell, Sarah and
             Gettler, Lee T. and Crittenden, Alyssa N.},
-  title  = {Code and analyses for: Subsistence effort negatively predicts skill among BaYaka foragers},
+  title  = {Code and analyses for: The development of subsistence effort and skill among BaYaka foragers},
   year   = {2026},
   url    = {https://github.com/<owner>/<repo>}
 }

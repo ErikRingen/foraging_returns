@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software or the accompanying analyses, please cite the paper below."
-title: "Code and analyses for: Subsistence effort negatively predicts skill among BaYaka foragers"
+title: "Code and analyses for: The development of subsistence effort and skill among BaYaka foragers"
 abstract: >-
   Bayesian hierarchical model jointly estimating subsistence effort, success,
   and food production from a 6-week observational study of BaYaka foragers in
@@ -36,7 +36,7 @@ authors:
     affiliation: "Department of Anthropology, University of Nevada, Las Vegas"
 preferred-citation:
   type: article
-  title: "Subsistence effort negatively predicts skill among BaYaka foragers"
+  title: "The development of subsistence effort and skill among BaYaka foragers"
   year: 2026
   authors:
     - family-names: Lew-Levy
