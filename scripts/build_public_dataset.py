@@ -115,9 +115,12 @@ def build_returns(id_map, kcal_lookup):
     df["id"] = df["id"].astype(str).map(id_map)
     df = df.dropna(subset=["id"])
     df = _attach_kcal(df, kcal_lookup, "net_food_weight_gram")
-    # Drop resource attribution: index, article, state. `kcal` (numeric,
-    # already computed above) replaces them as the dependent variable.
-    drop_cols = [c for c in ["index", "article", "state"] if c in df.columns]
+    # Drop resource attribution and raw weight: `kcal` (numeric, already
+    # computed above) replaces them as the dependent variable.
+    drop_cols = [
+        c for c in ["index", "article", "state", "net_food_weight_gram"]
+        if c in df.columns
+    ]
     return df.drop(columns=drop_cols).rename(columns={"id": "anon_id"})
 
 
@@ -128,7 +131,10 @@ def build_recall(id_map, kcal_lookup):
     df = df.dropna(subset=["id"])
     df = _attach_kcal(df, kcal_lookup, "total_weight_grams")
     drop_cols = [
-        c for c in ["index", "article_consumed", "source"] if c in df.columns
+        c for c in [
+            "index", "article_consumed", "source",
+            "quantity", "x1_unit_weight_grams", "total_weight_grams",
+        ] if c in df.columns
     ]
     return df.drop(columns=drop_cols).rename(columns={"id": "anon_id"})
 
@@ -218,9 +224,12 @@ underlying the manuscript. It has been processed by
    the model consumes. Age and birth year are mathematically equivalent
    given a known study year; this is a presentational choice, not a
    privacy step.
-3. Remove resource-level attribution. Specifically, the `index`, `article`,
-   `article_consumed`, `source`, and free-text `state` columns are dropped
-   from `returns.csv` and `recall.csv`. Only kilocalorie totals remain.
+3. Remove resource-level attribution and raw weights. Specifically, the
+   `index`, `article`, `article_consumed`, `source`, free-text `state`,
+   and the per-package weight columns (`net_food_weight_gram` in
+   `returns.csv`; `quantity`, `x1_unit_weight_grams`, `total_weight_grams`
+   in `recall.csv`) are dropped. Only the pre-computed `kcal` totals
+   remain as the dependent variable.
 
 For the full dataset (with real participant IDs and resource attribution),
 contact the corresponding authors. Use is subject to ethical approval.

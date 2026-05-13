@@ -12,9 +12,12 @@ underlying the manuscript. It has been processed by
    the model consumes. Age and birth year are mathematically equivalent
    given a known study year; this is a presentational choice, not a
    privacy step.
-3. Remove resource-level attribution. Specifically, the `index`, `article`,
-   `article_consumed`, `source`, and free-text `state` columns are dropped
-   from `returns.csv` and `recall.csv`. Only kilocalorie totals remain.
+3. Remove resource-level attribution and raw weights. Specifically, the
+   `index`, `article`, `article_consumed`, `source`, free-text `state`,
+   and the per-package weight columns (`net_food_weight_gram` in
+   `returns.csv`; `quantity`, `x1_unit_weight_grams`, `total_weight_grams`
+   in `recall.csv`) are dropped. Only the pre-computed `kcal` totals
+   remain as the dependent variable.
 
 For the full dataset (with real participant IDs and resource attribution),
 contact the corresponding authors. Use is subject to ethical approval.
