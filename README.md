@@ -81,20 +81,6 @@ pixi run python scripts/fit_model.py \
 
 Per-resource figures (the resource-composition figures in supplement §3 and the resource-by-skill panel in supplement §8) require the resource-attribution columns of the full data and are not reproducible from `public_data/` alone; everything else is.
 
-### How the anonymisation works
-
-`scripts/build_public_dataset.py` derives each participant's anonymised label `P###` by hashing their real ID together with a private 32-character salt held only by the corresponding authors. Because the salt is not committed to the repository and is unique to this dataset, the mapping cannot be inverted by an external party, and the labels do not match those used in any other BaYaka publication. The script also:
-
-1. Replaces `BirthYear` with integer `age` (= `2018 − BirthYear`), the form the model actually consumes. Age and birth year are equivalent given a known study year, so this is a presentational choice, not a privacy step.
-2. Removes the resource-attribution columns (`index`, `article`, `article_consumed`, `source`, `state`) from `returns.csv` and `recall.csv`, and ships a precomputed `kcal` column so the model can still be refit.
-
-The salt is read from the `BAYAKA_SALT` environment variable (or `--salt`); to rebuild `public_data/`:
-
-```bash
-export BAYAKA_SALT="<32+ random characters held privately>"
-pixi run python scripts/build_public_dataset.py
-```
-
 ## Repository layout
 
 ```
