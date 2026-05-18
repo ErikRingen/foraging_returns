@@ -96,8 +96,8 @@ The modelled dataset is constructed from six raw files: in-camp daily presence (
 - Group identifier. Each food package is identified by date and the set of contributing foragers. The `pooled_group` field from the field protocol resolves cases where multiple foragers participated in collecting the same item. We then aggregate to a single `group_id = "<date>_<sorted forager IDs>"`. When the same forager set is recorded against more than one `pooled_group` on the same day — e.g. two sub-trips, or two separately-pooled cooperative items — kcal is summed within the resulting `group_id` and the model treats them as a single observation in the LogNormal returns likelihood. Of 1 060 cooperative `group_id`s, 58 (5.5 %) merge two or more `pooled_group`s this way (max 7); solo `group_id`s never collide.
 - Effort observations. For each forager × in-camp date, an effort indicator is set to 1 if the forager left camp that day and 0 otherwise. These observations enter the Bernoulli effort component.
 - Success observations. Conditional on having gone out, each forager × date is labelled as a success (returned with at least one food package) or failure. These observations enter the Bernoulli success component.
-- Zero-inferred returns. (forager, date) pairs with positive out-of-camp time but no recorded food package are appended as kcal = 0 rows. These rows are excluded from the LogNormal returns component, which is conditional on positive returns. Group composition is not recoverable from time-allocation alone, so each zero-inferred row is recorded as a solo trip; this misrepresents days on which the forager went out in a cooperative group that returned nothing. The zero-inferred rows are 290 of 1 360 group rows (21 %).
-- Age estimation. BaYaka birth years are not recorded numerically. Age was estimated using the consensus method of Diekmann et al., with 1-year intervals for individuals under 20 and 10-year intervals for those 20+. The model's measurement-error component places a Normal observation density on the recorded age centred on the latent true age (see §4.7), so we need an observation SD. The intervals are most naturally read as half-widths around a point estimate, so we use those half-widths directly as the Normal SD: `age_sigma` = 1 yr (under 20) and 5 yr (20+). Treating the interval as Uniform instead would imply a strictly smaller SD of half-width$/\sqrt{3}$; we deliberately use the larger half-width to avoid understating age uncertainty.
+- Zero-inferred returns. (forager, date) pairs with positive out-of-camp time but no recorded food package are appended as kcal = 0 rows. These rows are excluded from the LogNormal returns component, which is conditional on positive returns. Group composition is not recoverable from time-allocation alone, so each zero-inferred row is recorded as a solo trip; this misrepresents days on which the forager went out in a cooperative group that returned nothing.
+- Age estimation. BaYaka birth years are not recorded numerically. Age was estimated using the consensus method of Diekmann et al., with 1-year intervals for individuals under 20 and 10-year intervals for those 20+. The model's measurement-error component places a Normal observation density on the recorded age centred on the latent true age (see §4.7), so we need an observation SD. The intervals are most naturally read as half-widths around a point estimate, so we use those half-widths directly as the Normal SD: `age_sigma` = 1 yr (under 20) and 5 yr (20+).
 - Inclusion. Three of 54 listed camp members were excluded as under age 1; foragers without any foraging activity over the study window are then dropped at the time-aggregation step (two further age-1 toddlers). 49 foragers appear in the foraging-activity log; of those, 48 contributed at least one positive-kcal food package and inform the model. The 49th forager went on at least one logged foraging trip but is missing from the in-camp daily-presence file (`daysincamp.csv`), so no effort or success observations exist for him; he occupies a slot in the forager dimension but does not enter the likelihood. Figures throughout the manuscript and supplement therefore use $n = 48$.
 
 ```{python}
@@ -225,7 +225,7 @@ print(
 
 ## Causal DAG
 
-The causal structure of the model is summarized in the following directed acyclic graph:
+The causal assumptions of the model are summarized in the following directed acyclic graph:
 
 ```{python}
 #| label: fig-dag
@@ -392,14 +392,14 @@ For a single food package (group $g$) with member set $N = \{1, \dots, n\}$ and 
 
 $$v_\theta(S) \;=\; \begin{cases}\,\max\limits_{1 \le k \le |S|}\; \exp\bigl(\alpha_\mu + \beta\,\log k\bigr)\,\bigl(\overline{S}_{[k]}\bigr)^{\eta_\mu} & |S| \ge 1,\\[2pt] 0 & S = \varnothing.\end{cases}$$
 
-In words: $v_\theta(S)$ is the model's prediction for "what would this subset of foragers have produced." We let the model pick the subset size $k$ that maximises predicted output (the best-top-$k$ rule), so $v_\theta(S)$ is the highest output achievable using any $k$-member team drawn from $S$. Adding a new forager to $S$ can only raise this maximum (they become an additional candidate), so $v_\theta$ is monotone, and $v_\theta(\varnothing) = 0$. The grand-coalition value $v_\theta(N) = \mu_g$ is the model's posterior median kcal for the actual group on that day.
+In words: $v_\theta(S)$ is the model's prediction for "what would this subset of foragers have produced." Choosing the subset size $k$ that maximises predicted output (the best-top-$k$ rule), so $v_\theta(S)$ is the highest output achievable using any $k$-member team drawn from $S$. Adding a new forager to $S$ can only raise this maximum (they become an additional candidate), so $v_\theta$ is monotone, and $v_\theta(\varnothing) = 0$. The grand-coalition value $v_\theta(N) = \mu_g$ is the model's posterior median kcal for the actual group on that day.
 
 The Shapley value of player $i$ in $v_\theta$ is
 
 $$\phi_i(v_\theta) \;=\; \sum_{S \subseteq N \setminus \{i\}} \frac{|S|!\,(n-|S|-1)!}{n!}\,\bigl[v_\theta(S \cup \{i\}) - v_\theta(S)\bigr]
 \;=\; \frac{1}{n!}\sum_{\pi \in \mathcal{S}_N} \bigl[v_\theta(P_\pi^i \cup \{i\}) - v_\theta(P_\pi^i)\bigr],$$
 
-where $\mathcal{S}_N$ is the set of all $n!$ orderings of $N$ and $P_\pi^i$ is the set of players preceding $i$ in $\pi$. Plain reading: imagine the foragers joining the group one at a time in a random order; $\phi_i$ is the average extra kcal that adding forager $i$ contributes when they join. Both forms are equivalent — the left sum groups orderings by which subset $S$ is already present, the right sum averages directly over orderings.
+where $\mathcal{S}_N$ is the set of all $n!$ orderings of $N$ and $P_\pi^i$ is the set of players preceding $i$ in $\pi$. Imagine the foragers joining the group one at a time in a random order; $\phi_i$ is the average extra kcal that adding forager $i$ contributes when they join.
 
 The Shapley value is the unique allocation rule satisfying [@shapley_value_1953]:
 
@@ -408,23 +408,21 @@ The Shapley value is the unique allocation rule satisfying [@shapley_value_1953]
 - Null player: if $v(S \cup \{i\}) = v(S)$ for every $S \subseteq N \setminus \{i\}$, then $\phi_i(v) = 0$. A forager who never adds anything gets nothing.
 - Linearity: $\phi_i(av + bv') = a\,\phi_i(v) + b\,\phi_i(v')$. Decomposition commutes with linear combinations of games — the property we lean on for the per-group rescaling below.
 
-We compute $\phi_i(v_\theta)$ for every posterior draw $\theta^{(s)}$ and every group $g$. Because $v_\theta$ is parametrised by a single posterior draw, the computation is independent across groups and across posterior samples.
+We compute $\phi_i(v_\theta)$ for every posterior draw $\theta^{(s)}$ and every group $g$.
 
 #### Per-group rescaling to observed kcal
 
-The raw Shapley value $\phi_i(v_\theta)$ is anchored to the model's predicted median $\mu_g$, in scaled-kcal units. To convert it into a kcal share of what the group actually brought back that day, we apply three per-group scalar multiplications, in this order:
+The raw Shapley value $\phi_i(v_\theta)$ is anchored to the model's predicted median $\mu_g$, in scaled-kcal units. To convert it into a kcal share of what the group actually brought back that day, we apply three per-group scalar multiplications:
 
 1. Unit rescaling: multiply by `kcal_scale` to return to original kcal units.
 2. Date random effect: multiply by $\exp(\delta^{\text{ret},(s)}_{t_g})$, the per-sample posterior of the date RE on returns at the group's date $t_g$. This adjusts for whether the day was unusually good or bad overall.
 3. Proportional residual: rescale each per-sample contribution by $Y_g^{\text{obs}} / \sum_j \phi_j^{(s)}$. Each forager's attribution becomes their per-sample Shapley share $\pi_i^{(s)} \equiv \phi_i^{(s)} / \sum_j \phi_j^{(s)}$ multiplied by the observed group total: $\tilde\phi_i^{(s)} = \pi_i^{(s)}\, Y_g^{\text{obs}}$.
 
-After step 3, the rescaled allocation $\tilde\phi^{(s)}$ is no longer the Shapley value of $v_\theta$ — it is the Shapley share of $v_\theta$ scaled to the observed total $Y_g^{\text{obs}}$. Equivalently, it is the Shapley value of the rescaled game $\tilde v^{(s)}_\theta(S) = v_\theta(S) \cdot Y_g^{\text{obs}} / v_\theta(N)$, which is well-defined whenever $v_\theta(N) > 0$ (the case for every fitted positive-return group). Because $\tilde v$ is $v_\theta$ multiplied by the constant $Y_g^{\text{obs}} / v_\theta(N)$ at the per-group, per-sample level, linearity of the Shapley value gives $\phi_i(\tilde v) = (Y_g^{\text{obs}} / v_\theta(N))\,\phi_i(v_\theta)$, and efficiency, symmetry, null player, and linearity all carry over to the rescaled game within the group. We do not claim anything about combining games across groups; each per-group decomposition is its own Shapley problem.
-
-In plain terms: step 3 turns "the model's predicted kcal share for forager $i$" into "forager $i$'s share of the kcal actually brought back that day."
+After step 3, the rescaled allocation $\tilde\phi^{(s)}$ is no longer the Shapley value of $v_\theta$ — it is the Shapley share of $v_\theta$ scaled to the observed total $Y_g^{\text{obs}}$. Equivalently, it is the Shapley value of the rescaled game $\tilde v^{(s)}_\theta(S) = v_\theta(S) \cdot Y_g^{\text{obs}} / v_\theta(N)$, which is well-defined whenever $v_\theta(N) > 0$ (the case for every fitted positive-return group). Because $\tilde v$ is $v_\theta$ multiplied by the constant $Y_g^{\text{obs}} / v_\theta(N)$ at the per-group, per-sample level, linearity of the Shapley value gives $\phi_i(\tilde v) = (Y_g^{\text{obs}} / v_\theta(N))\,\phi_i(v_\theta)$, and efficiency, symmetry, null player, and linearity all carry over to the rescaled game within the group.
 
 #### Computation
 
-For $n \le 15$ we enumerate all $2^n$ subsets exactly, computing $v_\theta(S)$ once per subset and combining via the $|S|!(n-|S|-1)!/n!$ weights from the closed-form expression. For $n > 15$ we fall back on single-permutation Monte Carlo: for each posterior sample we draw one ordering $\pi$ uniformly at random and assign each player their marginal contribution under $\pi$. Averaging this estimator over orderings recovers $\phi_i(v_\theta)$ in expectation [@castro_polynomial_2009]. With our group-size distribution (max $n = 17$; see Section 2), the exact engine handles 1 069 of 1 070 positive-return groups; one group falls back to single-permutation MC. Both engines are vectorised across posterior samples; the exact engine caches $v_\theta(S)$ once per subset within a group.
+For $n \le 15$ we enumerate all $2^n$ subsets exactly, computing $v_\theta(S)$ once per subset and combining via the $|S|!(n-|S|-1)!/n!$ weights from the closed-form expression. For $n > 15$ we fall back on single-permutation Monte Carlo: for each posterior sample we draw one ordering $\pi$ uniformly at random and assign each player their marginal contribution under $\pi$. Averaging this estimator over orderings recovers $\phi_i(v_\theta)$ in expectation [@castro_polynomial_2009]. With our group-size distribution (max $n = 17$; see Section 2), the exact engine handles 1 069 of 1 070 positive-return groups; one group falls back to single-permutation MC.
 
 Decomposition is at the food-package level (one computation per positive-return group); per-forager daily contributions sum the rescaled $\tilde\phi_i^{(s)}$ across every group the forager participated in on a given date. Two denominators are used downstream: foraging days (effort = 1; failed trips enter as 0 kcal) and in-camp days (every in-camp day, with non-foraging days and failed trips both 0 kcal).
 
@@ -497,7 +495,7 @@ foraging_model = ForagingModel(
 )
 ```
 
-![Computation graph for the fit reported in the main text: effort + success + returns components; latent age; correlated (effort, skill) random effects; date random effects; best-top-k group aggregation. Click the image to view full-size; the static thumbnail is intentionally compressed.](../results/figures/model_graph_canonical.png){#fig-model-graph .lightbox fig-align="center" width="100%" group="model-graph"}
+![Computation graph for the fit reported in the main text: effort + success + returns components; latent age; correlated (effort, skill) random effects; date random effects; best-top-k group aggregation. Click the image to view full-size](../results/figures/model_graph_canonical.png){#fig-model-graph .lightbox fig-align="center" width="100%" group="model-graph"}
 
 ## Priors
 
@@ -604,7 +602,7 @@ pd.DataFrame([
 ])
 ```
 
-We additionally use Koster et al.'s (2020) cross-cultural posterior on the skill–success and skill–harvest elasticities to anchor our $\eta_{\mu,0}$ and $\eta_{\text{success},0}$ priors. Koster's per-society parameters `seh` (harvest skill elasticity) and `sef` (failure skill elasticity) are log-scale exponents on the per-hunter skill in their Stan model (`raw_data/model_fix.stan`) — directly comparable to our $\eta_{\mu,0}$ for harvest and (by interpretation, with consistent sign) to our $\eta_{\text{success},0}$ for success. We pool the (society × draw) posterior to summarise the cross-cultural distribution and use its mean and SD as a $\text{Normal}(\mu, \sigma)$ prior:
+We additionally use Koster et al.'s (2020) cross-cultural posterior on the skill–success and skill–harvest elasticities to anchor our $\eta_{\mu,0}$ and $\eta_{\text{success},0}$ priors. Koster's per-society parameters `seh` (harvest skill elasticity) and `sef` (failure skill elasticity) are log-scale exponents on the per-hunter skill in their Stan model (`raw_data/model_fix.stan`) — comparable to our $\eta_{\mu,0}$ for harvest and (by interpretation, with consistent sign) to our $\eta_{\text{success},0}$ for success. We pool the (society × draw) posterior to summarise the cross-cultural distribution and use its mean and SD as a $\text{Normal}(\mu, \sigma)$ prior:
 
 ```{python}
 #| label: tbl-koster-elasticity-priors
@@ -622,7 +620,7 @@ pd.DataFrame([
 
 ### Prior predictive check
 
-Drawing observables from the prior (without conditioning on the data) shows the range of behaviour the prior alone admits. This is a useful sanity check: if prior-predictive draws of returns or trip rates are wildly inconsistent with what is biologically plausible, the priors are too diffuse; if they only ever produce plausible patterns, the priors may be over-tight. The checks below mirror the posterior predictive in @fig-ppc but draw from `idata.prior_predictive`. The LOO-PIT panel from the posterior version is omitted (LOO requires a likelihood evaluation that is not defined for prior-only draws).
+Drawing observables from the prior shows the range of behaviour the prior alone admits.
 
 ```{python}
 #| label: fig-prior-predictive
@@ -757,7 +755,7 @@ if idata is not None and "posterior" in idata:
     plt.show()
 ```
 
-For per-observation predictive accuracy and influential-observation detection we use Pareto-smoothed importance-sampling leave-one-out cross-validation (PSIS-LOO; @vehtari_practical_2017), as implemented by `az.loo`. PSIS-LOO approximates the leave-one-out posterior of each observation by importance-reweighting the full-sample posterior, with a generalised Pareto fit to the upper tail of the importance ratios. The shape parameter $\hat k$ of that Pareto fit is itself a diagnostic: $\hat k < 0.7$ indicates the importance-sampling estimate of the LOO log-density for that observation is reliable; $\hat k > 0.7$ flags observations where the leave-one-out posterior differs substantially from the full posterior, so the estimate may be biased and the observation may also be exerting outsized influence on the fit.
+For per-observation predictive accuracy and influential-observation detection we use Pareto-smoothed importance-sampling leave-one-out cross-validation (PSIS-LOO; @vehtari_practical_2017), as implemented by `az.loo`. The shape parameter $\hat k$ of that Pareto fit is itself a diagnostic: $\hat k < 0.7$ indicates the importance-sampling estimate of the LOO log-density for that observation is reliable; $\hat k > 0.7$ flags observations where the leave-one-out posterior differs substantially from the full posterior, so the approximation may be unreliable and the observation is exerting outsized influence on the fit.
 
 ```{python}
 #| label: fig-pareto-k
@@ -922,7 +920,7 @@ if idata is not None and "posterior" in idata:
 
 ### Autocorrelation of within-forager Shapley contributions
 
-The model assumes per-forager daily kcal contributions are conditionally independent given parameters and the date random effect. If a forager's daily Shapley-attributed kcal carries within-forager temporal structure beyond the shared date RE, that would show up as non-zero autocorrelation in the residual sequence. We compute the sample autocorrelation of each forager's daily Shapley-attributed kcal across their consecutive in-camp days (with non-foraging days entered as 0 kcal). Using the in-camp denominator is important here: a forager who comes back with a bonanza one day and decides not to forage the next would induce a negative day-to-day autocorrelation that gets hidden if we only look at consecutive foraging days. Calendar gaps between in-camp stints are not adjusted for, so the ACF is over consecutive in-camp-day index, not raw calendar lag.
+The model assumes per-forager daily kcal contributions are conditionally independent. If a forager's daily Shapley-attributed kcal carries within-forager temporal structure beyond the shared date RE, that would show up as non-zero autocorrelation in the residual sequence. We compute the sample autocorrelation of each forager's daily Shapley-attributed kcal across their consecutive in-camp days (non-foraging days entered as 0 kcal). Calendar gaps between in-camp stints are not adjusted for, so the ACF is over consecutive in-camp-day index.
 
 ```{python}
 #| label: fig-shapley-acf
@@ -997,11 +995,11 @@ plt.tight_layout()
 plt.show()
 ```
 
-The median across foragers is consistent with white noise at all lags 1–7 (the pointwise 5–95 percentile band straddles zero throughout). A handful of individual foragers show |ACF| at small lags above the $\pm 2/\sqrt{\bar n}$ reference, which is the rate expected by chance from $\approx 50$ independent ACF computations and one threshold per lag; we view this as compatible with the model's conditional-independence assumption rather than as evidence of unmodeled within-forager temporal dependence.
+A handful of individual foragers show |ACF| at small lags above the $\pm 2/\sqrt{\bar n}$ reference. Under the null each per-forager ACF exceeds the pointwise band with probability ≈ 0.05 at each lag, so with ≈ 50 foragers we expect ≈ 2–3 exceedances per lag by chance alone; we view this as compatible with the model's conditional-independence assumption rather than as evidence of unmodeled within-forager temporal dependence
 
 ### Prior and likelihood sensitivity (power-scaling)
 
-We assess how much the posterior shifts when the prior or likelihood is rescaled, using the power-scaling diagnostic of @kallioinen_detecting_2024 (via `arviz.psens`). The diagnostic perturbs the prior or likelihood by raising it to a power $\alpha$ — yielding a perturbed posterior approximated via Pareto-smoothed importance reweighting — and measures the (symmetrised, normalised) cumulative Jensen–Shannon distance $D_{\text{CJS}}(\pi_\alpha,\pi_1)$ between the perturbed posterior CDF $\pi_\alpha$ and the base posterior $\pi_1$. The reported sensitivity is local at $\alpha = 1$: $D_{\text{CJS}}$ is computed at the two perturbed values $\alpha = 1+\delta$ and $\alpha = 1/(1+\delta)$ — symmetric in $\log\alpha$ around $\alpha=1$ — and the diagnostic is their sum divided by $2\,\log_2(1+\delta)$, with $\delta = 0.01$. Because $D_{\text{CJS}}$ is non-negative and vanishes at $\alpha=1$, this is a magnitude of local response in $\log\alpha$ rather than a signed derivative.
+We assess how much the posterior shifts when the prior or likelihood is rescaled, using the power-scaling diagnostic of @kallioinen_detecting_2024 (via `arviz.psens`). The diagnostic perturbs the prior or likelihood by raising it to a power $\alpha$ — yielding a perturbed posterior approximated via Pareto-smoothed importance reweighting — and measures the (symmetrised, normalised) cumulative Jensen–Shannon distance $D_{\text{CJS}}(\pi_\alpha,\pi_1)$ between the perturbed posterior CDF $\pi_\alpha$ and the base posterior $\pi_1$.
 
 Both axes are local: each measures how much the posterior shifts under a small power-scaling perturbation of the corresponding density at $\alpha = 1$. They do not directly measure how informative the prior or the likelihood is in absolute terms. In particular, low likelihood sensitivity does not mean the data are uninformative — it means that small changes in the amount of evidence (a slight rescaling of the likelihood) leave the posterior essentially unchanged, which can occur even when the data are informative if the posterior is already concentrated enough that small rescalings move it negligibly. The same applies to low prior sensitivity. Bearing this in mind, the four regions of the diagnostic plane partition parameters by their local response:
 
@@ -1104,11 +1102,9 @@ if idata is not None and "log_prior" in idata.groups():
     plt.show()
 ```
 
-Parameters whose prior or likelihood sensitivity rises above the 0.05 reference are listed in the figure above. Because the skill-curve and elasticity priors are weakly informative cross-cultural priors derived from @koster_life_2020 (rather than off-the-shelf vague priors), it is expected that the corresponding posteriors retain non-trivial prior sensitivity even when they are also informed by the data; the prior-vs-posterior overlay in @fig-parameter-forest shows that in each case the posterior nonetheless concentrates inside the prior.
+### Parameter forest plot
 
-### Comprehensive parameter forest
-
-The figure below shows prior and posterior summaries for every scalar fixed effect in the main-text fit. Parameters are grouped by component (skill curve, effort, success, returns, random-effect scales). Tight posteriors shifted away from the prior indicate parameters informed by the data; posteriors that closely track the prior indicate parameters where the prior dominates.
+The figure below shows prior and posterior summaries for every scalar fixed effect in the main-text fit. Parameters are grouped by component (skill curve, effort, success, returns, random-effect scales).
 
 ```{python}
 #| label: fig-parameter-forest
@@ -1354,7 +1350,7 @@ plt.show()
 
 ### Effort and success curves
 
-The effort and success components have the same structure as the skill component (Bernoulli with logit link, gender offsets, individual random effects, date random effect) but their age dependence is parametric (effort: quadratic in standardised age; success: forager-skill driven). The fitted curves below summarise their age profiles by gender.
+The effort and success components have the same structure as the skill component (Bernoulli with logit link, gender offsets, individual random effects, date random effect) but their age dependence is parametric (effort: quadratic in standardised age; success: forager-skill driven).
 
 ```{python}
 #| label: fig-effort-success
@@ -1877,7 +1873,7 @@ plt.show()
 
 ### Returns vs. recall share of total production
 
-Total kcal in the data splits into food returned to camp (`returns.csv`) and food eaten in the field while away from camp (`recall.csv`). The recall stream matters because excluding it underestimates child production in particular [Crittenden et al. 2013]; we keep both in the model so child production is not understated. The pies below decompose the Shapley-attributed kcal into these two channels — first study-wide, then by gender × age class. In-field consumption is concentrated in young males and very young foragers; teen and adult women's recall share is essentially negligible.
+Total kcal in the data splits into food returned to camp (`returns.csv`) and food eaten in the field while away from camp (`recall.csv`). The recall stream matters because excluding it underestimates child production in particular [Crittenden et al. 2013]; we keep both in the model so child production is not understated. The pies below decompose the Shapley-attributed kcal into these two channels — first study-wide, then by gender × age class.
 
 ```{python}
 #| label: fig-returns-vs-recall-pie
@@ -2121,7 +2117,7 @@ To check how resource specialisation tracks individual skill, we compute each fo
 
 ## Sensitivity Analyses
 
-We compare the fit reported in the main text against an alternative specification using mean skill aggregation in place of best-top-$k$. The substantive conclusions of the paper are preserved. The remaining methodological choice — whether to integrate over age uncertainty — is built into the main-text fit itself (latent age) rather than presented as a sensitivity, because reporting a point-estimate variant would understate posterior uncertainty.
+We compare the fit reported in the main text against an alternative specification using mean skill aggregation in place of best-top-$k$. The substantive conclusions of the paper are preserved.
 
 ```{python}
 #| label: load-sensitivity-variants
@@ -2297,7 +2293,7 @@ The forest plot above shows that the key estimates are qualitatively the same ac
 
 ### Shapley attributions: best-top-$k$ vs. mean aggregation
 
-The two aggregation methods imply different value functions on subsets of foragers, so the Shapley decompositions can in principle disagree on individual attributions. Under mean aggregation a low-skill forager can drag down the group's mean skill and produce a *negative* marginal contribution; best-top-$k$ never produces negatives because adding any forager can only weakly improve the maximum. We compute the Shapley decomposition under each value function (using the variant's own posterior; mean-aggregation Shapley computed exactly for groups of size $\le 14$) and plot each forager's total attribution side-by-side. Marker shape is gender; colour is age.
+The two aggregation methods imply different value functions on subsets of foragers, so the Shapley decompositions can in principle disagree on individual attributions. Under mean aggregation a low-skill forager can drag down the group's mean skill and produce a *negative* marginal contribution; best-top-$k$ never produces negatives because adding any forager can only weakly improve the maximum. We compute the Shapley decomposition under each value function (using the variant's own posterior; mean-aggregation Shapley computed exactly for groups of size $\le 14$) and plot each forager's total attribution side-by-side.
 
 ```{python}
 #| label: fig-shapley-vs-shapley
