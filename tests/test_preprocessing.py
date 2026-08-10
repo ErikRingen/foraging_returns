@@ -350,3 +350,69 @@ class TestKcalAggregation:
             f"Expected 4000 kcal (sum of both solo items), got {solo['kcal'].iloc[0]}"
         )
 
+
+
+PALM_INDICES = [5, 6, 7, 8, 9]  # Mbila palm nut (all states) + Madi ma mbila (red oil)
+
+RAW_KWARGS = dict(
+    returns_file=Path("raw_data") / 'returns.csv',
+    recall_file=Path("raw_data") / 'recall.csv',
+    kcal_file=Path("raw_data") / 'kcal.csv',
+    group_file=Path("raw_data") / 'groups.csv',
+    camp_members_file=Path("raw_data") / 'camp_members.csv',
+    days_in_camp_file=Path("raw_data") / 'daysincamp.csv',
+)
+
+
+def _skip_without_raw_data():
+    if not Path("raw_data").exists():
+        pytest.skip("Raw data directory not found")
+
+
+class TestSensitivityVariants:
+    """Data-filter flags used by the revision sensitivity refits."""
+
+    def test_all_outings_adds_effort_days(self):
+        _skip_without_raw_data()
+        _, time_default, _, _ = preprocess_data(**RAW_KWARGS)
+        _, time_all, _, _ = preprocess_data(**RAW_KWARGS, foraging_only=False)
+        days_default = (time_default['total.minutes'] > 0).sum()
+        days_all = (time_all['total.minutes'] > 0).sum()
+        assert days_all > days_default
+
+    def test_no_recall_reduces_production(self):
+        _skip_without_raw_data()
+        _, _, prod_default, _ = preprocess_data(**RAW_KWARGS)
+        _, _, prod_norec, _ = preprocess_data(**RAW_KWARGS, include_recall=False)
+        assert prod_norec['kcal'].sum() < prod_default['kcal'].sum()
+        combined = prod_norec[(prod_norec['type'] == 'combined')
+                              & (prod_norec['kcal'] > 0)]
+        assert (combined['foraging_proportion'] == 1.0).all()
+
+    def test_exclude_palm_drops_forty_percent_of_kcal(self):
+        _skip_without_raw_data()
+        _, _, prod_default, _ = preprocess_data(**RAW_KWARGS)
+        _, _, prod_nopalm, _ = preprocess_data(
+            **RAW_KWARGS, exclude_resource_indices=PALM_INDICES)
+        share_dropped = 1 - prod_nopalm['kcal'].sum() / prod_default['kcal'].sum()
+        assert 0.30 < share_dropped < 0.50
+
+    def test_exclude_top_package_drops_single_harvest(self):
+        _skip_without_raw_data()
+        _, _, prod_default, _ = preprocess_data(**RAW_KWARGS)
+        _, _, prod_notop, _ = preprocess_data(
+            **RAW_KWARGS, exclude_top_package_of=PALM_INDICES)
+        dropped = prod_default['kcal'].sum() - prod_notop['kcal'].sum()
+        assert dropped > 0
+        # far smaller than removing the whole resource class
+        assert dropped < 0.15 * prod_default['kcal'].sum()
+
+    def test_exclusion_flags_require_resource_indices(self):
+        _skip_without_raw_data()
+        public_kwargs = {**RAW_KWARGS,
+                         'returns_file': Path('public_data') / 'returns.csv',
+                         'recall_file': Path('public_data') / 'recall.csv',
+                         'kcal_file': None}
+        with pytest.raises(ValueError, match="resource"):
+            preprocess_data(**public_kwargs,
+                            exclude_resource_indices=PALM_INDICES)

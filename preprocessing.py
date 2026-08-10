@@ -10,6 +10,10 @@ def preprocess_data(
     camp_members_file: str | Path,
     days_in_camp_file: str | Path,
     combine_returns_recall: bool = True,
+    foraging_only: bool = True,
+    include_recall: bool = True,
+    exclude_resource_indices: list[int] | None = None,
+    exclude_top_package_of: list[int] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Preprocesses raw foraging data files into analysis-ready DataFrames.
@@ -30,6 +34,16 @@ def preprocess_data(
         group_file: Path to the group activity data CSV.
         camp_members_file: Path to the camp members demographic data CSV.
         days_in_camp_file: Path to the days in camp data CSV.
+        foraging_only: If True (canonical), effort/time allocation counts only
+            trips with ``activity.type == 'foraging'``. If False, every
+            out-of-camp trip counts (all-outings sensitivity variant).
+        include_recall: If False, drop the recall (field-consumption) stream so
+            production reflects in-camp returns only.
+        exclude_resource_indices: Resource ``index`` values to drop from both
+            returns and recall before kcal computation (raw-data shape only).
+        exclude_top_package_of: Drop the single heaviest returns package among
+            the given resource ``index`` values (raw-data shape only), e.g.
+            the exceptionally large oil-palm harvest.
 
     Returns:
         A tuple containing:
@@ -74,6 +88,43 @@ def preprocess_data(
     df_returns['date'] = _parse_dates(df_returns['date'])
     df_recall['date'] = _parse_dates(df_recall['date'])
 
+    # --- Sensitivity-variant filters ---
+    if not include_recall:
+        df_recall = df_recall.iloc[0:0].copy()
+
+    if exclude_resource_indices is not None or exclude_top_package_of is not None:
+        if 'index' not in df_returns.columns:
+            raise ValueError(
+                "Resource exclusion requires the raw-data shape with a "
+                "resource `index` column; the public dataset strips it."
+            )
+    if exclude_resource_indices is not None:
+        excl = set(exclude_resource_indices)
+        df_returns = df_returns[~df_returns['index'].isin(excl)].copy()
+        if 'index' in df_recall.columns:
+            df_recall = df_recall[~df_recall['index'].isin(excl)].copy()
+    if exclude_top_package_of is not None:
+        candidates = df_returns[
+            df_returns['index'].isin(set(exclude_top_package_of))
+        ]
+        if len(candidates) > 0:
+            top = candidates.loc[candidates['net_food_weight_gram'].idxmax()]
+            # Cooperative packages repeat the package weight on every
+            # contributor's row; drop all rows of that one package.
+            is_top = (
+                (df_returns['date'] == top['date'])
+                & (df_returns['index'] == top['index'])
+                & (df_returns['net_food_weight_gram']
+                   == top['net_food_weight_gram'])
+                & (df_returns['pooled_group'].fillna(0)
+                   == (top['pooled_group'] if pd.notna(top['pooled_group'])
+                       else 0))
+            )
+            print(f"Processing: dropping top package "
+                  f"(index={top['index']}, "
+                  f"{top['net_food_weight_gram']:.0f} g, {len(df_returns[is_top])} rows).")
+            df_returns = df_returns[~is_top].copy()
+
     # --- Forager Demographics ---
     # Accept either `birthyear` (raw_data convention) or `age` (public_data
     # ships ages directly to avoid leaking exact birth year while still
@@ -113,7 +164,10 @@ def preprocess_data(
     activity_normalized = (
         df_group['activity.type'].astype(str).str.strip().str.casefold()
     )
-    df_group_time = df_group[activity_normalized == 'foraging'].copy()
+    if foraging_only:
+        df_group_time = df_group[activity_normalized == 'foraging'].copy()
+    else:
+        df_group_time = df_group.copy()
     df_group_time['id'] = df_group_time['id'].astype(str)
 
     # Create multi-index for all potential forager-date combinations
@@ -257,6 +311,10 @@ def preprocess_data(
         df_pivot = df_production.pivot(index='group_id', columns='type', values='kcal').reset_index()
         # Fill missing values with 0 for groups that only have one type
         df_pivot = df_pivot.fillna(0)
+        # A stream can be globally absent (e.g. include_recall=False)
+        for stream in ('foraging', 'recall'):
+            if stream not in df_pivot.columns:
+                df_pivot[stream] = 0.0
         # Calculate total and foraging proportion
         df_pivot['total_kcal'] = df_pivot['foraging'] + df_pivot['recall']
         df_pivot['foraging_proportion'] = df_pivot['foraging'] / df_pivot['total_kcal']
