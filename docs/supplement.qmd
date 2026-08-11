@@ -94,7 +94,7 @@ The modelled dataset is constructed from six raw files: in-camp daily presence (
 
 - Returns and recall combined. Foragers consume food acquired during foraging trips (Crittenden et al., 2013; Berbesque et al., 2016); excluding it underestimates production. Both streams are merged into a single per-`pooled_group` × date production record.
 - Group identifier. Each food package is identified by date and the set of contributing foragers. The `pooled_group` field from the field protocol resolves cases where multiple foragers participated in collecting the same item. We then aggregate to a single `group_id = "<date>_<sorted forager IDs>"`. When the same forager set is recorded against more than one `pooled_group` on the same day — e.g. two sub-trips, or two separately-pooled cooperative items — kcal is summed within the resulting `group_id` and the model treats them as a single observation in the LogNormal returns likelihood. Of 1 060 cooperative `group_id`s, 58 (5.5 %) merge two or more `pooled_group`s this way (max 7); solo `group_id`s never collide.
-- Effort observations. For each forager × in-camp date, an effort indicator is set to 1 if the forager left camp that day and 0 otherwise. These observations enter the Bernoulli effort component.
+- Effort observations. For each forager × in-camp date, an effort indicator is set to 1 if the forager logged positive time on an out-of-camp trip with activity type "Foraging" that day (or contributed to a returned food package), and 0 otherwise. Trips logged with a non-foraging purpose (22% of trips) do not count toward effort in the canonical fit; the all-outings sensitivity variant (§ Sensitivity Analyses) relaxes this. These observations enter the Bernoulli effort component.
 - Success observations. Conditional on having gone out, each forager × date is labelled as a success (returned with at least one food package) or failure. These observations enter the Bernoulli success component.
 - Zero-inferred returns. (forager, date) pairs with positive out-of-camp time but no recorded food package are appended as kcal = 0 rows. These rows are excluded from the LogNormal returns component, which is conditional on positive returns. Group composition is not recoverable from time-allocation alone, so each zero-inferred row is recorded as a solo trip; this misrepresents days on which the forager went out in a cooperative group that returned nothing.
 - Age estimation. BaYaka birth years are not recorded numerically. Age was estimated using the consensus method of Diekmann et al., with 1-year intervals for individuals under 20 and 10-year intervals for those 20+. The model's measurement-error component places a Normal observation density on the recorded age centred on the latent true age (see §4.7), so we need an observation SD. The intervals are most naturally read as half-widths around a point estimate, so we use those half-widths directly as the Normal SD: `age_sigma` = 1 yr (under 20) and 5 yr (20+).
@@ -2117,7 +2117,17 @@ To check how resource specialisation tracks individual skill, we compute each fo
 
 ## Sensitivity Analyses
 
-We compare the fit reported in the main text against an alternative specification using mean skill aggregation in place of best-top-$k$. The substantive conclusions of the paper are preserved.
+We compare the fit reported in the main text against alternative specifications, each perturbing one analysis choice while holding the rest of the model fixed:
+
+- **mean aggregation** — group skill aggregated by the mean in place of best-top-$k$;
+- **all out-of-camp days** — effort counts every out-of-camp day, not only trips with a stated foraging purpose (the canonical fit restricts to foraging-labeled trips);
+- **returns only** — food consumed in the field (the recall stream, 9% of total kcal) excluded from production;
+- **excluding oil palm** — all oil-palm resources (40% of total kcal) removed;
+- **excluding largest palm harvest** — only the single exceptionally large ($\approx$ 68 kg) oil-palm harvest removed;
+- **priors $\times 2$ wider (all)** — every prior's scale doubled (means preserved where the family allows);
+- **priors $\times 2$ wider (Koster-derived only)** — only the five priors derived from the Koster et al. (2020) cross-cultural posteriors ($m_0$, $k_0$, $b_0$, $\eta_{\mu 0}$, $\eta_{\text{success},0}$) doubled, isolating the concern that these priors drive the results.
+
+The substantive conclusions of the paper are preserved across all variants.
 
 ```{python}
 #| label: load-sensitivity-variants
@@ -2127,6 +2137,19 @@ variants = {"best-top-k (main text)": idata}
 avg_path = results_dir / "ln_nogp_meage_avg" / "idata.nc"
 if avg_path.exists():
     variants["mean aggregation"] = az.from_netcdf(avg_path)
+
+SENSITIVITY_VARIANTS = {
+    "sens_all_outings": "all out-of-camp days",
+    "sens_no_recall": "returns only (no recall)",
+    "sens_no_palm": "excluding oil palm",
+    "sens_no_top_palm": "excl. largest palm harvest",
+    "sens_wide_priors": "priors ×2 wider (all)",
+    "sens_wide_priors_koster": "priors ×2 wider (Koster-derived only)",
+}
+for dirname, label in SENSITIVITY_VARIANTS.items():
+    p = results_dir / dirname / "idata.nc"
+    if p.exists():
+        variants[label] = az.from_netcdf(p)
 
 
 def peak_skill_age(post):
@@ -2187,7 +2210,7 @@ def estimand_summary(post, name):
 
 ```{python}
 #| label: fig-sensitivity-forest
-#| fig-cap: "Forest plot of the key estimands across the main-text fit and the mean-aggregation sensitivity variant. Points are posterior means; thick bars are 50% credible intervals; thin bars are 95% credible intervals. Substantive conclusions (negative ψ with high posterior probability; skill peak in adulthood) are preserved across both specifications."
+#| fig-cap: "Forest plot of the key estimands across the main-text fit and all sensitivity variants (mean aggregation; effort from all out-of-camp days; returns only; excluding oil palm; excluding the largest palm harvest; priors twice as wide). Points are posterior means; thick bars are 50% credible intervals; thin bars are 95% credible intervals. Substantive conclusions (negative ψ with high posterior probability; skill peak in adulthood) are preserved across all specifications."
 #| fig-width: 9
 #| fig-height: 7
 
@@ -2195,11 +2218,19 @@ estimands = list(estimand_summary(list(variants.values())[0].posterior, "x").key
 n_e, n_v = len(estimands), len(variants)
 variant_names = list(variants.keys())
 COLORS_V = {
-    "best-top-k (main text)": "#1B5E8C",
-    "mean aggregation":       "#E07B39",
+    "best-top-k (main text)":      "#1B5E8C",
+    "mean aggregation":            "#E07B39",
+    "all out-of-camp days":        "#4C9F70",
+    "returns only (no recall)":    "#8E5BA6",
+    "excluding oil palm":          "#C94F4F",
+    "excl. largest palm harvest":  "#D9A441",
+    "priors ×2 wider (all)":       "#5B7C8D",
+    "priors ×2 wider (Koster-derived only)": "#8C7A5B",
 }
 
-fig, axes = plt.subplots(n_e, 1, figsize=(8, 1.4 * n_e + 1), sharex=False)
+fig, axes = plt.subplots(
+    n_e, 1, figsize=(8, (0.3 * n_v + 0.8) * n_e + 1), sharex=False
+)
 if n_e == 1:
     axes = [axes]
 
@@ -2226,6 +2257,90 @@ for ax, est in zip(axes, estimands):
 plt.tight_layout()
 plt.show()
 ```
+
+### Binary participation vs. time out of camp
+
+The effort component treats daily participation as binary. To gauge how much information this discards relative to a duration-based measure, we compare each forager's number of foraging-participation days against their total logged foraging minutes over the study period.
+
+```{python}
+#| label: fig-days-vs-minutes
+#| fig-cap: "Left: per-forager foraging days vs. total foraging minutes over the 42-day study period, coloured by age; the two measures are strongly correlated, indicating that binary daily participation is a reasonable proxy for time allocation. Right: distribution of per-trip durations by age class."
+
+trip_log = pd.read_csv(here("raw_data/groups.csv")).rename(columns={"ID": "id"})
+trip_log = trip_log[
+    trip_log["Activity.Type"].astype(str).str.strip().str.casefold() == "foraging"
+].copy()
+trip_log["id"] = trip_log["id"].astype(str)
+per_forager = (
+    trip_log
+    .groupby("id")
+    .agg(days=("Date", "nunique"), minutes=("Total.Minutes", "sum"))
+    .join(df_foragers.set_index("id")[["age"]], how="inner")
+)
+r_dm = per_forager["days"].corr(per_forager["minutes"])
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4.2))
+sc = ax1.scatter(per_forager["days"], per_forager["minutes"] / 60,
+                 c=per_forager["age"], cmap="viridis", s=45,
+                 edgecolor="white", linewidth=0.5)
+ax1.set_xlabel("Foraging-participation days")
+ax1.set_ylabel("Total foraging time (hours)")
+ax1.text(0.03, 0.95, f"r = {r_dm:.2f}", transform=ax1.transAxes,
+         va="top", fontsize=11)
+plt.colorbar(sc, ax=ax1, fraction=0.045, pad=0.02, label="Age (yr)")
+
+trip_ages = trip_log.merge(df_foragers[["id", "age"]], on="id", how="inner")
+bins = [0, 10, 20, 40, 71]
+labels = ["0-9", "10-19", "20-39", "40+"]
+trip_ages["age_class"] = pd.cut(trip_ages["age"], bins=bins, labels=labels,
+                                right=False)
+ax2.boxplot(
+    [g["Total.Minutes"].dropna() / 60
+     for _, g in trip_ages.groupby("age_class", observed=True)],
+    tick_labels=labels, showfliers=False)
+ax2.set_xlabel("Age class (yr)")
+ax2.set_ylabel("Trip duration (hours)")
+for ax in (ax1, ax2):
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+plt.tight_layout()
+plt.show()
+```
+
+Days participating and total time out of camp are highly correlated across foragers (r $\approx$ 0.78), so the binary operationalization preserves the bulk of between-forager variation in time allocation and the effort–skill correlation ψ is not an artifact of discarding duration. Trip durations do rise steeply with age (median $\approx$ 35 min for foragers under 10 vs. $\approx$ 5 h for those 40+), which has a conservative implication for our developmental conclusions: because children's participation days involve fewer hours, their per-day returns *understate* their per-hour efficiency relative to adults, and an hourly-rate analysis would compress, not widen, the inferred age gradient. We retain the binary measure because (i) production is recorded per day and per food package, not per trip-segment, so a kcal-per-hour rate would attribute opportunistic and multi-day acquisition noisily; and (ii) daily production, rather than hourly efficiency, is the quantity that enters a pooled energy budget.
+
+### Production over the study period
+
+If the study itself (announced aims, end-of-stay gifts) had prompted increasing or decreasing foraging over time, the date random effects should trend across the 42-day window. We regress each posterior draw's date random-effect vector (on the linear-predictor scale, i.e. multiplied by its scale parameter) on the centered study day and summarize the posterior of the slope.
+
+```{python}
+#| label: tbl-temporal-trend
+#| tbl-cap: "Posterior linear trend of the date random effects across the 42-day study period, per model component. Slopes are per study day on the linear-predictor (logit / log) scale. All 95% credible intervals include zero: no evidence that participation, success, or returns drifted over the study."
+
+trend_rows = []
+for comp, re_var, sig_var in [
+    ("Effort (participation)", "gp_effort_raw", "gp_sigma_effort"),
+    ("Success", "gp_success_raw", "gp_sigma_success"),
+    ("Returns", "gp_returns_raw", "gp_sigma_returns"),
+]:
+    re_raw = idata.posterior[re_var].stack(s=("chain", "draw")).values
+    sig = idata.posterior[sig_var].stack(s=("chain", "draw")).values
+    re = re_raw * sig
+    day = np.arange(re.shape[0]) - (re.shape[0] - 1) / 2
+    slope = (day @ re) / (day @ day)
+    lo, hi = np.percentile(slope, [2.5, 97.5])
+    trend_rows.append({
+        "Component": comp,
+        "Slope / day": f"{slope.mean():+.4f}",
+        "95% CI": f"[{lo:+.4f}, {hi:+.4f}]",
+        "P(slope > 0)": f"{np.mean(slope > 0):.2f}",
+    })
+pd.DataFrame(trend_rows)
+```
+
+### Why no hunting-only model
+
+Reviewers of related work often ask whether skill curves differ for hunting specifically. In this dataset a hunting-only refit is not estimable: game accounts for just 4.0% of returned kcal (73 package rows across 32 days, touched by 26 foragers), far too sparse to identify a three-parameter learning-senescence curve plus individual random effects. The near-absence of hunting is itself informative — the age-related gains in production documented here arise almost entirely from gathered and collected resources, so they cannot be attributed to the long-delay proficiency profile that hunting-specific studies emphasize.
 
 ### Skill aggregation: best-top-k vs. mean
 

@@ -101,6 +101,16 @@ def extract_skill_curve_results(idata):
     out["peak_skill_age_years"] = _summarize("peak_skill_age_years", pooled_peak)["peak_skill_age_years"]
     out["age_50pct_skill_years"] = _summarize("age_50pct_skill_years", pooled_half)["age_50pct_skill_years"]
 
+    # Post-peak retention: S(age)/S(peak), quantifying how shallow the
+    # senescent decline is (cf. hunting-only curves, Koster et al. 2020).
+    x_peak = (1 / k_pop) * np.log1p(b_pop * k_pop / m_pop)
+    S_peak = np.exp(-m_pop * x_peak) * (1 - np.exp(-k_pop * x_peak)) ** b_pop
+    for age_years in (60, 70):
+        x = age_years / age_scale
+        S_at = np.exp(-m_pop * x) * (1 - np.exp(-k_pop * x)) ** b_pop
+        key = f"skill_at_{age_years}_vs_peak"
+        out[key] = _summarize(key, S_at / S_peak)[key]
+
     # Per-sex estimands (gender coord order in posterior is [male, female])
     if "m0_gender" in posterior.data_vars:
         gender_coord = list(posterior["gender"].values)
@@ -127,12 +137,24 @@ def extract_skill_curve_results(idata):
 def extract_effort_results(idata):
     """Extract effort model parameters."""
     posterior = idata.posterior
-    
+
     intercept = posterior['effort_intercept'].values.flatten()
     age_coef = posterior['effort_age'].values.flatten()
     age2_coef = posterior['effort_age2'].values.flatten()
-    
+
+    # Age at peak participation probability, in years. The effort linear
+    # predictor is quadratic in z-scored age (z-constants from observed ages,
+    # see model.py), so the vertex -b1/(2 b2) maps back through them.
+    age_raw = idata.constant_data['age_raw'].values
+    age_mean, age_std = float(np.mean(age_raw)), float(np.std(age_raw))
+    peak_years = np.where(
+        age2_coef < 0,
+        age_mean + (-age_coef / (2 * age2_coef)) * age_std,
+        np.nan,
+    )
+
     return {
+        **_summarize("effort_peak_age_years", peak_years),
         "effort_intercept": {
             "mean": float(np.mean(intercept)),
             "hdi_low": float(compute_hdi(intercept)[0]),
@@ -231,6 +253,12 @@ def extract_returns_results(idata):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--variant", default="ln_nogp_meage_long")
+    parser.add_argument(
+        "--output", default=None,
+        help=("Output JSON path. Default: results/manuscript_numbers.json "
+              "(canonical). Use e.g. results/<variant>/manuscript_numbers.json "
+              "for sensitivity variants."),
+    )
     args = parser.parse_args()
 
     print("=" * 60)
@@ -269,7 +297,9 @@ def main():
     }
     
     # Save to JSON (default: results/manuscript_numbers.json)
-    output_path = here("results/manuscript_numbers.json")
+    output_path = (
+        here(args.output) if args.output else here("results/manuscript_numbers.json")
+    )
     print(f"\nSaving to {output_path}...")
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2)

@@ -57,3 +57,37 @@ PRIORS = {
 def get_priors() -> dict:
     """Return the prior specification dict (copy for safety)."""
     return {k: v.copy() if isinstance(v, dict) else v for k, v in PRIORS.items()}
+
+
+# Priors derived from the Koster et al. 2020 cross-cultural posteriors
+# (see comments on each entry above and scripts/_derive_priors.py).
+KOSTER_DERIVED = ("m0", "k0", "b0", "eta_mu0", "eta_success0")
+
+
+def scale_priors(factor: float, only: tuple[str, ...] | None = None) -> dict:
+    """Widen prior scales by `factor`, preserving the mean where the
+    family allows: normal/ZeroSumNormal sigma x factor; gamma alpha and beta
+    divided by factor^2 (mean fixed, sd x factor); exponential lam / factor
+    (mean and sd both x factor, unavoidable for a one-parameter family).
+    `lkj_eta` stays at 1 (already uniform over correlation matrices).
+
+    `only` restricts widening to the named priors (e.g. KOSTER_DERIVED to
+    isolate the influence of the Koster et al.-derived priors).
+    """
+    priors = get_priors()
+    for name, spec in priors.items():
+        if not isinstance(spec, dict):
+            continue
+        if only is not None and name not in only:
+            continue
+        dist = spec.get("dist")
+        if dist == "normal":
+            spec["sigma"] *= factor
+        elif dist == "gamma":
+            spec["alpha"] /= factor ** 2
+            spec["beta"] /= factor ** 2
+        elif dist == "exponential":
+            spec["lam"] /= factor
+        elif dist is None and "sigma" in spec:
+            spec["sigma"] *= factor
+    return priors

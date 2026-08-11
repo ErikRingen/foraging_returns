@@ -28,8 +28,14 @@ from pyprojroot.here import here
 from preprocessing import preprocess_data
 from foraging_model.data import ForagingData
 from foraging_model.model import ForagingModel
+from foraging_model.priors import scale_priors, KOSTER_DERIVED
 
 RANDOM_SEED = 42
+
+# Oil-palm resource indices in raw_data/kcal.csv: Mbila palm nut under all
+# processing conditions (5-8) plus Madi ma mbila red palm oil (9). Palm wine
+# is a distinct resource and is not excluded.
+PALM_INDICES = [5, 6, 7, 8, 9]
 TUNE = 1000
 DRAWS = 1000
 CHAINS = 4
@@ -44,6 +50,12 @@ def fit_model(
     use_gp: bool = True,
     force: bool = False,
     data_dir: str = "raw_data",
+    foraging_only: bool = True,
+    include_recall: bool = True,
+    exclude_palm: bool = False,
+    exclude_top_palm_harvest: bool = False,
+    prior_scale: float = 1.0,
+    prior_scale_scope: str = "all",
 ) -> tuple:
     """Fit a single model configuration and save to results/{name}/."""
     results_dir = here("results") / name
@@ -64,6 +76,12 @@ def fit_model(
         "aggregation_method": aggregation_method,
         "measurement_error_age": measurement_error_age,
         "use_gp": use_gp,
+        "foraging_only": foraging_only,
+        "include_recall": include_recall,
+        "exclude_palm": exclude_palm,
+        "exclude_top_palm_harvest": exclude_top_palm_harvest,
+        "prior_scale": prior_scale,
+        "prior_scale_scope": prior_scale_scope,
     }
     with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
@@ -83,6 +101,10 @@ def fit_model(
         camp_members_file=here(data_root + "camp_members.csv"),
         days_in_camp_file=here(data_root + "daysincamp.csv"),
         combine_returns_recall=True,
+        foraging_only=foraging_only,
+        include_recall=include_recall,
+        exclude_resource_indices=PALM_INDICES if exclude_palm else None,
+        exclude_top_package_of=PALM_INDICES if exclude_top_palm_harvest else None,
     )
 
     print("[2/6] Building model dataset...")
@@ -105,6 +127,13 @@ def fit_model(
         age_scaling="max",
         measurement_error_age=measurement_error_age,
         use_gp=use_gp,
+        priors=(
+            scale_priors(
+                prior_scale,
+                only=KOSTER_DERIVED if prior_scale_scope == "koster" else None,
+            )
+            if prior_scale != 1.0 else None
+        ),
     )
 
     # Save model graph
@@ -238,6 +267,33 @@ def main():
               "from the anonymised public dataset (precomputed kcal column, "
               "no resource attribution)."),
     )
+    parser.add_argument(
+        "--all-outings", action="store_true",
+        help=("Count every out-of-camp trip as effort, not just trips with "
+              "activity type 'Foraging' (sensitivity variant)."),
+    )
+    parser.add_argument(
+        "--no-recall", action="store_true",
+        help="Exclude the recall (field-consumption) stream from production.",
+    )
+    parser.add_argument(
+        "--exclude-palm", action="store_true",
+        help="Exclude all oil-palm resources (raw data only).",
+    )
+    parser.add_argument(
+        "--exclude-top-palm-harvest", action="store_true",
+        help="Exclude only the single largest oil-palm harvest (raw data only).",
+    )
+    parser.add_argument(
+        "--prior-scale", type=float, default=1.0,
+        help="Widen all priors by this factor (e.g. 2.0 doubles prior SDs).",
+    )
+    parser.add_argument(
+        "--prior-scale-scope", default="all", choices=["all", "koster"],
+        help=("Which priors --prior-scale widens: 'all' (default) or 'koster' "
+              "(only the Koster et al.-derived priors: m0, k0, b0, eta_mu0, "
+              "eta_success0)."),
+    )
     args = parser.parse_args()
 
     # Override globals if CLI args provided
@@ -258,6 +314,12 @@ def main():
         use_gp=not args.no_gp,
         force=args.force,
         data_dir=args.data_dir,
+        foraging_only=not args.all_outings,
+        include_recall=not args.no_recall,
+        exclude_palm=args.exclude_palm,
+        exclude_top_palm_harvest=args.exclude_top_palm_harvest,
+        prior_scale=args.prior_scale,
+        prior_scale_scope=args.prior_scale_scope,
     )
     print("\nDone! Results saved to results/")
 
