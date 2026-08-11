@@ -45,7 +45,9 @@ def main():
 
     raw_ages = np.asarray(df_foragers["age"].values, dtype=float)
     age_mean, age_sd = float(raw_ages.mean()), float(raw_ages.std())
-    ages_plot = np.linspace(0.5, 70, 200)
+    # Start at 2: the youngest forager in the model. Below that the curves are
+    # extrapolation — under-2s were excluded as too young to participate.
+    ages_plot = np.linspace(2, 70, 200)
     ages_scaled = ages_plot / age_scale
     ages_z = (ages_plot - age_mean) / age_sd
 

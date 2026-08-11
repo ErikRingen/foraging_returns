@@ -1271,7 +1271,7 @@ plt.show()
 #| fig-cap: "Posterior population skill curve $S(x) = \\exp(-mx/A) \\cdot (1 - \\exp(-kx/A))^b$ for the main-text fit. Solid line is the posterior mean; shaded bands are 50% and 95% credible intervals. Dashed verticals mark the posterior mean of the peak skill age and the age at which 50% of peak skill is reached."
 
 age_scale = float(idata.posterior.attrs.get("age_scale", 70.0))
-age_grid = np.linspace(0.5, 80, 400)
+age_grid = np.linspace(2, 70, 400)  # display range: youngest modeled forager (2) to oldest (70)
 m = np.exp(idata.posterior["m0"].values.flatten())
 k = np.exp(idata.posterior["k0"].values.flatten())
 b = np.exp(idata.posterior["b0"].values.flatten())
@@ -1316,7 +1316,7 @@ The skill curve $S(x) = M(x) \cdot K(x)^{b}$ blends three age-dependent factors:
 #| fig-cap: "Posterior decomposition of the population skill curve into its three components. Left: the senescence multiplier $M(x)$ — strictly decreasing in age. Middle: the learning multiplier $K(x)$ — strictly increasing toward 1. Right: the resulting product $S(x) = M(x) K(x)^b$. Solid lines are posterior means; shaded bands are 95% credible intervals."
 
 age_scale = float(idata.posterior.attrs.get("age_scale", 70.0))
-age_grid = np.linspace(0.5, 80, 400)
+age_grid = np.linspace(2, 70, 400)  # display range: youngest modeled forager (2) to oldest (70)
 m = np.exp(idata.posterior["m0"].values.flatten())
 k = np.exp(idata.posterior["k0"].values.flatten())
 b = np.exp(idata.posterior["b0"].values.flatten())
@@ -1357,7 +1357,7 @@ The effort and success components have the same structure as the skill component
 from scipy.special import expit
 
 post = idata.posterior
-ages_plot = np.linspace(0.5, 70, 200)
+ages_plot = np.linspace(2, 70, 200)  # display range: youngest modeled forager (2) to oldest (70)
 raw_ages = np.asarray(idata.constant_data["age_raw"].values, dtype=float)
 age_mean, age_sd = float(raw_ages.mean()), float(raw_ages.std())
 ages_z = (ages_plot - age_mean) / age_sd
