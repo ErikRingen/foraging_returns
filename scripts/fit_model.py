@@ -104,7 +104,7 @@ def fit_model(
         foraging_only=foraging_only,
         include_recall=include_recall,
         exclude_resource_indices=PALM_INDICES if exclude_palm else None,
-        exclude_top_package_of=PALM_INDICES if exclude_top_palm_harvest else None,
+        exclude_top_harvest_of=PALM_INDICES if exclude_top_palm_harvest else None,
     )
 
     print("[2/6] Building model dataset...")
@@ -282,7 +282,8 @@ def main():
     )
     parser.add_argument(
         "--exclude-top-palm-harvest", action="store_true",
-        help="Exclude only the single largest oil-palm harvest (raw data only).",
+        help=("Exclude the single largest oil-palm harvest -- one date x "
+              "contributor set, summed across packages (raw data only)."),
     )
     parser.add_argument(
         "--prior-scale", type=float, default=1.0,

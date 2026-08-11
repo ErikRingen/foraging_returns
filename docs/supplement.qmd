@@ -512,38 +512,36 @@ else:
     idata = None
 
 
+def _skill_params(post):
+    return (np.exp(post["m0"].values.flatten()),
+            np.exp(post["k0"].values.flatten()),
+            np.exp(post["b0"].values.flatten()),
+            float(post.attrs.get("age_scale", 70.0)))
+
+
 def peak_skill_age(post):
-    """Numerical posterior of the age at which S(x) peaks, in years."""
-    a_scale = float(post.attrs.get("age_scale", 70.0))
-    m = np.exp(post["m0"].values.flatten())
-    k = np.exp(post["k0"].values.flatten())
-    b = np.exp(post["b0"].values.flatten())
-    grid = np.linspace(0.5, 80, 400)
-    n = min(2000, len(m))
-    sub = np.random.default_rng(0).choice(len(m), n, replace=False)
-    M = np.exp(-np.outer(m[sub], grid / a_scale))
-    K = np.clip(1 - np.exp(-np.outer(k[sub], grid / a_scale)), 1e-10, 1)
-    S = M * K ** b[sub, None]
-    return grid[S.argmax(axis=1)]
+    """Posterior of the age at which S(x) peaks, in years.
+
+    Analytical (dS/dx = 0 => x* = (1/k) log(1 + bk/m)), matching
+    scripts/extract_results.py. A grid search truncates the upper tail under
+    the wide-prior variants, where a small fraction of draws peak beyond
+    80 years.
+    """
+    m, k, b, a_scale = _skill_params(post)
+    return (1 / k) * np.log1p(b * k / m) * a_scale
 
 
 def age_at_half_peak(post):
-    a_scale = float(post.attrs.get("age_scale", 70.0))
-    m = np.exp(post["m0"].values.flatten())
-    k = np.exp(post["k0"].values.flatten())
-    b = np.exp(post["b0"].values.flatten())
-    grid = np.linspace(0.5, 80, 400)
-    n = min(2000, len(m))
-    sub = np.random.default_rng(0).choice(len(m), n, replace=False)
-    M = np.exp(-np.outer(m[sub], grid / a_scale))
-    K = np.clip(1 - np.exp(-np.outer(k[sub], grid / a_scale)), 1e-10, 1)
-    S = M * K ** b[sub, None]
-    half = 0.5 * S.max(axis=1, keepdims=True)
-    out = np.empty(S.shape[0])
-    for i in range(S.shape[0]):
-        idx = np.where(S[i] >= half[i, 0])[0]
-        out[i] = grid[idx[0]] if len(idx) else np.nan
-    return out
+    """Posterior of the age at which S(x) first reaches half its peak."""
+    m, k, b, a_scale = _skill_params(post)
+    x_peak = (1 / k) * np.log1p(b * k / m)
+    S_peak = np.exp(-m * x_peak) * (1 - np.exp(-k * x_peak)) ** b
+    grid = np.linspace(0.5, 80, 1600) / a_scale
+    S = np.exp(-np.outer(m, grid)) * np.clip(
+        1 - np.exp(-np.outer(k, grid)), 1e-10, 1) ** b[:, None]
+    reached = S >= (S_peak[:, None] / 2)
+    return np.where(reached.any(axis=1),
+                    grid[reached.argmax(axis=1)] * a_scale, np.nan)
 ```
 
 Prior specification (from model config):
@@ -2123,7 +2121,7 @@ We compare the fit reported in the main text against alternative specifications,
 - **all out-of-camp days** — effort counts every out-of-camp day, not only trips with a stated foraging purpose (the canonical fit restricts to foraging-labeled trips);
 - **returns only** — food consumed in the field (the recall stream, 9% of total kcal) excluded from production;
 - **excluding oil palm** — all oil-palm resources (40% of total kcal) removed;
-- **excluding largest palm harvest** — only the single exceptionally large ($\approx$ 68 kg) oil-palm harvest removed;
+- **excluding largest palm harvest** — the single exceptionally large oil-palm harvest removed. This is the largest returns observation in the dataset: one date $\times$ contributor set (six foragers, 30 July), $\approx$ 68 kg summed across seven packages, $\approx$ 131,000 kcal;
 - **priors $\times 2$ wider (all)** — every prior's scale doubled (means preserved where the family allows);
 - **priors $\times 2$ wider (Koster-derived only)** — only the five priors derived from the Koster et al. (2020) cross-cultural posteriors ($m_0$, $k_0$, $b_0$, $\eta_{\mu 0}$, $\eta_{\text{success},0}$) doubled, isolating the concern that these priors drive the results.
 
@@ -2152,38 +2150,36 @@ for dirname, label in SENSITIVITY_VARIANTS.items():
         variants[label] = az.from_netcdf(p)
 
 
+def _skill_params(post):
+    return (np.exp(post["m0"].values.flatten()),
+            np.exp(post["k0"].values.flatten()),
+            np.exp(post["b0"].values.flatten()),
+            float(post.attrs.get("age_scale", 70.0)))
+
+
 def peak_skill_age(post):
-    """Numerical posterior of the age at which S(x) peaks, in years."""
-    a_scale = float(post.attrs.get("age_scale", 70.0))
-    m = np.exp(post["m0"].values.flatten())
-    k = np.exp(post["k0"].values.flatten())
-    b = np.exp(post["b0"].values.flatten())
-    grid = np.linspace(0.5, 80, 400)
-    n = min(2000, len(m))
-    sub = np.random.default_rng(0).choice(len(m), n, replace=False)
-    M = np.exp(-np.outer(m[sub], grid / a_scale))
-    K = np.clip(1 - np.exp(-np.outer(k[sub], grid / a_scale)), 1e-10, 1)
-    S = M * K ** b[sub, None]
-    return grid[S.argmax(axis=1)]
+    """Posterior of the age at which S(x) peaks, in years.
+
+    Analytical (dS/dx = 0 => x* = (1/k) log(1 + bk/m)), matching
+    scripts/extract_results.py. A grid search truncates the upper tail under
+    the wide-prior variants, where a small fraction of draws peak beyond
+    80 years.
+    """
+    m, k, b, a_scale = _skill_params(post)
+    return (1 / k) * np.log1p(b * k / m) * a_scale
 
 
 def age_at_half_peak(post):
-    a_scale = float(post.attrs.get("age_scale", 70.0))
-    m = np.exp(post["m0"].values.flatten())
-    k = np.exp(post["k0"].values.flatten())
-    b = np.exp(post["b0"].values.flatten())
-    grid = np.linspace(0.5, 80, 400)
-    n = min(2000, len(m))
-    sub = np.random.default_rng(0).choice(len(m), n, replace=False)
-    M = np.exp(-np.outer(m[sub], grid / a_scale))
-    K = np.clip(1 - np.exp(-np.outer(k[sub], grid / a_scale)), 1e-10, 1)
-    S = M * K ** b[sub, None]
-    half = 0.5 * S.max(axis=1, keepdims=True)
-    out = np.empty(S.shape[0])
-    for i in range(S.shape[0]):
-        idx = np.where(S[i] >= half[i, 0])[0]
-        out[i] = grid[idx[0]] if len(idx) else np.nan
-    return out
+    """Posterior of the age at which S(x) first reaches half its peak."""
+    m, k, b, a_scale = _skill_params(post)
+    x_peak = (1 / k) * np.log1p(b * k / m)
+    S_peak = np.exp(-m * x_peak) * (1 - np.exp(-k * x_peak)) ** b
+    grid = np.linspace(0.5, 80, 1600) / a_scale
+    S = np.exp(-np.outer(m, grid)) * np.clip(
+        1 - np.exp(-np.outer(k, grid)), 1e-10, 1) ** b[:, None]
+    reached = S >= (S_peak[:, None] / 2)
+    return np.where(reached.any(axis=1),
+                    grid[reached.argmax(axis=1)] * a_scale, np.nan)
 
 
 def estimand_summary(post, name):
@@ -2307,25 +2303,35 @@ plt.tight_layout()
 plt.show()
 ```
 
-Days participating and total time out of camp are highly correlated across foragers (r $\approx$ 0.78), so the binary operationalization preserves the bulk of between-forager variation in time allocation and the effort–skill correlation ψ is not an artifact of discarding duration. Trip durations do rise steeply with age (median $\approx$ 35 min for foragers under 10 vs. $\approx$ 5 h for those 40+), which has a conservative implication for our developmental conclusions: because children's participation days involve fewer hours, their per-day returns *understate* their per-hour efficiency relative to adults, and an hourly-rate analysis would compress, not widen, the inferred age gradient. We retain the binary measure because (i) production is recorded per day and per food package, not per trip-segment, so a kcal-per-hour rate would attribute opportunistic and multi-day acquisition noisily; and (ii) daily production, rather than hourly efficiency, is the quantity that enters a pooled energy budget.
+Days participating and total time out of camp are strongly correlated across foragers (r $\approx$ 0.78, n = 49 foragers with logged trips), so the binary measure ranks foragers similarly to a duration-based one. Note that this correlation is partly mechanical — total minutes is roughly days $\times$ mean trip duration — and it is a descriptive check on the *measure*, not a test of the effort–skill correlation $\psi$: establishing that $\psi$ is unchanged under a duration-based effort variable would require refitting the model with such a variable, which the per-day, per-package structure of the production data does not support.
+
+Trip durations do rise steeply with age (median $\approx$ 35 min for foragers under 10 vs. $\approx$ 4.9 h for those 40+). This has a conservative implication for our developmental conclusions: because children's participation days involve fewer hours, their per-day returns *understate* their per-hour efficiency relative to adults, so an hourly-rate analysis would compress, not widen, the inferred age gradient in skill. We retain the binary measure because (i) production is recorded per day and per food package, not per trip-segment, so a kcal-per-hour rate would attribute opportunistic and multi-day acquisition noisily; and (ii) daily production, rather than hourly efficiency, is the quantity that enters a pooled energy budget.
 
 ### Production over the study period
 
-If the study itself (announced aims, end-of-stay gifts) had prompted increasing or decreasing foraging over time, the date random effects should trend across the 42-day window. We regress each posterior draw's date random-effect vector (on the linear-predictor scale, i.e. multiplied by its scale parameter) on the centered study day and summarize the posterior of the slope.
+If the study itself (announced aims, end-of-stay gifts) had prompted increasing or decreasing foraging over time, the date random effects should trend across the 42-day window. We regress each posterior draw's date random-effect vector (on the linear-predictor scale) on the centered study day and summarize the posterior of the slope. The 42 dates are consecutive, so study day is simply the index of the date axis.
+
+This is a deliberately weak test in one direction: the date effects carry an i.i.d. $\text{Normal}(0, \sigma)$ prior with no temporal structure, which shrinks any true monotone drift toward zero. It can therefore rule out a large drift but would not detect a subtle one; we treat a null result as reassurance rather than proof.
 
 ```{python}
 #| label: tbl-temporal-trend
 #| tbl-cap: "Posterior linear trend of the date random effects across the 42-day study period, per model component. Slopes are per study day on the linear-predictor (logit / log) scale. All 95% credible intervals include zero: no evidence that participation, success, or returns drifted over the study."
 
 trend_rows = []
-for comp, re_var, sig_var in [
-    ("Effort (participation)", "gp_effort_raw", "gp_sigma_effort"),
-    ("Success", "gp_success_raw", "gp_sigma_success"),
-    ("Returns", "gp_returns_raw", "gp_sigma_returns"),
+for comp, re_var, raw_var, sig_var in [
+    ("Effort (participation)", "gp_effort", "gp_effort_raw", "gp_sigma_effort"),
+    ("Success", "gp_success", "gp_success_raw", "gp_sigma_success"),
+    ("Returns", "gp_returns", "gp_returns_raw", "gp_sigma_returns"),
 ]:
-    re_raw = idata.posterior[re_var].stack(s=("chain", "draw")).values
-    sig = idata.posterior[sig_var].stack(s=("chain", "draw")).values
-    re = re_raw * sig
+    # Use the stored deterministic where available. Reconstructing it as
+    # raw * sigma is exact only for the canonical non-GP fit; under use_gp
+    # the date effects are chol(sigma^2 * Matern32) @ raw, so sigma sits
+    # inside the Cholesky factor and the product would be wrong.
+    if re_var in idata.posterior:
+        re = idata.posterior[re_var].stack(s=("chain", "draw")).values
+    else:
+        re = (idata.posterior[raw_var] * idata.posterior[sig_var]
+              ).stack(s=("chain", "draw")).values
     day = np.arange(re.shape[0]) - (re.shape[0] - 1) / 2
     slope = (day @ re) / (day @ day)
     lo, hi = np.percentile(slope, [2.5, 97.5])

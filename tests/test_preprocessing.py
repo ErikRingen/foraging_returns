@@ -397,15 +397,31 @@ class TestSensitivityVariants:
         share_dropped = 1 - prod_nopalm['kcal'].sum() / prod_default['kcal'].sum()
         assert 0.30 < share_dropped < 0.50
 
-    def test_exclude_top_package_drops_single_harvest(self):
+    def test_exclude_top_harvest_removes_the_largest_returns_observation(self):
+        """The excluded event is the largest group-day harvest (~68 kg of oil
+        palm), not merely the heaviest single package within it."""
         _skip_without_raw_data()
         _, _, prod_default, _ = preprocess_data(**RAW_KWARGS)
         _, _, prod_notop, _ = preprocess_data(
-            **RAW_KWARGS, exclude_top_package_of=PALM_INDICES)
+            **RAW_KWARGS, exclude_top_harvest_of=PALM_INDICES)
+
+        biggest = prod_default.loc[prod_default['kcal'].idxmax()]
+        assert biggest['group_id'] not in set(prod_notop['group_id']), (
+            "largest returns observation should be gone")
+
         dropped = prod_default['kcal'].sum() - prod_notop['kcal'].sum()
-        assert dropped > 0
-        # far smaller than removing the whole resource class
+        # The whole harvest, not just its heaviest package (~52k kcal).
+        assert dropped > 100_000
+        # ...but far smaller than removing the entire resource class.
         assert dropped < 0.15 * prod_default['kcal'].sum()
+
+    def test_exclude_top_harvest_leaves_other_groups_intact(self):
+        _skip_without_raw_data()
+        _, _, prod_default, _ = preprocess_data(**RAW_KWARGS)
+        _, _, prod_notop, _ = preprocess_data(
+            **RAW_KWARGS, exclude_top_harvest_of=PALM_INDICES)
+        removed = set(prod_default['group_id']) - set(prod_notop['group_id'])
+        assert len(removed) == 1
 
     def test_exclusion_flags_require_resource_indices(self):
         _skip_without_raw_data()
