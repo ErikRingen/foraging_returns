@@ -113,6 +113,7 @@ def main():
             color=c, alpha=0.08,
         )
 
+    ax_skill.set_xlim(2, 70)
     ax_skill.set_xlabel("Age (years)")
     ax_skill.set_ylabel("Subsistence skill $S(x)$ (solid)")
     ax_eff.set_ylabel("P(subsistence trip | in camp) (dashed)")

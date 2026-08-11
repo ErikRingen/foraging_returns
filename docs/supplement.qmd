@@ -1300,6 +1300,7 @@ ax.axvline(peak.mean(), color="#1B5E8C", ls="--", alpha=0.7,
            label=f"Peak age {peak.mean():.1f} yr")
 ax.axvline(half_age.mean(), color="#5C8C40", ls="--", alpha=0.7,
            label=f"50% peak {half_age.mean():.1f} yr")
+ax.set_xlim(2, 70)
 ax.set_xlabel("Age (years)")
 ax.set_ylabel("Subsistence skill $S(x)$")
 ax.legend(loc="lower right", frameon=False, fontsize=9)
@@ -1336,6 +1337,7 @@ for ax, (title, mat, color) in zip(axes, panels):
     lo95, hi95 = np.percentile(mat, [2.5, 97.5], axis=0)
     ax.fill_between(age_grid, lo95, hi95, color=color, alpha=0.18)
     ax.plot(age_grid, mat.mean(axis=0), color=color, lw=2.0)
+    ax.set_xlim(2, 70)
     ax.set_xlabel("Age (years)")
     ax.set_title(title, fontsize=11)
     ax.set_ylim(0, None)
@@ -1428,6 +1430,7 @@ for g_idx, sex in enumerate(["male", "female"]):
 axes[0].set_title("P(subsistence trip | in camp)", fontsize=11)
 axes[1].set_title("P(returned with food | trip)", fontsize=11)
 for ax in axes:
+    ax.set_xlim(2, 70)
     ax.set_xlabel("Age (years)")
     ax.set_ylim(0, 1.0)
     ax.legend(loc="lower right", frameon=False, fontsize=9)
