@@ -2476,6 +2476,18 @@ if avg_path.exists():
 
 Each point is one forager's Shapley attribution for one food package, plotted under the two aggregation rules. Points along the dashed $y = x$ line indicate cases where the choice of aggregation rule does not change the attribution. Mean aggregation produces a tail of negative attributions (lower-left quadrant) on packages where a low-skill member dragged down the group mean — best-top-$k$ never produces these because adding any forager can only weakly improve the maximum. Despite these per-package disagreements, the per-forager *totals* across all packages remain positive under both rules.
 
+## Regional comparison with Kitanishi (1995)
+
+*Moved here from the main text at the reviewers' suggestion. Citation numbers
+below follow the main-text reference list and need to be mapped to this
+document's bibliography before submission.*
+
+Compared to values reported in the main text, Kitanishi (49) finds approximately 1,000 fewer kcals per person per day returned to a forest camp between late August and early September 1992, which overlaps with the season covered in the present study (see also (29, 60, 61)). Kitanishi reports similar proportions of foraging returns attributed to wild tubers and wild nuts and seeds as in the present study. We report a smaller proportion of game and honey than Kitanishi, likely reflecting ecological shifts related to logging and overhunting (43, 62). In contrast, we found far greater returns for oil palm than Kitanishi. Oil palm is high in fat and carotenoids, precursors to vitamin A (65), and therefore likely nutritionally complements the plant-based proteinaceous foods (nuts and seeds, cassava leaves) harvested during the study period.
+
+Higher daily returns in the present study are likely attributable to methodological, social, ecological, and seasonal factors. First, Kitanishi measured only food returned to camp, thus excluding harvests consumed during subsistence trips; nine percent of total production in the present study was consumed while on foraging trips (@fig-returns-vs-recall-pie). Second, we observed that in many cases participants with an excess of oil palm transported it to the village, two hours' walk from camp, to share with kin or with Bandongo fictive kin (66); not all food production was therefore consumed on site. While the study village is relatively remote and BaYaka do not engage directly in the sale of forest products (45), Bandongo do sometimes commission BaYaka to collect oil palm in order to sell it onwards to the logging town, in exchange for goods such as baby clothes, machetes, and radios. It is important to note, however, that the resources received through such exchanges often reflect acute fertility or subsistence needs, or shared joy — a foundational aspect of BaYaka social and spiritual life (67, 68) — and are often circulated as part of the immediate-return sharing economy and the acquisition of forest-spirit plays (69, 70). Third, the forest surrounding the camp is known regionally as being especially rich in oil palm, contrasting with Kitanishi's study location. Finally, during the research period participants were preparing for the *kombi* fishing season, which occurs in parts of the forest where oil palm is rare; small quantities of excess palm oil were likely stored for use in *kombi* camps.
+
+Interannual, seasonal, and site variation of this magnitude is expected between studies conducted 26 years apart in different locations, and we would caution against reading the difference as a temporal trend.
+
 ## Field photographs
 
 ![YRO weighing food returned in *Marantaceae* leaves. Photo by Sarah Pope-Caldwell.](../img/1.jpg){#fig-photo-weighing fig-align="center" width="80%"}
