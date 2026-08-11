@@ -28,10 +28,10 @@ package = (returns
     .reset_index())
 package["group_id"] = package.apply(
     lambda r: "_".join([r["date_str"]] + [str(i) for i in r["ids"]]), axis=1)
-# Relabel "palm nut" -> "palm oil" for display (Yaka palm products are
-# processed from the same Elaeis guineensis fruit; "palm oil" is the more
-# accurate ethnographic label).
-RENAME = {"palm nut": "palm oil"}
+# Relabel "palm nut" -> "oil palm" for display. "Oil palm" is the resource
+# (the fruit of Elaeis guineensis) that foragers return to camp; "palm oil"
+# is the processed product and is a separate, much rarer return.
+RENAME = {"palm nut": "oil palm"}
 package["article"] = package["article"].replace(RENAME)
 gid2article = package.groupby("group_id")["article"].first().to_dict()
 

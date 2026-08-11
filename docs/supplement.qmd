@@ -2111,7 +2111,7 @@ In words: a typical man one between-individual SD above the male age × gender e
 
 To check how resource specialisation tracks individual skill, we compute each forager's share of Shapley-attributed kcal by resource (top-12 plus 'other') and split by within-gender skill tercile. Faint lines are individual foragers (coloured continuously by within-gender skill rank); bold lines are tercile means.
 
-![Per-forager Shapley-kcal share by resource, stratified by within-gender skill tercile. Two panels (males, females); each forager appears as a faint coloured line, tercile means in bold. Within both genders, high-skill foragers concentrate kcal in palm oil and (males) honey or (females) mela; low-skill foragers spread across maondo, caterpillars, and cassava leaves.](../results/figures/eda_parallel_resource_skill.png){#fig-resource-by-skill fig-align="center" width="100%"}
+![Per-forager Shapley-kcal share by resource, stratified by within-gender skill tercile. Two panels (males, females); each forager appears as a faint coloured line, tercile means in bold. High-skill foragers of both genders concentrate kcal in oil palm (41% of kcal for high-skill males, 32% for high-skill females); their remaining specialisation diverges by gender, towards honey for males (36%, vs. 3% for females) and *mela* wild yams for females (37%, vs. 4% for males). Low-skill foragers of both genders spread their returns across maondo, caterpillars, and cassava leaves.](../results/figures/eda_parallel_resource_skill.png){#fig-resource-by-skill fig-align="center" width="100%"}
 
 ## Sensitivity Analyses
 
