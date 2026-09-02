@@ -176,6 +176,12 @@ def main() -> pd.DataFrame:
         }
         for fid in forager_ids
     ])
+    # The forager dimension carries one slot for a forager with no
+    # daily-presence data and no positive food package; he does not enter
+    # the likelihood and figures use n = 48, so drop him here too.
+    per_for = per_for[
+        (per_for["camp_days"] > 0) | (per_for["tot_combined"] > 0)
+    ].reset_index(drop=True)
 
     rows = []
     for grp_lbl, mask in [
