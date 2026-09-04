@@ -18,6 +18,7 @@ group_ids = [str(g) for g in shap["group"].values]
 shap_mean = shap["shapley_contribution"].mean(dim="sample").values
 
 returns = pd.read_csv(here("raw_data/returns.csv"))
+returns = returns[pd.to_numeric(returns[[c for c in returns.columns if c.lower() == "gift"][0]], errors="coerce").fillna(0) != 1]
 returns["Date"] = pd.to_datetime(returns["Date"], format="%d.%m.%y", errors="coerce")
 returns = returns.dropna(subset=["Date"])
 returns["date_str"] = returns["Date"].dt.strftime("%Y-%m-%d")

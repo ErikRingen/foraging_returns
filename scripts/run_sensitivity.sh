@@ -22,6 +22,7 @@ FIT="pixi run python scripts/fit_model.py --me-age --no-gp \
 declare -a VARIANTS=(
     "sens_all_outings --all-outings"
     "sens_no_recall --no-recall"
+    "sens_no_part_gifts --exclude-part-gifts"
     "sens_no_palm --exclude-palm"
     "sens_no_top_palm --exclude-top-palm-harvest"
     "sens_wide_priors --prior-scale 2.0"

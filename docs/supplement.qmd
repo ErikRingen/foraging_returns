@@ -93,7 +93,8 @@ pd.DataFrame(
 The modelled dataset is constructed from six raw files: in-camp daily presence (`daysincamp.csv`), out-of-camp activity logs (`groups.csv`), weighed returns (`returns.csv`), recalled out-of-camp consumption (`recall.csv`), per-resource energy densities (`kcal.csv`), and camp roster with demographics (`camp_members.csv`). The preprocessing pipeline applies the following:
 
 - Returns and recall combined. Foragers consume food acquired during foraging trips [@crittenden_juvenile_2013; @berbesque_eat_2016]; excluding it underestimates production. Both streams are merged into a single per-`pooled_group` × date production record.
-- Group identifier. Each food package is identified by date and the set of contributing foragers. The `pooled_group` field from the field protocol resolves cases where multiple foragers participated in collecting the same item. We then aggregate to a single `group_id = "<date>_<sorted forager IDs>"`. When the same forager set is recorded against more than one `pooled_group` on the same day — e.g. two sub-trips, or two separately-pooled cooperative items — kcal is summed within the resulting `group_id` and the model treats them as a single observation in the LogNormal returns likelihood. Of the 1 060 `group_id`s in the returns stream, 58 (5.5 %) merge two or more cooperative `pooled_group`s this way (max 7); solo `group_id`s never collide.
+- Gift exclusion. Food packages recorded as outright gifts from non-camp members (`gift` = 1; 68 returns rows and 2 recall rows) are dropped before kcal computation — gifts are not the recipient's own production. Eight rows flagged as partly gifted (`gift` = 0.5) are retained as recorded; a variant dropping these too is reported in § Sensitivity Analyses.
+- Group identifier. Each food package is identified by date and the set of contributing foragers. The `pooled_group` field from the field protocol resolves cases where multiple foragers participated in collecting the same item. We then aggregate to a single `group_id = "<date>_<sorted forager IDs>"`. When the same forager set is recorded against more than one `pooled_group` on the same day — e.g. two sub-trips, or two separately-pooled cooperative items — kcal is summed within the resulting `group_id` and the model treats them as a single observation in the LogNormal returns likelihood. Of the 1 014 `group_id`s in the returns stream, 56 (5.5 %) merge two or more cooperative `pooled_group`s this way (max 7); solo `group_id`s never collide.
 - Effort observations. For each forager × in-camp date, an effort indicator is set to 1 if the forager logged positive time on an out-of-camp trip with activity type "Foraging" that day (or contributed to a returned food package), and 0 otherwise. Of the 1 395 forager-days scored as effort = 1, 130 (9.3%) had no foraging-labelled trip that day and are credited solely through the forager's contribution to a returned food package — food acquired without a foraging-labelled trip that day: gathering on the periphery of camp, or opportunistic collection on outings logged with a non-foraging purpose. Multi-day trips are rare (36 of 2 683 logged trip records) and are credited to the day of departure; subsequent days away are not counted as additional participation days. Trip records logged with a non-foraging purpose (22% of trip records) do not count toward effort in the canonical fit; the all-outings sensitivity variant (§ Sensitivity Analyses) relaxes this. These observations enter the Bernoulli effort component.
 - Success observations. Conditional on having gone out, each forager × date is labelled as a success (returned with at least one food package) or failure. These observations enter the Bernoulli success component.
 - Zero-inferred returns. (forager, date) pairs with positive out-of-camp time but no recorded food package are appended as kcal = 0 rows. These rows are excluded from the LogNormal returns component, which is conditional on positive returns. Foraging companions are recorded in the trip log, but production groups are keyed to the contributor sets of returned food packages; a trip that returns nothing produces no package, so there is no group contribution to a food package from which to build a cooperative record, and each zero-inferred row is entered as a solo trip. This misrepresents days on which the forager went out in a cooperative group that returned nothing.
@@ -133,6 +134,11 @@ dataset = data.to_dataset()
 
 df_returns_raw = pd.read_csv(here("raw_data/returns.csv"))
 df_recall_raw = pd.read_csv(here("raw_data/recall.csv"))
+# Canonical gift rule: outright gifts (gift == 1) excluded everywhere.
+for _d in (df_returns_raw, df_recall_raw):
+    _d.columns = [c.lower() for c in _d.columns]
+df_returns_raw = df_returns_raw[pd.to_numeric(df_returns_raw["gift"], errors="coerce").fillna(0) != 1]
+df_recall_raw = df_recall_raw[pd.to_numeric(df_recall_raw["gift"], errors="coerce").fillna(0) != 1]
 df_cat = pd.read_csv(here("raw_data/kcal_categories.csv"))
 df_cat.columns = [c.strip() for c in df_cat.columns]
 
@@ -197,7 +203,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-Game accounts for just 3.9% of kcal in the study: 73 returned package rows across 32 days, touched by 26 foragers. This is far too sparse to identify a hunting-specific three-parameter learning-senescence curve plus individual random effects, so no hunting-only refit is reported. The near-absence of hunting is itself informative — the age-related gains in production documented here arise almost entirely from gathered and collected resources, so they cannot be attributed to the long-delay proficiency profile that hunting-specific studies emphasize.
+Game accounts for just 3.6% of kcal in the study: 57 returned package rows across 29 days, touched by 20 foragers. This is far too sparse to identify a hunting-specific three-parameter learning-senescence curve plus individual random effects, so no hunting-only refit is reported. The near-absence of hunting is itself informative — the age-related gains in production documented here arise almost entirely from gathered and collected resources, so they cannot be attributed to the long-delay proficiency profile that hunting-specific studies emphasize.
 
 ### Food-Package Group Sizes
 
@@ -424,7 +430,7 @@ After step 3, the rescaled allocation $\tilde\phi^{(s)}$ is no longer the Shaple
 
 #### Computation
 
-For $n \le 15$ we enumerate all $2^n$ subsets exactly, computing $v_\theta(S)$ once per subset and combining via the $|S|!(n-|S|-1)!/n!$ weights from the closed-form expression. For $n > 15$ we fall back on single-permutation Monte Carlo: for each posterior sample we draw one ordering $\pi$ uniformly at random and assign each player their marginal contribution under $\pi$. Averaging this estimator over orderings recovers $\phi_i(v_\theta)$ in expectation [@castro_polynomial_2009]. With our group-size distribution (max $n = 17$; see Section 2), the exact engine handles 1 069 of 1 070 positive-return groups; one group falls back to single-permutation MC.
+For $n \le 15$ we enumerate all $2^n$ subsets exactly, computing $v_\theta(S)$ once per subset and combining via the $|S|!(n-|S|-1)!/n!$ weights from the closed-form expression. For $n > 15$ we fall back on single-permutation Monte Carlo: for each posterior sample we draw one ordering $\pi$ uniformly at random and assign each player their marginal contribution under $\pi$. Averaging this estimator over orderings recovers $\phi_i(v_\theta)$ in expectation [@castro_polynomial_2009]. With our group-size distribution (max $n = 17$; see Section 2), the exact engine handles 1 064 of 1 065 positive-return groups; one group falls back to single-permutation MC.
 
 Decomposition is at the food-package level (one computation per positive-return group); per-forager daily contributions sum the rescaled $\tilde\phi_i^{(s)}$ across every group the forager participated in on a given date. Two denominators are used downstream: foraging days (effort = 1; failed trips enter as 0 kcal) and in-camp days (every in-camp day, with non-foraging days and failed trips both 0 kcal).
 
@@ -875,7 +881,7 @@ Log-scale residuals on the kcal observation, $r_g = \log Y_g^{\text{obs}} - \wid
 
 ```{python}
 #| label: fig-returns-residuals
-#| fig-cap: "Log-scale residuals for the LogNormal returns component (one point per group, n = 1 070), plotted against predicted log kcal (left), mean age of contributing foragers (centre), and group size (right). Dashed lines mark $\\pm 2\\hat\\sigma$ from the posterior mean of the LogNormal scale."
+#| fig-cap: "Log-scale residuals for the LogNormal returns component (one point per group, n = 1 065), plotted against predicted log kcal (left), mean age of contributing foragers (centre), and group size (right). Dashed lines mark $\\pm 2\\hat\\sigma$ from the posterior mean of the LogNormal scale."
 #| fig-width: 13
 #| fig-height: 4
 
@@ -1890,6 +1896,10 @@ attr_rr = shap_rr["shapley_contribution"].mean(dim="sample").values
 # matching scripts/compute_kcal_summary.py.
 returns_rr = pd.read_csv(here("raw_data/returns.csv"))
 recall_rr  = pd.read_csv(here("raw_data/recall.csv"))
+for _d in (returns_rr, recall_rr):
+    _d.columns = [c.lower() for c in _d.columns]
+returns_rr = returns_rr[pd.to_numeric(returns_rr["gift"], errors="coerce").fillna(0) != 1]
+recall_rr = recall_rr[pd.to_numeric(recall_rr["gift"], errors="coerce").fillna(0) != 1]
 kcal_rr    = pd.read_csv(here("raw_data/kcal.csv")).rename(columns={"Index": "index", "kcal.g": "kcal_g"})
 returns_rr["Date"] = pd.to_datetime(returns_rr["Date"], format="mixed", dayfirst=True)
 recall_rr["Date"]  = pd.to_datetime(recall_rr["Date"],  format="mixed", dayfirst=True)
@@ -2127,9 +2137,9 @@ We compare the fit reported in the main text against alternative specifications,
 - **mean aggregation** — group skill aggregated by the mean in place of best-top-$k$;
 - **all out-of-camp days** — effort counts every out-of-camp day, not only trips with a stated foraging purpose (the canonical fit restricts to foraging-labeled trips);
 - **returns only** — food consumed in the field (the recall stream, 9% of total kcal) excluded from production;
+- **excluding part-gift rows** — the eight rows flagged as partly gifted (gift = 0.5) dropped in addition to the outright gifts excluded canonically. One forager's only food package is among them, so this variant models 47 rather than 48 foragers;
 - **excluding oil palm** — all oil-palm resources (40% of total kcal) removed;
 - **excluding largest palm harvest** — the single exceptionally large oil-palm harvest removed. This is the largest returns observation in the dataset: one date $\times$ contributor set (six foragers, 30 July), $\approx$ 68 kg summed across seven packages, $\approx$ 131,000 kcal;
-- **excluding gift packages** — food-package rows recorded as gifts from non-camp members removed (76 returns rows and 2 recall rows; 2.4% of returned kcal). The canonical fit retains these rows; this variant quantifies their influence, which is negligible — every estimand matches the canonical fit to two decimals;
 - **priors $\times 2$ wider (all)** — every prior's scale doubled (means preserved where the family allows);
 - **priors $\times 2$ wider (Koster-derived only)** — only the five priors derived from the Koster et al. (2020) cross-cultural posteriors ($m_0$, $k_0$, $b_0$, $\eta_{\mu 0}$, $\eta_{\text{success},0}$) doubled, isolating the concern that these priors drive the results.
 
@@ -2147,9 +2157,9 @@ if avg_path.exists():
 SENSITIVITY_VARIANTS = {
     "sens_all_outings": "all out-of-camp days",
     "sens_no_recall": "returns only (no recall)",
+    "sens_no_part_gifts": "excl. part-gift rows",
     "sens_no_palm": "excluding oil palm",
     "sens_no_top_palm": "excl. largest palm harvest",
-    "sens_no_gifts": "excluding gift packages",
     "sens_wide_priors": "priors ×2 wider (all)",
     "sens_wide_priors_koster": "priors ×2 wider (Koster-derived only)",
 }
@@ -2355,7 +2365,7 @@ pd.DataFrame(trend_rows)
 
 ### Skill aggregation: best-top-k vs. mean
 
-PSIS-LOO comparison of the two aggregation methods on the same observations (n = 1 070 group-level returns):
+PSIS-LOO comparison of the two aggregation methods on the same observations (n = 1 065 group-level returns):
 
 ```{python}
 #| label: tbl-aggregation-loo
@@ -2377,7 +2387,7 @@ comp_tbl
 
 ```{python}
 #| label: fig-loo-pointwise-by-kcal
-#| fig-cap: "Pointwise LOO ELPD difference (mean aggregation $-$ best-top-$k$) for each of the 1 070 group-level returns, ordered by observed kcal. Positive values: mean aggregation predicts that observation better; negative: best-top-$k$ does. Marker size scales with group size. The two specifications are essentially indistinguishable for small-to-moderate kcal observations (the bulk of the sample); best-top-$k$ predicts the high-kcal *bonanzas* substantially better, mean aggregation predicts modest small-group hauls slightly better."
+#| fig-cap: "Pointwise LOO ELPD difference (mean aggregation $-$ best-top-$k$) for each of the 1 065 group-level returns, ordered by observed kcal. Positive values: mean aggregation predicts that observation better; negative: best-top-$k$ does. Marker size scales with group size. The two specifications are essentially indistinguishable for small-to-moderate kcal observations (the bulk of the sample); best-top-$k$ predicts the high-kcal *bonanzas* substantially better, mean aggregation predicts modest small-group hauls slightly better."
 
 if avg_path.exists():
     avg_idata = variants["mean aggregation"]

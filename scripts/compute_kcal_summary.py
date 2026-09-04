@@ -39,6 +39,19 @@ from preprocessing import preprocess_data  # noqa: E402
 from pyprojroot.here import here  # noqa: E402
 
 
+def _drop_outright_gifts(df):
+    """Drop rows recorded as outright gifts (gift == 1) from non-camp members.
+
+    Partly gifted rows (gift == 0.5) are retained as recorded. Canonical for
+    every analysis; the public dataset is built with the same rule.
+    """
+    gcol = next((c for c in df.columns if c.lower() == "gift"), None)
+    if gcol is None:
+        return df
+    g = pd.to_numeric(df[gcol], errors="coerce").fillna(0)
+    return df[g != 1].copy()
+
+
 def _stream_packages(df, weight_col, kcal_lookup):
     """Compute deduplicated per-package kcal rows, per the data guide."""
     df = df.merge(kcal_lookup, on="index", how="left").copy()
@@ -124,8 +137,8 @@ def main() -> pd.DataFrame:
     attr = shap["shapley_contribution"].mean(dim="sample").values  # (group, forager)
     dates_per_group = np.array([g.split("_")[0] for g in group_str_ids])
 
-    returns = pd.read_csv(here("raw_data/returns.csv"))
-    recall = pd.read_csv(here("raw_data/recall.csv"))
+    returns = _drop_outright_gifts(pd.read_csv(here("raw_data/returns.csv")))
+    recall = _drop_outright_gifts(pd.read_csv(here("raw_data/recall.csv")))
     kcal = pd.read_csv(here("raw_data/kcal.csv")).rename(columns={"Index": "index", "kcal.g": "kcal_g"})
     returns["Date"] = pd.to_datetime(returns["Date"], format="mixed", dayfirst=True)
     recall["Date"] = pd.to_datetime(recall["Date"], format="mixed", dayfirst=True)
