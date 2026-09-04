@@ -2019,7 +2019,7 @@ The same recall/returns decomposition can be applied to the per-forager averages
 
 ```{python}
 #| label: tbl-kcal-summary
-#| tbl-cap: "Per-forager average kcal per foraging day and per in-camp day (Shapley-attributed), with and without in-field consumption; n = 48 modeled foragers. One male forager has food-package contributions but no daily-presence record: his kcal enter the totals, but he adds no days to the in-camp denominator."
+#| tbl-cap: "Per-forager average kcal per participation day and per in-camp day (Shapley-attributed), with and without in-field consumption; n = 48 modeled foragers. A participation day is defined exactly as in the model's effort component — a logged foraging trip or credit on a food package that day — and failed trips enter as 0 kcal. One male forager has food-package contributions but no daily-presence record: his kcal and package days enter the totals, but he adds no days to the in-camp denominator."
 
 ks = pd.read_csv(here("results/kcal_summary.csv"))
 ks_disp = ks[[
@@ -2030,21 +2030,21 @@ ks_disp = ks[[
     "kcal_per_camp_day_returns_only",
 ]].rename(columns={
     "n_foragers": "n",
-    "kcal_per_foraging_day_with_recall":  "kcal/forage day (with recall)",
-    "kcal_per_foraging_day_returns_only": "kcal/forage day (returns only)",
+    "kcal_per_foraging_day_with_recall":  "kcal/participation day (with recall)",
+    "kcal_per_foraging_day_returns_only": "kcal/participation day (returns only)",
     "kcal_per_camp_day_with_recall":      "kcal/camp day (with recall)",
     "kcal_per_camp_day_returns_only":     "kcal/camp day (returns only)",
 }).round(0).astype({c: int for c in [
     "n",
-    "kcal/forage day (with recall)",
-    "kcal/forage day (returns only)",
+    "kcal/participation day (with recall)",
+    "kcal/participation day (returns only)",
     "kcal/camp day (with recall)",
     "kcal/camp day (returns only)",
 ]})
 ks_disp
 ```
 
-Per-camp-day denominators are fixed (in-camp days do not depend on which kcal channel we count), so the per-camp-day drop equals the recall share exactly: ~16% for men and ~3% for women, matching the disposition pies above. The per-foraging-day drops are identical, because the foraging-day denominator (days with a logged foraging trip) is likewise unchanged by which kcal channel we count.
+Per-camp-day denominators are fixed (in-camp days do not depend on which kcal channel we count), so the per-camp-day drop equals the recall share exactly: ~16% for men and ~3% for women, matching the disposition pies above. The per-participation-day drops are identical, because the participation-day denominator is likewise unchanged by which kcal channel we count.
 
 ### Between-forager variability of effort and skill, by gender
 

@@ -41,7 +41,7 @@ DEFAULT_VARIANT = "ln_nogp_meage_long"
 
 def _load_raw(variant: str):
     shap = xr.open_dataset(here(f"results/{variant}/shapley.nc"))
-    df_foragers, _, df_prod, df_days_long = preprocess_data(
+    df_foragers, df_time_agg, df_prod, df_days_long = preprocess_data(
         returns_file=here("raw_data/returns.csv"),
         recall_file=here("raw_data/recall.csv"),
         kcal_file=here("raw_data/kcal.csv"),
@@ -50,7 +50,7 @@ def _load_raw(variant: str):
         days_in_camp_file=here("raw_data/daysincamp.csv"),
         combine_returns_recall=True,
     )
-    return shap, df_foragers, df_prod, df_days_long
+    return shap, df_foragers, df_time_agg, df_prod, df_days_long
 
 
 def build_forager_day_dataset(
@@ -68,7 +68,7 @@ def build_forager_day_dataset(
         ``sample`` dim preserved (memory-heavier; only needed for
         posterior-uncertainty figures).
     """
-    shap, df_foragers, df_prod, df_days_long = _load_raw(variant)
+    shap, df_foragers, df_time_agg, df_prod, df_days_long = _load_raw(variant)
 
     forager_ids = [str(x) for x in shap["forager"].values]
     fid_to_idx = {fid: i for i, fid in enumerate(forager_ids)}
@@ -91,17 +91,23 @@ def build_forager_day_dataset(
         if ic == 1 and fid in fid_to_idx and d in date_to_idx:
             in_camp[fid_to_idx[fid], date_to_idx[d]] = True
 
-    # effort: every (forager, date) where the forager was a member of any
-    # food-package group AND was in camp that day. df_prod['forager_ids']
-    # is a set of int IDs per group row (positive-kcal groups + zero-kcal
-    # failed-trip rows appended by preprocessing). The in-camp restriction
-    # mirrors the model's effort definition (data.py: effort = in_camp ∧
-    # went_foraging) so that the analytics dataset and the fitted idata
-    # see the same set of effort observations.
+    # effort: the model's exact rule (data.py) — in_camp ∧ (positive
+    # foraging-trip minutes OR membership in a positive-kcal food-package
+    # group that day) — so the analytics dataset and the fitted idata see
+    # the same set of effort observations.
     df_prod = df_prod.copy()
     df_prod["date"] = df_prod["date"].astype(str)
     effort = np.zeros((n_for, n_dat), dtype=bool)
-    for fids, d in zip(df_prod["forager_ids"], df_prod["date"]):
+    df_t = df_time_agg.copy()
+    df_t["id"] = df_t["id"].astype(str)
+    df_t["date"] = df_t["date"].astype(str)
+    went = df_t[df_t["total.minutes"].fillna(0) > 0]
+    for fid, d in zip(went["id"], went["date"]):
+        f_i, d_i = fid_to_idx.get(fid), date_to_idx.get(d)
+        if f_i is not None and d_i is not None:
+            effort[f_i, d_i] = True
+    pos = df_prod[df_prod["kcal"] > 0]
+    for fids, d in zip(pos["forager_ids"], pos["date"]):
         if d not in date_to_idx:
             continue
         d_i = date_to_idx[d]
