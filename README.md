@@ -57,7 +57,7 @@ pixi run python scripts/compute_kcal_summary.py       # per-forager kcal average
 pixi run python scripts/make_figure2.py               # per-forager Shapley boxes
 pixi run python scripts/make_figure3.py               # skill + effort by age
 pixi run python scripts/make_figure4.py               # gender-stratified ψ
-pixi run python scripts/eda_resource_by_skill.py      # supplement Fig. S25
+pixi run python scripts/eda_resource_by_skill.py      # supplement Fig. S26
 pixi run quarto render docs/supplement.qmd            # supplement.html / .docx
 ```
 
@@ -79,7 +79,7 @@ pixi run python scripts/fit_model.py \
     --data-dir public_data
 ```
 
-Per-resource figures (the resource-composition figures in supplement §3 and the resource-by-skill panel in supplement §8) require the resource-attribution columns of the full data and are not reproducible from `public_data/` alone; everything else is.
+Per-resource figures (the resource-composition figures in supplement §2 and the resource-by-skill panel in supplement §8) require the resource-attribution columns of the full data and are not reproducible from `public_data/` alone; everything else is.
 
 ## Repository layout
 
@@ -105,7 +105,7 @@ foraging_returns/
 │   ├── make_figure2.py             # Per-forager Shapley boxes
 │   ├── make_figure3.py             # Skill + effort curves by age
 │   ├── make_figure4.py             # Gender-stratified ψ
-│   ├── eda_resource_by_skill.py    # Supplement Fig. S25 (parallel-coords by skill tercile)
+│   ├── eda_resource_by_skill.py    # Supplement Fig. S26 (parallel-coords by skill tercile)
 │   ├── marginal_effects.py         # Skill/effort marginal-effect sweeps
 │   ├── export_dashboard_data.py    # Web dashboard data exporter
 │   ├── build_public_dataset.py     # Build anonymised public_data/ subset
@@ -144,7 +144,7 @@ If you use this code or the public dataset, please cite the paper above and this
             Gettler, Lee T. and Crittenden, Alyssa N.},
   title  = {Code and analyses for: The development of subsistence effort and skill among BaYaka foragers},
   year   = {2026},
-  url    = {https://github.com/<owner>/<repo>}
+  url    = {https://github.com/ErikRingen/foraging_returns}
 }
 ```
 
