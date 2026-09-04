@@ -1896,10 +1896,14 @@ attr_rr = shap_rr["shapley_contribution"].mean(dim="sample").values
 # matching scripts/compute_kcal_summary.py.
 returns_rr = pd.read_csv(here("raw_data/returns.csv"))
 recall_rr  = pd.read_csv(here("raw_data/recall.csv"))
-for _d in (returns_rr, recall_rr):
-    _d.columns = [c.lower() for c in _d.columns]
-returns_rr = returns_rr[pd.to_numeric(returns_rr["gift"], errors="coerce").fillna(0) != 1]
-recall_rr = recall_rr[pd.to_numeric(recall_rr["gift"], errors="coerce").fillna(0) != 1]
+# Canonical gift rule: outright gifts (gift == 1) excluded; preserve column case.
+def _no_gifts_rr(df):
+    gcol = next((c for c in df.columns if c.lower() == "gift"), None)
+    if gcol is not None:
+        df = df[pd.to_numeric(df[gcol], errors="coerce").fillna(0) != 1]
+    return df
+returns_rr = _no_gifts_rr(returns_rr)
+recall_rr = _no_gifts_rr(recall_rr)
 kcal_rr    = pd.read_csv(here("raw_data/kcal.csv")).rename(columns={"Index": "index", "kcal.g": "kcal_g"})
 returns_rr["Date"] = pd.to_datetime(returns_rr["Date"], format="mixed", dayfirst=True)
 recall_rr["Date"]  = pd.to_datetime(recall_rr["Date"],  format="mixed", dayfirst=True)
