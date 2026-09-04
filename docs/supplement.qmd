@@ -1574,7 +1574,7 @@ The figures below summarise the per-forager Shapley-attributed kcal posteriors f
 
 ### Per-forager distribution on foraging days
 
-![Per-forager Shapley-attributed daily kcal across foraging days (main-text fit; variant ID `ln_nogp_meage_long`). Each dot is one (forager, foraging day); failed trips (no returns) enter as zero kcal. Foragers are placed at their actual age in years; same-age foragers are jittered symmetrically within ±1 yr. Short horizontal bars mark per-forager means. Y-axis is on a $\sqrt{\cdot}$ scale (zero preserved).](../results/figures/figure2_shapley_by_forager.png){#fig-shapley-by-forager fig-align="center" width="100%"}
+![Per-forager Shapley-attributed daily kcal across foraging days (main-text fit). Each dot is one (forager, foraging day); failed trips (no returns) enter as zero kcal. Foragers are placed at their actual age in years; same-age foragers are jittered symmetrically within ±1 yr. Short horizontal bars mark per-forager means. Y-axis is on a $\sqrt{\cdot}$ scale (zero preserved).](../results/figures/figure2_shapley_by_forager.png){#fig-shapley-by-forager fig-align="center" width="100%"}
 
 ```{python}
 #| label: load-forager-day
@@ -2015,7 +2015,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-The same recall/returns decomposition can be applied to the per-forager averages reported above. The "returns only" columns rescale each per-group Shapley share by `returns_kcal / (returns + recall)` for that group; the canonical computation lives in `scripts/compute_kcal_summary.py`.
+The same recall/returns decomposition can be applied to the per-forager averages reported above. The "returns only" columns rescale each per-group Shapley share by `returns_kcal / (returns + recall)` for that group; the computation is implemented in `scripts/compute_kcal_summary.py`.
 
 ```{python}
 #| label: tbl-kcal-summary
