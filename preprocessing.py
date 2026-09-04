@@ -12,6 +12,7 @@ def preprocess_data(
     combine_returns_recall: bool = True,
     foraging_only: bool = True,
     include_recall: bool = True,
+    exclude_gifts: bool = False,
     exclude_resource_indices: list[int] | None = None,
     exclude_top_harvest_of: list[int] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -39,6 +40,9 @@ def preprocess_data(
             out-of-camp trip counts (all-outings sensitivity variant).
         include_recall: If False, drop the recall (field-consumption) stream so
             production reflects in-camp returns only.
+        exclude_gifts: If True, drop rows with any gift component
+            (``gift`` > 0: food given by non-camp members) from both
+            returns and recall before kcal computation.
         exclude_resource_indices: Resource ``index`` values to drop from both
             returns and recall before kcal computation (raw-data shape only).
         exclude_top_harvest_of: Drop the largest single harvest (one date x
@@ -92,6 +96,18 @@ def preprocess_data(
     # --- Sensitivity-variant filters ---
     if not include_recall:
         df_recall = df_recall.iloc[0:0].copy()
+
+    if exclude_gifts:
+        def _drop_gifts(df):
+            if 'gift' not in df.columns:
+                return df
+            g = pd.to_numeric(df['gift'], errors='coerce').fillna(0)
+            n = int((g > 0).sum())
+            if n:
+                print(f"Processing: dropping {n} gift rows (gift > 0).")
+            return df[g == 0].copy()
+        df_returns = _drop_gifts(df_returns)
+        df_recall = _drop_gifts(df_recall)
 
     if exclude_resource_indices is not None or exclude_top_harvest_of is not None:
         if 'index' not in df_returns.columns:
