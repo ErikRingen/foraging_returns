@@ -2129,6 +2129,7 @@ We compare the fit reported in the main text against alternative specifications,
 - **returns only** — food consumed in the field (the recall stream, 9% of total kcal) excluded from production;
 - **excluding oil palm** — all oil-palm resources (40% of total kcal) removed;
 - **excluding largest palm harvest** — the single exceptionally large oil-palm harvest removed. This is the largest returns observation in the dataset: one date $\times$ contributor set (six foragers, 30 July), $\approx$ 68 kg summed across seven packages, $\approx$ 131,000 kcal;
+- **excluding gift packages** — food-package rows recorded as gifts from non-camp members removed (76 returns rows and 2 recall rows; 2.4% of returned kcal). The canonical fit retains these rows; this variant quantifies their influence, which is negligible — every estimand matches the canonical fit to two decimals;
 - **priors $\times 2$ wider (all)** — every prior's scale doubled (means preserved where the family allows);
 - **priors $\times 2$ wider (Koster-derived only)** — only the five priors derived from the Koster et al. (2020) cross-cultural posteriors ($m_0$, $k_0$, $b_0$, $\eta_{\mu 0}$, $\eta_{\text{success},0}$) doubled, isolating the concern that these priors drive the results.
 
@@ -2148,6 +2149,7 @@ SENSITIVITY_VARIANTS = {
     "sens_no_recall": "returns only (no recall)",
     "sens_no_palm": "excluding oil palm",
     "sens_no_top_palm": "excl. largest palm harvest",
+    "sens_no_gifts": "excluding gift packages",
     "sens_wide_priors": "priors ×2 wider (all)",
     "sens_wide_priors_koster": "priors ×2 wider (Koster-derived only)",
 }
