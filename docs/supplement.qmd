@@ -2437,7 +2437,7 @@ The two aggregation methods imply different value functions on subsets of forage
 
 ```{python}
 #| label: fig-shapley-vs-shapley
-#| fig-cap: "Per-forager total Shapley-attributed kcal under best-top-$k$ aggregation (main text) versus true mean aggregation. Each point is one forager; marker shape is gender, colour is age. Dashed grey line is $y = x$. Mean aggregation's Shapley uses the proper mean-skill value function and produces negative attributions on individual food packages; for four young foragers (ages 2-10) these accumulate to negative per-forager totals."
+#| fig-cap: "Per-forager total Shapley-attributed kcal under best-top-$k$ aggregation (main text) versus true mean aggregation. Each point is one forager; marker shape is gender, colour is age. Dashed grey line is $y = x$. Mean aggregation's Shapley uses the proper mean-skill value function and produces negative attributions on individual food packages; for five young foragers (ages 2–10) these accumulate to negative per-forager totals."
 
 if avg_path.exists():
     from scipy.stats import spearmanr, pearsonr
@@ -2493,7 +2493,7 @@ if avg_path.exists():
         plt.show()
 ```
 
-Each point is one forager's Shapley attribution for one food package, plotted under the two aggregation rules. Points along the dashed $y = x$ line indicate cases where the choice of aggregation rule does not change the attribution. Mean aggregation produces a tail of negative attributions (lower-left quadrant) on packages where a low-skill member dragged down the group mean — best-top-$k$ never produces these because adding any forager can only weakly improve the maximum. These per-package disagreements are not innocuous: under mean aggregation, four foragers — young children (ages 2, 5, 5, and 10) — end up with *negative* total attributed production across the study (as low as $-6{,}738$ kcal), because their presence lowers the group mean on cooperative packages. Best-top-$k$ assigns the same children small positive totals. For a study of children's foraging, an attribution rule that credits young children with negative total food production is not interpretable, which is a substantive reason — beyond predictive fit — to prefer best-top-$k$.
+Each point is one forager's Shapley attribution for one food package, plotted under the two aggregation rules. Points along the dashed $y = x$ line indicate cases where the choice of aggregation rule does not change the attribution. Mean aggregation produces a tail of negative attributions (lower-left quadrant) on packages where a low-skill member dragged down the group mean — best-top-$k$ never produces these because adding any forager can only weakly improve the maximum. These per-package disagreements are not innocuous: under mean aggregation, five foragers — young children (ages 2–10) — end up with *negative* total attributed production across the study (as low as $-6{,}591$ kcal), because their presence lowers the group mean on cooperative packages. Best-top-$k$ assigns the same children small non-negative totals. For a study of children's foraging, an attribution rule that credits young children with negative total food production is not interpretable, which is a substantive reason — beyond predictive fit — to prefer best-top-$k$.
 
 ## Regional comparison with Kitanishi (1995)
 

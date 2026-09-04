@@ -18,6 +18,9 @@ underlying the manuscript. It has been processed by
    `returns.csv`; `quantity`, `x1_unit_weight_grams`, `total_weight_grams`
    in `recall.csv`) are dropped. Only the pre-computed `kcal` totals
    remain as the dependent variable.
+4. Exclude rows recorded as outright gifts from non-camp members
+   (`gift` = 1), matching the canonical analysis. Rows flagged as partly
+   gifted (`gift` = 0.5) are retained as recorded.
 
 For the full dataset (with real participant IDs and resource attribution),
 contact the corresponding authors. Use is subject to ethical approval.
