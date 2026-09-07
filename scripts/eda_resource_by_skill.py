@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Parallel-coordinates: per-forager kcal share by resource, stratified by
-within-gender skill tercile. Two panels (male, female)."""
+within-gender skill tercile. Two panels (boys/men, girls/women)."""
 import sys
 sys.path.insert(0, ".")
 import numpy as np
@@ -79,7 +79,9 @@ cmap = cm.get_cmap("viridis")
 tercile_colors = [cmap(0.15), cmap(0.5), cmap(0.85)]
 tercile_labels = ["Low skill", "Mid skill", "High skill"]
 
-for ax, sex_label, title in [(axes[0], "male", "Male"), (axes[1], "female", "Female")]:
+for ax, sex_label, title in [
+    (axes[0], "male", "Boys/men"), (axes[1], "female", "Girls/women")
+]:
     sel = sex == sex_label
     fids = np.array(forager_ids)[sel]
     terc = tercile[sel]

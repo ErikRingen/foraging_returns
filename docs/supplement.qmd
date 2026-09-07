@@ -58,6 +58,9 @@ from foraging_model.analytics import (
     per_forager_summary,
 )
 
+# Display labels for the two gender strata (model coordinates are "male"/"female").
+GENDER_DISPLAY = {"male": "Boys/men", "female": "Girls/women"}
+
 RANDOM_SEED = 42
 plt.style.use("seaborn-v0_8-whitegrid")
 sns.set_palette("colorblind")
@@ -245,7 +248,7 @@ if dag_path.exists():
     display(Image(filename=str(dag_path)))
 ```
 
-Identification. Age affects both skill and effort. The skill curve and effort model condition on age. The bivariate Normal random effect on $(u_{\text{effort}},u_{\text{skill}})$ carries the residual covariance not captured by age; the joint distribution of effort, success, and returns identifies its correlation $\psi$. The covariance is estimated separately for men and women, yielding $\psi_{\text{male}}$ and $\psi_{\text{female}}$.
+Identification. Age affects both skill and effort. The skill curve and effort model condition on age. The bivariate Normal random effect on $(u_{\text{effort}},u_{\text{skill}})$ carries the residual covariance not captured by age; the joint distribution of effort, success, and returns identifies its correlation $\psi$. The covariance is estimated separately for boys/men and girls/women, yielding a separate $\psi$ for each gender.
 
 ## Model Specification
 
@@ -321,7 +324,7 @@ pm.Bernoulli("non_zero_prod", p=pt.sigmoid(success_linear),
 
 ### Correlated Random Effects
 
-Random effects $(u_{\text{effort}}, u_{\text{skill}})$ for forager skill/effort follow a bivariate normal with LKJ prior on the correlation. The covariance is gender-stratified: men and women have separate $(\sigma_{\text{effort}}, \sigma_{\text{skill}}, \psi)$ so that the within-gender variability and the effort–skill correlation $\psi$ are estimated independently for each gender. Final skill: $S_i = S(x_i) \cdot \exp(u_{\text{skill},i})$.
+Random effects $(u_{\text{effort}}, u_{\text{skill}})$ for forager skill/effort follow a bivariate normal with LKJ prior on the correlation. The covariance is gender-stratified: boys/men and girls/women have separate $(\sigma_{\text{effort}}, \sigma_{\text{skill}}, \psi)$ so that the within-gender variability and the effort–skill correlation $\psi$ are estimated independently for each gender. Final skill: $S_i = S(x_i) \cdot \exp(u_{\text{skill},i})$.
 
 ```{python}
 #| eval: false
@@ -1165,14 +1168,14 @@ for grp, names in groups_def.items():
             continue
         prior_s = _samples(prior_arr, nm) or [None] * len(post_s)
         if nm.endswith("_stds"):
-            sex_lbl = "male" if "_male_" in nm else "female"
-            labels = [f"effort RE sd ({sex_lbl})", f"skill RE sd ({sex_lbl})"]
+            g_lbl = GENDER_DISPLAY["male" if "_male_" in nm else "female"].lower()
+            labels = [f"effort RE sd ({g_lbl})", f"skill RE sd ({g_lbl})"]
         elif nm.endswith("_corr"):
-            sex_lbl = "male" if "_male_" in nm else "female"
-            labels = [f"psi ({sex_lbl})"]
+            g_lbl = GENDER_DISPLAY["male" if "_male_" in nm else "female"].lower()
+            labels = [f"psi ({g_lbl})"]
         elif nm.endswith("_gender"):
             base = nm[:-len("_gender")]
-            labels = [f"{base} (male)", f"{base} (female)"]
+            labels = [f"{base} ({GENDER_DISPLAY[g].lower()})" for g in ("male", "female")]
         else:
             labels = [nm]
         for lbl, ps, qs in zip(labels, post_s, prior_s):
@@ -1412,7 +1415,7 @@ for g_idx, sex in enumerate(["male", "female"]):
         color=COLORS_SEX[sex], alpha=0.15,
     )
     axes[0].plot(ages_plot, p_eff.mean(axis=0), color=COLORS_SEX[sex],
-                 lw=2.0, label=sex.capitalize())
+                 lw=2.0, label=GENDER_DISPLAY[sex])
 
     # P(success | trip): success ~ Bernoulli(logit(alpha + eta * S(x)))
     m_g = np.exp(m0 + m0_g[:, g_idx])
@@ -1433,7 +1436,7 @@ for g_idx, sex in enumerate(["male", "female"]):
         color=COLORS_SEX[sex], alpha=0.15,
     )
     axes[1].plot(ages_plot, p_suc.mean(axis=0), color=COLORS_SEX[sex],
-                 lw=2.0, label=sex.capitalize())
+                 lw=2.0, label=GENDER_DISPLAY[sex])
 
 axes[0].set_title("P(subsistence trip | in camp)", fontsize=11)
 axes[1].set_title("P(returned with food | trip)", fontsize=11)
@@ -1453,7 +1456,7 @@ plt.show()
 
 ```{python}
 #| label: fig-re-correlations
-#| fig-cap: "Per-forager posterior mean random effects: effort propensity (x-axis, logit scale) vs skill (y-axis, log scale). Points are coloured by forager age. The negative trend (lower-skilled-for-age individuals tend to forage more frequently) is the visual anchor for the effort–skill correlation. Note that $\\psi$ is estimated separately for men and women; this scatter pools both genders for visualisation."
+#| fig-cap: "Per-forager posterior mean random effects: effort propensity (x-axis, logit scale) vs skill (y-axis, log scale). Points are coloured by forager age. The negative trend (lower-skilled-for-age individuals tend to forage more frequently) is the visual anchor for the effort–skill correlation. Note that $\\psi$ is estimated separately for boys/men and girls/women; this scatter pools both genders for visualisation."
 
 re = idata.posterior["re"].mean(dim=["chain", "draw"]).values
 re_effort = re[:, 0]
@@ -1653,8 +1656,8 @@ ax.set_xticklabels([str(t) for t in ticks])
 ax.set_xlabel("Forager age (years)")
 ax.set_ylabel("Per in-camp day (kcal, $\\sqrt{\\cdot}$ axis)")
 ax.legend(handles=[
-    Patch(facecolor=COLORS_SEX["male"], alpha=0.65, label="Male"),
-    Patch(facecolor=COLORS_SEX["female"], alpha=0.65, label="Female"),
+    Patch(facecolor=COLORS_SEX["male"], alpha=0.65, label=GENDER_DISPLAY["male"]),
+    Patch(facecolor=COLORS_SEX["female"], alpha=0.65, label=GENDER_DISPLAY["female"]),
     Line2D([0], [0], color="gray", lw=2.0, label="Per-forager mean"),
 ], loc="upper left", frameon=False)
 for spine in ("top", "right"):
@@ -1713,7 +1716,7 @@ def _draw_panel(ax, summary, title):
         lo = np.asarray(s["ci_lo"], dtype=float)
         hi = np.asarray(s["ci_hi"], dtype=float)
         ns = np.asarray(s["n_foragers"], dtype=int)
-        ax.plot(x, y, marker="o", color=color, lw=2.0, label=sex.capitalize(),
+        ax.plot(x, y, marker="o", color=color, lw=2.0, label=GENDER_DISPLAY[sex],
                 markerfacecolor=color, markeredgecolor="white",
                 markersize=7, mew=1.0)
         ax.fill_between(x, lo, hi, color=color, alpha=0.15)
@@ -1767,7 +1770,7 @@ for ax, df_cv, title in [
             continue
         ax.scatter(sub["age"], sub["cv"], s=42, c=color, alpha=0.85,
                    edgecolors="white", linewidths=0.7,
-                   label=f"{sex.capitalize()} (n={len(sub)})")
+                   label=f"{GENDER_DISPLAY[sex]} (n={len(sub)})")
     ax.set_xlabel("Forager age (years)")
     ax.set_title(title, fontsize=10)
     ax.legend(loc="upper right", frameon=False, fontsize=9)
@@ -1805,10 +1808,20 @@ def _age_class(a: float) -> str:
     return ">20"
 
 
-classes = [f"{s} {_age_class(a)}" for s, a in zip(sex_arr_t, ages_arr)]
+# Age class qualifies the gender label: girls/boys under 15, women/men over 20,
+# both forms for the 15-20 band.
+CLASS_DISPLAY = {
+    "female <15": "Girls <15",
+    "female 15-20": "Girls/women 15-20",
+    "female >20": "Women >20",
+    "male <15": "Boys <15",
+    "male 15-20": "Boys/men 15-20",
+    "male >20": "Men >20",
+}
+classes = [CLASS_DISPLAY[f"{s} {_age_class(a)}"] for s, a in zip(sex_arr_t, ages_arr)]
 class_order = [
-    "female <15", "female 15-20", "female >20",
-    "male <15", "male 15-20", "male >20",
+    "Girls <15", "Girls/women 15-20", "Women >20",
+    "Boys <15", "Boys/men 15-20", "Men >20",
 ]
 totals = {c: np.zeros(len(dates_t)) for c in class_order}
 for f_i, c in enumerate(classes):
@@ -1819,12 +1832,12 @@ df_raw = pd.DataFrame(totals, index=dates_t).sort_index()
 class_totals = df_raw.sum(axis=0)
 
 class_colors = {
-    "female <15":   "#FCAEAE",
-    "female 15-20": "#E94F37",
-    "female >20":   "#8B1E1E",
-    "male <15":     "#A6C8E0",
-    "male 15-20":   "#2E86AB",
-    "male >20":     "#1B4F72",
+    "Girls <15":         "#FCAEAE",
+    "Girls/women 15-20": "#E94F37",
+    "Women >20":         "#8B1E1E",
+    "Boys <15":          "#A6C8E0",
+    "Boys/men 15-20":    "#2E86AB",
+    "Men >20":           "#1B4F72",
 }
 
 fig, axes = plt.subplots(1, 2, figsize=(15, 5),
@@ -1970,20 +1983,30 @@ plt.show()
 # Forager-level metadata: gender + age class (using observed age)
 gender_arr = idata.constant_data["gender_idx"].values
 age_arr_pie = np.asarray(idata.observed_data["age_obs"].values, dtype=float)
-sex_arr_pie = np.where(gender_arr == 0, "Male", "Female")
+sex_arr_pie = np.where(gender_arr == 0, "male", "female")
 def _ac_pie(a):
     if a < 15: return "<15"
     if a < 20: return "15–20"
     return ">20"
-class_arr_pie = np.array([f"{s} {_ac_pie(a)}" for s, a in zip(sex_arr_pie, age_arr_pie)])
+CLASS_DISPLAY_PIE = {
+    "male <15": "Boys <15",
+    "male 15–20": "Boys/men 15–20",
+    "male >20": "Men >20",
+    "female <15": "Girls <15",
+    "female 15–20": "Girls/women 15–20",
+    "female >20": "Women >20",
+}
+class_arr_pie = np.array([
+    CLASS_DISPLAY_PIE[f"{s} {_ac_pie(a)}"] for s, a in zip(sex_arr_pie, age_arr_pie)
+])
 
 # Per-(group, forager) returned vs. consumed Shapley contributions
 shap_ret = attr_rr * share[:, None]
 shap_con = attr_rr * (1 - share[:, None])
 
 cells_pie = [
-    "Male <15", "Male 15–20", "Male >20",
-    "Female <15", "Female 15–20", "Female >20",
+    "Boys <15", "Boys/men 15–20", "Men >20",
+    "Girls <15", "Girls/women 15–20", "Women >20",
 ]
 fig_cls, axes_cls = plt.subplots(2, 3, figsize=(11, 7))
 for ax, cell in zip(axes_cls.ravel(), cells_pie):
@@ -2019,7 +2042,7 @@ The same recall/returns decomposition can be applied to the per-forager averages
 
 ```{python}
 #| label: tbl-kcal-summary
-#| tbl-cap: "Per-forager average kcal per participation day and per in-camp day (Shapley-attributed), with and without in-field consumption; n = 48 modeled foragers. A participation day is defined exactly as in the model's effort component — a logged foraging trip or credit on a food package that day — and failed trips enter as 0 kcal. One male forager has food-package contributions but no daily-presence record: his kcal and package days enter the totals, but he adds no days to the in-camp denominator."
+#| tbl-cap: "Per-forager average kcal per participation day and per in-camp day (Shapley-attributed), with and without in-field consumption; n = 48 modeled foragers. A participation day is defined exactly as in the model's effort component — a logged foraging trip or credit on a food package that day — and failed trips enter as 0 kcal. One boy has food-package contributions but no daily-presence record: his kcal and package days enter the totals, but he adds no days to the in-camp denominator."
 
 ks = pd.read_csv(here("results/kcal_summary.csv"))
 ks_disp = ks[[
@@ -2044,11 +2067,11 @@ ks_disp = ks[[
 ks_disp
 ```
 
-Per-camp-day denominators are fixed (in-camp days do not depend on which kcal channel we count), so the per-camp-day drop equals the recall share exactly: ~16% for men and ~3% for women, matching the disposition pies above. The per-participation-day drops are identical, because the participation-day denominator is likewise unchanged by which kcal channel we count.
+Per-camp-day denominators are fixed (in-camp days do not depend on which kcal channel we count), so the per-camp-day drop equals the recall share exactly: ~16% for boys/men and ~3% for girls/women, matching the disposition pies above. The per-participation-day drops are identical, because the participation-day denominator is likewise unchanged by which kcal channel we count.
 
 ### Between-forager variability of effort and skill, by gender
 
-The covariance of the (effort, skill) random effects is estimated separately for men and women, so the within-gender between-forager spread of effort propensity and skill propensity can differ. We report this on the *observable* scale rather than the latent (logit-effort, log-skill) scale, because the latent scale's nonlinear compression makes a 1-unit difference at the centre of the curve very different from a 1-unit difference at the tail. Concretely, for each forager we compute their posterior-mean deviation from the age × gender expectation in two natural units — additive probability-points for effort, $\Delta P_i = \mathrm{expit}(\eta_i + u^{\text{eff}}_i) - \mathrm{expit}(\eta_i)$, and a multiplicative ratio for skill, $S_i / S_{\text{base}}(x_i)$ — and summarise their between-forager standard deviation within each gender.
+The covariance of the (effort, skill) random effects is estimated separately for boys/men and girls/women, so the within-gender between-forager spread of effort propensity and skill propensity can differ. We report this on the *observable* scale rather than the latent (logit-effort, log-skill) scale, because the latent scale's nonlinear compression makes a 1-unit difference at the centre of the curve very different from a 1-unit difference at the tail. Concretely, for each forager we compute their posterior-mean deviation from the age × gender expectation in two natural units — additive probability-points for effort, $\Delta P_i = \mathrm{expit}(\eta_i + u^{\text{eff}}_i) - \mathrm{expit}(\eta_i)$, and a multiplicative ratio for skill, $S_i / S_{\text{base}}(x_i)$ — and summarise their between-forager standard deviation within each gender.
 
 ```{python}
 #| label: fig-re-sd-by-gender-observable
@@ -2085,8 +2108,8 @@ for ax, vals_m, vals_f, ttl in [
     (axes_re[1], logR_sd_m, logR_sd_f, r"SD of $\log(S_i / S_{\mathrm{base}})$"),
 ]:
     for j, (vals, color, lbl) in enumerate([
-        (vals_m, COL_M_RE, "Male"),
-        (vals_f, COL_F_RE, "Female"),
+        (vals_m, COL_M_RE, GENDER_DISPLAY["male"]),
+        (vals_f, COL_F_RE, GENDER_DISPLAY["female"]),
     ]):
         m_   = float(np.mean(vals))
         l50, h50 = np.percentile(vals, [25, 75])
@@ -2096,7 +2119,7 @@ for ax, vals_m, vals_f, ttl in [
         ax.plot([l50, h50], [y, y], color=color, lw=3.6)
         ax.plot([m_], [y], "o", color=color, markersize=7,
                 markeredgecolor="white", mew=0.6, zorder=4)
-    ax.set_yticks([1, 0]); ax.set_yticklabels(["Male", "Female"])
+    ax.set_yticks([1, 0]); ax.set_yticklabels([GENDER_DISPLAY["male"], GENDER_DISPLAY["female"]])
     ax.set_xlabel(ttl); ax.set_xlim(left=0)
     ax.grid(axis="x", alpha=0.3)
     for sp in ("top", "right"): ax.spines[sp].set_visible(False)
@@ -2106,7 +2129,7 @@ plt.show()
 
 ```{python}
 #| label: tbl-re-sd-ratio
-#| tbl-cap: "Male-to-female ratio of between-forager SDs on the observable scale. Values >1 indicate more between-male than between-female variation; the right column is the posterior probability that the male SD exceeds the female SD."
+#| tbl-cap: "Ratio of between-forager SDs on the observable scale, boys/men relative to girls/women. Values >1 indicate more between-forager variation among boys/men than among girls/women; the right column is the posterior probability that the boys/men SD exceeds the girls/women SD."
 
 ratio_dP   = dP_sd_m / dP_sd_f
 ratio_logR = logR_sd_m / logR_sd_f
@@ -2119,12 +2142,12 @@ def _row(name, x):
         "P(ratio > 1)":   float(np.mean(x > 1)),
     }
 pd.DataFrame([
-    _row("SD ratio: effort deviation, M / F", ratio_dP),
-    _row("SD ratio: skill deviation,  M / F", ratio_logR),
+    _row("SD ratio: effort deviation, boys/men ÷ girls/women", ratio_dP),
+    _row("SD ratio: skill deviation, boys/men ÷ girls/women", ratio_logR),
 ]).round(3)
 ```
 
-In words: a typical man one between-individual SD above the male age × gender expectation is roughly $1.32\times$ as skilled as the male age-norm and goes on subsistence trips on about $8$ percentage points more days than the male age-norm; for women the equivalent forager is roughly $1.15\times$ as skilled and goes out about $6$ percentage points more often. The skill-scale asymmetry — about three-and-a-half times more between-male than between-female variation, with $P(\text{M} > \text{F}) \approx 0.92$ — is the more clearly resolved of the two and is the most direct reason $\psi_{\text{female}}$ is more weakly identified than $\psi_{\text{male}}$: a residual correlation between effort and skill is estimated more precisely when the two random effects vary more across individuals.
+In words: a typical boy or man one between-individual SD above the boys/men age × gender expectation is roughly $1.32\times$ as skilled as that age-norm and goes on subsistence trips on about $8$ percentage points more days than that norm; for girls/women the equivalent forager is roughly $1.15\times$ as skilled and goes out about $6$ percentage points more often. The skill-scale asymmetry — about three-and-a-half times more between-forager variation among boys/men than among girls/women, with $P(\text{ratio} > 1) \approx 0.92$ — is the more clearly resolved of the two and is the most direct reason $\psi$ is more weakly identified for girls/women than for boys/men: a residual correlation between effort and skill is estimated more precisely when the two random effects vary more across individuals.
 
 Note that the posterior-mean SD ratios in @tbl-re-sd-ratio ($\approx 3.4$ effort, $\approx 3.5$ skill) are means of a heavily right-skewed ratio posterior (95% CIs span roughly 0.5–15) and therefore run well above the typical (median) ratios implied by the deviations quoted above ($\approx 1.4$ and $\approx 2.0$); the direction of the asymmetry, not the magnitude of the posterior-mean ratio, is the robust summary.
 
@@ -2132,7 +2155,7 @@ Note that the posterior-mean SD ratios in @tbl-re-sd-ratio ($\approx 3.4$ effort
 
 To check how resource specialisation tracks individual skill, we compute each forager's share of Shapley-attributed kcal by resource (top-12 plus 'other') and split by within-gender skill tercile. Faint lines are individual foragers (coloured continuously by within-gender skill rank); bold lines are tercile means.
 
-![Per-forager Shapley-kcal share by resource, stratified by within-gender skill tercile. Two panels (males, females); each forager appears as a faint coloured line, tercile means in bold. Within both genders, high-skill foragers concentrate kcal in (males) oil palm and honey or (females) *mela*; low-skill foragers spread across maondo, caterpillars, and cassava leaves.](../results/figures/eda_parallel_resource_skill.png){#fig-resource-by-skill fig-align="center" width="100%"}
+![Per-forager Shapley-kcal share by resource, stratified by within-gender skill tercile. Two panels (boys/men, girls/women); each forager appears as a faint coloured line, tercile means in bold. Within both genders, high-skill foragers concentrate kcal in oil palm and honey (boys/men) or *mela* (girls/women); low-skill foragers spread across maondo, caterpillars, and cassava leaves.](../results/figures/eda_parallel_resource_skill.png){#fig-resource-by-skill fig-align="center" width="100%"}
 
 ## Sensitivity Analyses
 
@@ -2476,7 +2499,7 @@ if avg_path.exists():
                             marker=marker, s=22,
                             vmin=age_arr.min(), vmax=age_arr.max(),
                             alpha=0.35, edgecolor="none",
-                            label=sex_label.capitalize())
+                            label=GENDER_DISPLAY[sex_label])
         cb = plt.colorbar(sc, ax=ax); cb.set_label("Age (years)")
         ax.set_xscale("symlog", linthresh=10)
         ax.set_yscale("symlog", linthresh=10)

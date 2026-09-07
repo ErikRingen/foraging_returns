@@ -26,6 +26,7 @@ from preprocessing import preprocess_data
 
 CANONICAL = "ln_nogp_meage_long"
 COLORS = {"male": "#2E86AB", "female": "#E94F37"}
+LABELS = {"male": "boys/men", "female": "girls/women"}
 
 
 def main():
@@ -94,7 +95,9 @@ def main():
     for sex in ["male", "female"]:
         c = COLORS[sex]
         S_g = skill_by[sex]
-        ax_skill.plot(ages_plot, S_g.mean(axis=0), color=c, lw=2.2, label=f"Skill ({sex})")
+        ax_skill.plot(
+            ages_plot, S_g.mean(axis=0), color=c, lw=2.2, label=f"Skill ({LABELS[sex]})"
+        )
         ax_skill.fill_between(
             ages_plot,
             np.percentile(S_g, 2.5, axis=0),
@@ -104,7 +107,8 @@ def main():
 
         p_g = effort_by[sex]
         ax_eff.plot(
-            ages_plot, p_g.mean(axis=0), color=c, lw=2.2, ls="--", label=f"Effort ({sex})"
+            ages_plot, p_g.mean(axis=0), color=c, lw=2.2, ls="--",
+            label=f"Effort ({LABELS[sex]})",
         )
         ax_eff.fill_between(
             ages_plot,

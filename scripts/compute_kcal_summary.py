@@ -225,8 +225,8 @@ def main() -> pd.DataFrame:
     rows = []
     for grp_lbl, mask in [
         ("All", np.ones(len(per_for), dtype=bool)),
-        ("Male", per_for["sex"] == "male"),
-        ("Female", per_for["sex"] == "female"),
+        ("Boys/men", per_for["sex"] == "male"),
+        ("Girls/women", per_for["sex"] == "female"),
     ]:
         sub = per_for[mask]
         rows.append({
