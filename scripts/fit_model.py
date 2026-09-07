@@ -52,6 +52,7 @@ def fit_model(
     data_dir: str = "raw_data",
     foraging_only: bool = True,
     include_recall: bool = True,
+    exclude_part_gifts: bool = False,
     exclude_palm: bool = False,
     exclude_top_palm_harvest: bool = False,
     prior_scale: float = 1.0,
@@ -78,6 +79,7 @@ def fit_model(
         "use_gp": use_gp,
         "foraging_only": foraging_only,
         "include_recall": include_recall,
+        "exclude_part_gifts": exclude_part_gifts,
         "exclude_palm": exclude_palm,
         "exclude_top_palm_harvest": exclude_top_palm_harvest,
         "prior_scale": prior_scale,
@@ -103,8 +105,9 @@ def fit_model(
         combine_returns_recall=True,
         foraging_only=foraging_only,
         include_recall=include_recall,
+        exclude_part_gifts=exclude_part_gifts,
         exclude_resource_indices=PALM_INDICES if exclude_palm else None,
-        exclude_top_package_of=PALM_INDICES if exclude_top_palm_harvest else None,
+        exclude_top_harvest_of=PALM_INDICES if exclude_top_palm_harvest else None,
     )
 
     print("[2/6] Building model dataset...")
@@ -281,8 +284,14 @@ def main():
         help="Exclude all oil-palm resources (raw data only).",
     )
     parser.add_argument(
+        "--exclude-part-gifts", action="store_true",
+        help=("Additionally drop rows flagged as partly gifted (gift == 0.5); "
+              "outright gifts (gift == 1) are always excluded."),
+    )
+    parser.add_argument(
         "--exclude-top-palm-harvest", action="store_true",
-        help="Exclude only the single largest oil-palm harvest (raw data only).",
+        help=("Exclude the single largest oil-palm harvest -- one date x "
+              "contributor set, summed across packages (raw data only)."),
     )
     parser.add_argument(
         "--prior-scale", type=float, default=1.0,
@@ -316,6 +325,7 @@ def main():
         data_dir=args.data_dir,
         foraging_only=not args.all_outings,
         include_recall=not args.no_recall,
+        exclude_part_gifts=args.exclude_part_gifts,
         exclude_palm=args.exclude_palm,
         exclude_top_palm_harvest=args.exclude_top_palm_harvest,
         prior_scale=args.prior_scale,

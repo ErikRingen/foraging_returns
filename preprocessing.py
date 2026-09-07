@@ -12,8 +12,9 @@ def preprocess_data(
     combine_returns_recall: bool = True,
     foraging_only: bool = True,
     include_recall: bool = True,
+    exclude_part_gifts: bool = False,
     exclude_resource_indices: list[int] | None = None,
-    exclude_top_package_of: list[int] | None = None,
+    exclude_top_harvest_of: list[int] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Preprocesses raw foraging data files into analysis-ready DataFrames.
@@ -39,11 +40,15 @@ def preprocess_data(
             out-of-camp trip counts (all-outings sensitivity variant).
         include_recall: If False, drop the recall (field-consumption) stream so
             production reflects in-camp returns only.
+        exclude_part_gifts: If True, additionally drop the rows flagged as
+            partly gifted (``gift`` == 0.5); outright gifts (``gift`` == 1)
+            are always dropped.
         exclude_resource_indices: Resource ``index`` values to drop from both
             returns and recall before kcal computation (raw-data shape only).
-        exclude_top_package_of: Drop the single heaviest returns package among
-            the given resource ``index`` values (raw-data shape only), e.g.
-            the exceptionally large oil-palm harvest.
+        exclude_top_harvest_of: Drop the largest single harvest (one date x
+            contributor set, summed across packages) of the given resource
+            ``index`` values (raw-data shape only), e.g. the exceptionally
+            large oil-palm harvest reported in the manuscript.
 
     Returns:
         A tuple containing:
@@ -92,7 +97,23 @@ def preprocess_data(
     if not include_recall:
         df_recall = df_recall.iloc[0:0].copy()
 
-    if exclude_resource_indices is not None or exclude_top_package_of is not None:
+    # Gifts from non-camp members are not the recipient's own production.
+    # Rows recorded as outright gifts (gift == 1) are excluded from all
+    # analyses; rows flagged as partly gifted (gift == 0.5) are retained.
+    def _drop_gifts(df):
+        if 'gift' not in df.columns:
+            return df
+        g = pd.to_numeric(df['gift'], errors='coerce').fillna(0)
+        drop = (g > 0) if exclude_part_gifts else (g == 1)
+        n = int(drop.sum())
+        if n:
+            kind = "gift (incl. part-gift)" if exclude_part_gifts else "outright-gift"
+            print(f"Processing: dropping {n} {kind} rows.")
+        return df[~drop].copy()
+    df_returns = _drop_gifts(df_returns)
+    df_recall = _drop_gifts(df_recall)
+
+    if exclude_resource_indices is not None or exclude_top_harvest_of is not None:
         if 'index' not in df_returns.columns:
             raise ValueError(
                 "Resource exclusion requires the raw-data shape with a "
@@ -103,27 +124,48 @@ def preprocess_data(
         df_returns = df_returns[~df_returns['index'].isin(excl)].copy()
         if 'index' in df_recall.columns:
             df_recall = df_recall[~df_recall['index'].isin(excl)].copy()
-    if exclude_top_package_of is not None:
-        candidates = df_returns[
-            df_returns['index'].isin(set(exclude_top_package_of))
-        ]
-        if len(candidates) > 0:
-            top = candidates.loc[candidates['net_food_weight_gram'].idxmax()]
-            # Cooperative packages repeat the package weight on every
-            # contributor's row; drop all rows of that one package.
-            is_top = (
-                (df_returns['date'] == top['date'])
-                & (df_returns['index'] == top['index'])
-                & (df_returns['net_food_weight_gram']
-                   == top['net_food_weight_gram'])
-                & (df_returns['pooled_group'].fillna(0)
-                   == (top['pooled_group'] if pd.notna(top['pooled_group'])
-                       else 0))
+    if exclude_top_harvest_of is not None:
+        # "Harvest" is the model's returns observation: one date x contributor
+        # set, which may bundle several food packages. Selecting the heaviest
+        # single *package* would target a different (smaller) event than the
+        # exceptionally large group harvest reported in the manuscript.
+        target = df_returns['index'].isin(set(exclude_top_harvest_of))
+        if target.any():
+            keyed = df_returns.assign(
+                _date_str=df_returns['date'].dt.strftime('%Y-%m-%d'),
+                _pooled=np.round(
+                    df_returns['pooled_group'].fillna(0), 0).astype(int),
             )
-            print(f"Processing: dropping top package "
-                  f"(index={top['index']}, "
-                  f"{top['net_food_weight_gram']:.0f} g, {len(df_returns[is_top])} rows).")
-            df_returns = df_returns[~is_top].copy()
+            keyed['_id'] = keyed['id'].astype(str)
+            coop = keyed[keyed['_pooled'] != 0]
+            ids_by_pkg = (
+                coop.groupby(['_date_str', '_pooled'])['_id']
+                .agg(lambda x: '_'.join(sorted(x.unique())))
+                .rename('_ids')
+                .reset_index()
+            )
+            keyed = keyed.merge(ids_by_pkg, on=['_date_str', '_pooled'],
+                                how='left')
+            keyed['_harvest'] = np.where(
+                keyed['_pooled'] == 0,
+                keyed['_date_str'] + '_' + keyed['_id'],
+                keyed['_date_str'] + '_' + keyed['_ids'].astype(str),
+            )
+            # One row per package before summing (cooperative packages repeat
+            # their weight on every contributor's row).
+            pkgs = keyed[keyed['index'].isin(set(exclude_top_harvest_of))]
+            pkgs = pd.concat([
+                pkgs[pkgs['_pooled'] == 0],
+                pkgs[pkgs['_pooled'] != 0].drop_duplicates(
+                    ['_harvest', '_pooled', 'index', 'net_food_weight_gram']),
+            ])
+            mass = pkgs.groupby('_harvest')['net_food_weight_gram'].sum()
+            top_harvest = mass.idxmax()
+            drop = (keyed['_harvest'] == top_harvest) & target.values
+            print(f"Processing: dropping largest harvest '{top_harvest}' "
+                  f"({mass.max() / 1000:.1f} kg across "
+                  f"{int(drop.sum())} contributor-rows).")
+            df_returns = df_returns[~drop.values].copy()
 
     # --- Forager Demographics ---
     # Accept either `birthyear` (raw_data convention) or `age` (public_data

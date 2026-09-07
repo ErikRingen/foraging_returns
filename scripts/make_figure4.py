@@ -5,8 +5,8 @@ Figure 4 (main paper): residual effort-skill association psi, gender-stratified.
 Two-panel:
   (A) Scatter of posterior mean per-forager random effects on the
       observable scale: difference in P(trip) from the age x gender
-      expectation (x) vs ratio of skill to expected (y). 95% gender
-      ellipses overlaid; per-forager 50% credible intervals as cross-bars.
+      expectation (x) vs ratio of skill to expected (y); per-forager 50%
+      credible intervals as cross-bars.
   (B) Posterior densities of psi (effort-skill correlation) by gender,
       annotated with Pr(psi < 0).
 
@@ -26,13 +26,13 @@ import arviz as az
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.patches import Ellipse
 from scipy.special import expit
 from scipy.stats import gaussian_kde
 from pyprojroot.here import here
 
 CANONICAL = "ln_nogp_meage_long"
 GENDER_LABELS = ["male", "female"]
+DISPLAY = {"male": "Boys/men", "female": "Girls/women"}
 COL_M = "#2E86AB"
 COL_F = "#E94F37"
 
@@ -40,18 +40,6 @@ COL_F = "#E94F37"
 def _flat(da):
     """Flatten (chain, draw, ...) to (chain*draw, ...)."""
     return da.values.reshape(-1, *da.shape[2:])
-
-
-def _ellipse_xy(x, y, n_std=2.0):
-    """2-sigma ellipse parameters from a sample (returns center, width, height, angle deg)."""
-    cov = np.cov(x, y)
-    eigvals, eigvecs = np.linalg.eigh(cov)
-    order = eigvals.argsort()[::-1]
-    eigvals = eigvals[order]
-    eigvecs = eigvecs[:, order]
-    angle = float(np.degrees(np.arctan2(eigvecs[1, 0], eigvecs[0, 0])))
-    width, height = 2 * n_std * np.sqrt(eigvals)
-    return (float(np.mean(x)), float(np.mean(y))), float(width), float(height), angle
 
 
 def main():
@@ -114,24 +102,19 @@ def main():
         ax.scatter(dP_m[m] * 100, sk_m[m],
                    s=46, c=color, edgecolors="white", linewidth=0.6,
                    alpha=0.95, zorder=3)
-        # 95% gender ellipse
-        ctr, w, h, ang = _ellipse_xy(dP_m[m] * 100, sk_m[m], n_std=2.0)
-        ax.add_patch(Ellipse(ctr, w, h, angle=ang,
-                             edgecolor=color, facecolor="none",
-                             lw=1.4, ls="--", alpha=0.85, zorder=2))
 
     ax.axhline(1.0, color="gray", lw=0.6, ls=":")
     ax.axvline(0, color="gray", lw=0.6, ls=":")
     ax.set_xlabel("Probability of foraging effort (difference from expected, pp)")
     ax.set_ylabel("Forager skill (ratio to expected)")
     ax.set_title("(A) Per-forager deviations from age × gender expectation\n"
-                 "(error bars: posterior 50% CIs; dashed: 95% gender ellipses)",
+                 "(error bars: posterior 50% CIs)",
                  fontsize=10, loc="left")
     ax.legend(handles=[
         Line2D([0], [0], color=COL_M, marker="o", lw=0, markersize=7,
-               markeredgecolor="white", label="Male"),
+               markeredgecolor="white", label=DISPLAY["male"]),
         Line2D([0], [0], color=COL_F, marker="o", lw=0, markersize=7,
-               markeredgecolor="white", label="Female"),
+               markeredgecolor="white", label=DISPLAY["female"]),
     ], loc="upper right", frameon=False, fontsize=9)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
@@ -140,8 +123,8 @@ def main():
     ax = axes[1]
     grid = np.linspace(-1, 1, 400)
     for color, psi_, lbl, p_neg in [
-        (COL_M, psi_male, "Male", p_neg_m),
-        (COL_F, psi_female, "Female", p_neg_f),
+        (COL_M, psi_male, DISPLAY["male"], p_neg_m),
+        (COL_F, psi_female, DISPLAY["female"], p_neg_f),
     ]:
         kde = gaussian_kde(psi_)
         dens = kde(grid)
@@ -150,8 +133,8 @@ def main():
         ax.axvline(psi_.mean(), color=color, lw=1.8)
 
     for color, psi_, lbl, y_frac in [
-        (COL_M, psi_male, "Male", 0.93),
-        (COL_F, psi_female, "Female", 0.81),
+        (COL_M, psi_male, DISPLAY["male"], 0.93),
+        (COL_F, psi_female, DISPLAY["female"], 0.81),
     ]:
         p_neg = (psi_ < 0).mean()
         ax.text(0.97, y_frac,

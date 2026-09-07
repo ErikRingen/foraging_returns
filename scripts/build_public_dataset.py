@@ -112,6 +112,7 @@ def _attach_kcal(df, kcal_lookup, weight_col):
 def build_returns(id_map, kcal_lookup):
     df = pd.read_csv(here("raw_data/returns.csv"))
     df.columns = [c.strip().lower() for c in df.columns]
+    df = df[pd.to_numeric(df["gift"], errors="coerce").fillna(0) != 1]
     df["id"] = df["id"].astype(str).map(id_map)
     df = df.dropna(subset=["id"])
     df = _attach_kcal(df, kcal_lookup, "net_food_weight_gram")
@@ -127,6 +128,7 @@ def build_returns(id_map, kcal_lookup):
 def build_recall(id_map, kcal_lookup):
     df = pd.read_csv(here("raw_data/recall.csv"))
     df.columns = [c.strip().lower() for c in df.columns]
+    df = df[pd.to_numeric(df["gift"], errors="coerce").fillna(0) != 1]
     df["id"] = df["id"].astype(str).map(id_map)
     df = df.dropna(subset=["id"])
     df = _attach_kcal(df, kcal_lookup, "total_weight_grams")
@@ -230,6 +232,9 @@ underlying the manuscript. It has been processed by
    `returns.csv`; `quantity`, `x1_unit_weight_grams`, `total_weight_grams`
    in `recall.csv`) are dropped. Only the pre-computed `kcal` totals
    remain as the dependent variable.
+4. Exclude rows recorded as outright gifts from non-camp members
+   (`gift` = 1), matching the canonical analysis. Rows flagged as partly
+   gifted (`gift` = 0.5) are retained as recorded.
 
 For the full dataset (with real participant IDs and resource attribution),
 contact the corresponding authors. Use is subject to ethical approval.

@@ -146,7 +146,7 @@ This finds the optimal subset size $k$ that balances:
 | `shape` | `gamma` | alpha=10, beta=10 | LogNormal sigma (named `shape` for legacy compat) |
 | **Random Effects** | | | |
 | `sigma_re` | `exponential` | lam=3 | SD for each random effect |
-| `lkj_eta` | (scalar) | 2.0 | LKJ concentration parameter |
+| `lkj_eta` | (scalar) | 1.0 | LKJ concentration parameter |
 | **Gaussian Processes** | | | |
 | `gp_lengthscale` | `gamma` | alpha=2, beta=2 | Shared GP lengthscale (days) |
 | `gp_sigma_effort` | `exponential` | lam=2 | GP amplitude for effort |

@@ -4,7 +4,7 @@ Figure 2 (main paper): per-forager daily Shapley-attributed kcal across
 foraging days (effort = 1; failed trips count as zero kcal).
 
 Strip plot of every (forager, day) observation, with a horizontal median
-marker per forager. X-position = actual age (years), coloured by sex.
+marker per forager. X-position = actual age (years), coloured by gender.
 Reads the canonical forager-day dataset built by ``foraging_model.analytics``.
 
 Usage:
@@ -24,6 +24,7 @@ sys.path.insert(0, str(here()))
 from foraging_model.analytics import load_or_build, per_forager_day_long
 
 COLORS = {"male": "#2E86AB", "female": "#E94F37"}
+LABELS = {"male": "Boys/men", "female": "Girls/women"}
 RNG = np.random.default_rng(0)
 
 
@@ -95,8 +96,8 @@ def main():
     ax.set_ylabel("Daily Shapley-attributed production (kcal, $\\sqrt{\\cdot}$ axis)")
 
     legend = [
-        Patch(facecolor=COLORS["male"], alpha=0.65, label="Male"),
-        Patch(facecolor=COLORS["female"], alpha=0.65, label="Female"),
+        Patch(facecolor=COLORS["male"], alpha=0.65, label=LABELS["male"]),
+        Patch(facecolor=COLORS["female"], alpha=0.65, label=LABELS["female"]),
         Line2D([0], [0], color="gray", lw=2.0, label="Per-forager mean"),
     ]
     ax.legend(handles=legend, loc="upper left", frameon=False)

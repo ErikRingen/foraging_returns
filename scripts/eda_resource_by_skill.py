@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Parallel-coordinates: per-forager kcal share by resource, stratified by
-within-gender skill tercile. Two panels (male, female)."""
+within-gender skill tercile. Two panels (boys/men, girls/women)."""
 import sys
 sys.path.insert(0, ".")
 import numpy as np
@@ -18,6 +18,7 @@ group_ids = [str(g) for g in shap["group"].values]
 shap_mean = shap["shapley_contribution"].mean(dim="sample").values
 
 returns = pd.read_csv(here("raw_data/returns.csv"))
+returns = returns[pd.to_numeric(returns[[c for c in returns.columns if c.lower() == "gift"][0]], errors="coerce").fillna(0) != 1]
 returns["Date"] = pd.to_datetime(returns["Date"], format="%d.%m.%y", errors="coerce")
 returns = returns.dropna(subset=["Date"])
 returns["date_str"] = returns["Date"].dt.strftime("%Y-%m-%d")
@@ -28,10 +29,10 @@ package = (returns
     .reset_index())
 package["group_id"] = package.apply(
     lambda r: "_".join([r["date_str"]] + [str(i) for i in r["ids"]]), axis=1)
-# Relabel "palm nut" -> "palm oil" for display (Yaka palm products are
-# processed from the same Elaeis guineensis fruit; "palm oil" is the more
-# accurate ethnographic label).
-RENAME = {"palm nut": "palm oil"}
+# Relabel "palm nut" -> "oil palm" for display. "Oil palm" is the resource
+# (the fruit of Elaeis guineensis) that foragers return to camp; "palm oil"
+# is the processed product and is a separate, much rarer return.
+RENAME = {"palm nut": "oil palm"}
 package["article"] = package["article"].replace(RENAME)
 gid2article = package.groupby("group_id")["article"].first().to_dict()
 
@@ -78,7 +79,9 @@ cmap = cm.get_cmap("viridis")
 tercile_colors = [cmap(0.15), cmap(0.5), cmap(0.85)]
 tercile_labels = ["Low skill", "Mid skill", "High skill"]
 
-for ax, sex_label, title in [(axes[0], "male", "Male"), (axes[1], "female", "Female")]:
+for ax, sex_label, title in [
+    (axes[0], "male", "Boys/men"), (axes[1], "female", "Girls/women")
+]:
     sel = sex == sex_label
     fids = np.array(forager_ids)[sel]
     terc = tercile[sel]

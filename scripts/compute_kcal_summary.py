@@ -9,9 +9,11 @@ All numbers use:
 - Shapley-attributed kcal from results/ln_nogp_meage_long/shapley.nc
   (per-forager, per-group attribution with the four Shapley axioms held
   within each group)
-- Foraging-day denominators count any day with positive Shapley
-  contribution (i.e., the forager appeared in at least one positive-return
-  group that day)
+- Foraging-day denominators are PARTICIPATION days, exactly as the model
+  defines effort = 1: a logged foraging trip OR credit on a food package
+  that day. Days with positive attributed kcal are always included, so the
+  numerator's days are a subset of the denominator's; failed trips enter
+  as 0 kcal
 - In-camp-day denominators come from raw_data/daysincamp.csv via
   preprocessing.preprocess_data
 - Returns-only variants scale each per-group Shapley by
@@ -36,7 +38,21 @@ PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from preprocessing import preprocess_data  # noqa: E402
+from foraging_model.data import ForagingData  # noqa: E402
 from pyprojroot.here import here  # noqa: E402
+
+
+def _drop_outright_gifts(df):
+    """Drop rows recorded as outright gifts (gift == 1) from non-camp members.
+
+    Partly gifted rows (gift == 0.5) are retained as recorded. Canonical for
+    every analysis; the public dataset is built with the same rule.
+    """
+    gcol = next((c for c in df.columns if c.lower() == "gift"), None)
+    if gcol is None:
+        return df
+    g = pd.to_numeric(df[gcol], errors="coerce").fillna(0)
+    return df[g != 1].copy()
 
 
 def _stream_packages(df, weight_col, kcal_lookup):
@@ -124,8 +140,8 @@ def main() -> pd.DataFrame:
     attr = shap["shapley_contribution"].mean(dim="sample").values  # (group, forager)
     dates_per_group = np.array([g.split("_")[0] for g in group_str_ids])
 
-    returns = pd.read_csv(here("raw_data/returns.csv"))
-    recall = pd.read_csv(here("raw_data/recall.csv"))
+    returns = _drop_outright_gifts(pd.read_csv(here("raw_data/returns.csv")))
+    recall = _drop_outright_gifts(pd.read_csv(here("raw_data/recall.csv")))
     kcal = pd.read_csv(here("raw_data/kcal.csv")).rename(columns={"Index": "index", "kcal.g": "kcal_g"})
     returns["Date"] = pd.to_datetime(returns["Date"], format="mixed", dayfirst=True)
     recall["Date"] = pd.to_datetime(recall["Date"], format="mixed", dayfirst=True)
@@ -134,7 +150,7 @@ def main() -> pd.DataFrame:
     share = _per_group_returns_share(group_str_ids, returns, recall, kcal[["index", "kcal_g"]])
     attr_returns_only = attr * share[:, None]
 
-    df_for, df_time, _, df_days = preprocess_data(
+    df_for, df_time, _df_prod, df_days = preprocess_data(
         returns_file=here("raw_data/returns.csv"),
         recall_file=here("raw_data/recall.csv"),
         kcal_file=here("raw_data/kcal.csv"),
@@ -145,12 +161,35 @@ def main() -> pd.DataFrame:
     )
     df_for["id"] = df_for["id"].astype(str)
     df_time["id"] = df_time["id"].astype(str)
-    df_time["went_out"] = df_time["total.minutes"] > 0
-    effort_days = (
-        df_time[df_time["went_out"]]
-        .groupby("id")["date"].nunique()
-        .reindex(forager_ids).fillna(0).astype(int).to_dict()
+
+    # Participation days, exactly as the fitted model defines effort = 1
+    # (foraging trip OR food-package credit, on in-camp days), unioned with
+    # any day carrying positive attributed kcal so the numerator's days are
+    # always a subset of the denominator's (covers the forager with package
+    # kcal but no daily-presence record).
+    _model_ds = ForagingData(
+        foragers_df=df_for, time_allocation_df=df_time,
+        production_df=_df_prod, days_in_camp_df=df_days,
+        target_column="kcal", group_id_col="group_id", forager_id_col="id",
+    ).to_dataset()
+    _eff = _model_ds["forager_effort"].values
+    _eff_f = np.array(
+        [str(x) for x in _model_ds["forager"].values]
+    )[_model_ds["effort_forager_idx"].values]
+    _eff_d = pd.to_datetime(_model_ds["effort_date"].values).strftime("%Y-%m-%d")
+    part_days = {f: set() for f in forager_ids}
+    for f, d, e in zip(_eff_f, _eff_d, _eff):
+        if e == 1 and f in part_days:
+            part_days[f].add(d)
+    _attr_df = (
+        pd.DataFrame(attr, columns=forager_ids)
+        .assign(date=dates_per_group)
+        .melt(id_vars="date", var_name="forager", value_name="kcal")
+        .groupby(["forager", "date"], as_index=False)["kcal"].sum()
     )
+    for _, row in _attr_df[_attr_df["kcal"] > 0].iterrows():
+        part_days[row["forager"]].add(row["date"])
+    effort_days = {f: len(v) for f, v in part_days.items()}
 
     tot_c, fd_c = _per_forager_totals(attr, forager_ids, dates_per_group, effort_days)
     tot_r, fd_r = _per_forager_totals(attr_returns_only, forager_ids, dates_per_group, effort_days)
@@ -176,12 +215,18 @@ def main() -> pd.DataFrame:
         }
         for fid in forager_ids
     ])
+    # The forager dimension carries one slot for a forager with no
+    # daily-presence data and no positive food package; he does not enter
+    # the likelihood and figures use n = 48, so drop him here too.
+    per_for = per_for[
+        (per_for["camp_days"] > 0) | (per_for["tot_combined"] > 0)
+    ].reset_index(drop=True)
 
     rows = []
     for grp_lbl, mask in [
         ("All", np.ones(len(per_for), dtype=bool)),
-        ("Male", per_for["sex"] == "male"),
-        ("Female", per_for["sex"] == "female"),
+        ("Boys/men", per_for["sex"] == "male"),
+        ("Girls/women", per_for["sex"] == "female"),
     ]:
         sub = per_for[mask]
         rows.append({

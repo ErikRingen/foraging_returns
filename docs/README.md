@@ -29,9 +29,9 @@ The supplement consumes:
 - `results/ln_nogp_meage_long/idata.nc` — fitted posterior for the canonical model
 - `results/ln_nogp_meage_long/shapley.nc` — best-top-$k$ Shapley contributions
 - `results/ln_nogp_meage_avg/idata.nc` and `shapley.nc` — aggregation-sensitivity variant
-- `results/ln_nogp_meage_avg/shapley_mean_agg.nc` — Shapley under the true mean-aggregation value function (used for the §9.4 per-package comparison)
+- `results/ln_nogp_meage_avg/shapley_mean_agg.nc` — Shapley under the true mean-aggregation value function (used for the §9.5 per-package comparison)
 - `results/kcal_summary.csv` — canonical per-forager kcal averages
-- `results/figures/eda_parallel_resource_skill.png` — supplement Fig. S25
+- `results/figures/eda_parallel_resource_skill.png` — supplement Fig. S26
 - `results/ln_nogp_meage_long/forager_day.nc` — built lazily on first call to `foraging_model.analytics.load_or_build`
 
 Re-fitting the canonical model and regenerating all derived artifacts end-to-end is a single `bash scripts/run_all.sh` (≈ 1 hour wall-clock).

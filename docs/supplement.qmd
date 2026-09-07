@@ -58,6 +58,9 @@ from foraging_model.analytics import (
     per_forager_summary,
 )
 
+# Display labels for the two gender strata (model coordinates are "male"/"female").
+GENDER_DISPLAY = {"male": "Boys/men", "female": "Girls/women"}
+
 RANDOM_SEED = 42
 plt.style.use("seaborn-v0_8-whitegrid")
 sns.set_palette("colorblind")
@@ -92,13 +95,14 @@ pd.DataFrame(
 
 The modelled dataset is constructed from six raw files: in-camp daily presence (`daysincamp.csv`), out-of-camp activity logs (`groups.csv`), weighed returns (`returns.csv`), recalled out-of-camp consumption (`recall.csv`), per-resource energy densities (`kcal.csv`), and camp roster with demographics (`camp_members.csv`). The preprocessing pipeline applies the following:
 
-- Returns and recall combined. Foragers consume food acquired during foraging trips (Crittenden et al., 2013; Berbesque et al., 2016); excluding it underestimates production. Both streams are merged into a single per-`pooled_group` × date production record.
-- Group identifier. Each food package is identified by date and the set of contributing foragers. The `pooled_group` field from the field protocol resolves cases where multiple foragers participated in collecting the same item. We then aggregate to a single `group_id = "<date>_<sorted forager IDs>"`. When the same forager set is recorded against more than one `pooled_group` on the same day — e.g. two sub-trips, or two separately-pooled cooperative items — kcal is summed within the resulting `group_id` and the model treats them as a single observation in the LogNormal returns likelihood. Of 1 060 cooperative `group_id`s, 58 (5.5 %) merge two or more `pooled_group`s this way (max 7); solo `group_id`s never collide.
-- Effort observations. For each forager × in-camp date, an effort indicator is set to 1 if the forager logged positive time on an out-of-camp trip with activity type "Foraging" that day (or contributed to a returned food package), and 0 otherwise. Trips logged with a non-foraging purpose (22% of trips) do not count toward effort in the canonical fit; the all-outings sensitivity variant (§ Sensitivity Analyses) relaxes this. These observations enter the Bernoulli effort component.
+- Returns and recall combined. Foragers consume food acquired during foraging trips [@crittenden_juvenile_2013; @berbesque_eat_2016]; excluding it underestimates production. Both streams are merged into a single per-`pooled_group` × date production record.
+- Gift exclusion. Food packages recorded as outright gifts from non-camp members (`gift` = 1; 68 returns rows and 2 recall rows) are dropped before kcal computation — gifts are not the recipient's own production. Eight rows flagged as partly gifted (`gift` = 0.5) are retained as recorded; a variant dropping these too is reported in § Sensitivity Analyses.
+- Group identifier. Each food package is identified by date and the set of contributing foragers. The `pooled_group` field from the field protocol resolves cases where multiple foragers participated in collecting the same item. We then aggregate to a single `group_id = "<date>_<sorted forager IDs>"`. When the same forager set is recorded against more than one `pooled_group` on the same day — e.g. two sub-trips, or two separately-pooled cooperative items — kcal is summed within the resulting `group_id` and the model treats them as a single observation in the LogNormal returns likelihood. Of the 1 014 `group_id`s in the returns stream, 56 (5.5 %) merge two or more cooperative `pooled_group`s this way (max 7); solo `group_id`s never collide.
+- Effort observations. For each forager × in-camp date, an effort indicator is set to 1 if the forager logged positive time on an out-of-camp trip with activity type "Foraging" that day (or contributed to a food package that day), and 0 otherwise. Of the 1 395 forager-days scored as effort = 1, 130 (9.3%) had no foraging-labelled trip that day and are credited solely through the forager's contribution to a food package (129 returned packages; one recall-only record) — food acquired without a foraging-labelled trip that day: gathering on the periphery of camp, or opportunistic collection on outings logged with a non-foraging purpose. Multi-day trips are rare (36 of 2 683 logged trip records) and are credited to the day of departure; subsequent days away are not counted as additional participation days. Trip records logged with a non-foraging purpose (22% of trip records) do not count toward effort in the canonical fit; the all-outings sensitivity variant (§ Sensitivity Analyses) relaxes this. These observations enter the Bernoulli effort component.
 - Success observations. Conditional on having gone out, each forager × date is labelled as a success (returned with at least one food package) or failure. These observations enter the Bernoulli success component.
-- Zero-inferred returns. (forager, date) pairs with positive out-of-camp time but no recorded food package are appended as kcal = 0 rows. These rows are excluded from the LogNormal returns component, which is conditional on positive returns. Group composition is not recoverable from time-allocation alone, so each zero-inferred row is recorded as a solo trip; this misrepresents days on which the forager went out in a cooperative group that returned nothing.
+- Zero-inferred returns. (forager, date) pairs with positive out-of-camp time but no recorded food package are appended as kcal = 0 rows. These rows are excluded from the LogNormal returns component, which is conditional on positive returns. Foraging companions are recorded in the trip log, but production groups are keyed to the contributor sets of returned food packages; a trip that returns nothing produces no package, so there is no group contribution to a food package from which to build a cooperative record, and each zero-inferred row is entered as a solo trip. This misrepresents days on which the forager went out in a cooperative group that returned nothing.
 - Age estimation. BaYaka birth years are not recorded numerically. Age was estimated using the consensus method of Diekmann et al., with 1-year intervals for individuals under 20 and 10-year intervals for those 20+. The model's measurement-error component places a Normal observation density on the recorded age centred on the latent true age (see §4.7), so we need an observation SD. The intervals are most naturally read as half-widths around a point estimate, so we use those half-widths directly as the Normal SD: `age_sigma` = 1 yr (under 20) and 5 yr (20+).
-- Inclusion. Three of 54 listed camp members were excluded as under age 1; foragers without any foraging activity over the study window are then dropped at the time-aggregation step (two further age-1 toddlers). 49 foragers appear in the foraging-activity log; of those, 48 contributed at least one positive-kcal food package and inform the model. The 49th forager went on at least one logged foraging trip but is missing from the in-camp daily-presence file (`daysincamp.csv`), so no effort or success observations exist for him; he occupies a slot in the forager dimension but does not enter the likelihood. Figures throughout the manuscript and supplement therefore use $n = 48$.
+- Inclusion. Five of 54 listed camp members (three age 0, two age 1) had no foraging activity over the study window and drop out at the time-aggregation step. 49 foragers appear in the foraging-activity log; of those, 48 contributed at least one positive-kcal food package and inform the model. Two of the 49 are missing from the in-camp daily-presence file (`daysincamp.csv`) and so contribute no effort or success observations. One of these two nonetheless contributed to positive-kcal food packages and enters the returns likelihood (he is among the 48); the other went on one logged foraging trip but has no recorded food package, so he occupies a slot in the forager dimension without entering the likelihood. Figures throughout the manuscript and supplement therefore use $n = 48$.
 
 ```{python}
 #| label: load-data
@@ -129,10 +133,15 @@ dataset = data.to_dataset()
 
 ```{python}
 #| label: fig-resource-pie
-#| fig-cap: "kcal distribution of food returned and recalled in the study. 'fish' contains one frog observation; 'game' covers mammals, birds, a turtle, and two lizards; 'cultivated tubers' is mostly cassava; 'cultivated fruit' covers citrus, papaya, cacao, and chilli peppers. BaYaka do not consume domesticated animals."
+#| fig-cap: "kcal distribution of food returned and recalled in the study. 'fish' contains one frog observation; 'game' covers mammals, birds, and reptiles (a turtle, lizards, and snakes); 'cultivated tubers' is mostly cassava; 'cultivated fruit' covers citrus, papaya, cacao, and chilli peppers. BaYaka do not consume domesticated animals."
 
 df_returns_raw = pd.read_csv(here("raw_data/returns.csv"))
 df_recall_raw = pd.read_csv(here("raw_data/recall.csv"))
+# Canonical gift rule: outright gifts (gift == 1) excluded everywhere.
+for _d in (df_returns_raw, df_recall_raw):
+    _d.columns = [c.lower() for c in _d.columns]
+df_returns_raw = df_returns_raw[pd.to_numeric(df_returns_raw["gift"], errors="coerce").fillna(0) != 1]
+df_recall_raw = df_recall_raw[pd.to_numeric(df_recall_raw["gift"], errors="coerce").fillna(0) != 1]
 df_cat = pd.read_csv(here("raw_data/kcal_categories.csv"))
 df_cat.columns = [c.strip() for c in df_cat.columns]
 
@@ -197,6 +206,8 @@ plt.tight_layout()
 plt.show()
 ```
 
+Game accounts for just 3.6% of kcal in the study: 57 returned package rows across 29 days, touched by 20 foragers. This is far too sparse to identify a hunting-specific three-parameter learning-senescence curve plus individual random effects, so no hunting-only refit is reported. The near-absence of hunting is itself informative — the age-related gains in production documented here arise almost entirely from gathered and collected resources, so they cannot be attributed to the long-delay proficiency profile that hunting-specific studies emphasize.
+
 ### Food-Package Group Sizes
 
 ```{python}
@@ -237,7 +248,7 @@ if dag_path.exists():
     display(Image(filename=str(dag_path)))
 ```
 
-Identification. Age affects both skill and effort. The skill curve and effort model condition on age. The bivariate Normal random effect on $(u_{\text{effort}},u_{\text{skill}})$ carries the residual covariance not captured by age; the joint distribution of effort, success, and returns identifies its correlation $\psi$. The covariance is estimated separately for men and women, yielding $\psi_{\text{male}}$ and $\psi_{\text{female}}$.
+Identification. Age affects both skill and effort. The skill curve and effort model condition on age. The bivariate Normal random effect on $(u_{\text{effort}},u_{\text{skill}})$ carries the residual covariance not captured by age; the joint distribution of effort, success, and returns identifies its correlation $\psi$. The covariance is estimated separately for boys/men and girls/women, yielding a separate $\psi$ for each gender.
 
 ## Model Specification
 
@@ -313,7 +324,7 @@ pm.Bernoulli("non_zero_prod", p=pt.sigmoid(success_linear),
 
 ### Correlated Random Effects
 
-Random effects $(u_{\text{effort}}, u_{\text{skill}})$ for forager skill/effort follow a bivariate normal with LKJ prior on the correlation. The covariance is gender-stratified: men and women have separate $(\sigma_{\text{effort}}, \sigma_{\text{skill}}, \psi)$ so that the within-gender variability and the effort–skill correlation $\psi$ are estimated independently for each gender. Final skill: $S_i = S(x_i) \cdot \exp(u_{\text{skill},i})$.
+Random effects $(u_{\text{effort}}, u_{\text{skill}})$ for forager skill/effort follow a bivariate normal with LKJ prior on the correlation. The covariance is gender-stratified: boys/men and girls/women have separate $(\sigma_{\text{effort}}, \sigma_{\text{skill}}, \psi)$ so that the within-gender variability and the effort–skill correlation $\psi$ are estimated independently for each gender. Final skill: $S_i = S(x_i) \cdot \exp(u_{\text{skill},i})$.
 
 ```{python}
 #| eval: false
@@ -422,7 +433,7 @@ After step 3, the rescaled allocation $\tilde\phi^{(s)}$ is no longer the Shaple
 
 #### Computation
 
-For $n \le 15$ we enumerate all $2^n$ subsets exactly, computing $v_\theta(S)$ once per subset and combining via the $|S|!(n-|S|-1)!/n!$ weights from the closed-form expression. For $n > 15$ we fall back on single-permutation Monte Carlo: for each posterior sample we draw one ordering $\pi$ uniformly at random and assign each player their marginal contribution under $\pi$. Averaging this estimator over orderings recovers $\phi_i(v_\theta)$ in expectation [@castro_polynomial_2009]. With our group-size distribution (max $n = 17$; see Section 2), the exact engine handles 1 069 of 1 070 positive-return groups; one group falls back to single-permutation MC.
+For $n \le 15$ we enumerate all $2^n$ subsets exactly, computing $v_\theta(S)$ once per subset and combining via the $|S|!(n-|S|-1)!/n!$ weights from the closed-form expression. For $n > 15$ we fall back on single-permutation Monte Carlo: for each posterior sample we draw one ordering $\pi$ uniformly at random and assign each player their marginal contribution under $\pi$. Averaging this estimator over orderings recovers $\phi_i(v_\theta)$ in expectation [@castro_polynomial_2009]. With our group-size distribution (max $n = 17$; see Section 2), the exact engine handles 1 064 of 1 065 positive-return groups; one group falls back to single-permutation MC.
 
 Decomposition is at the food-package level (one computation per positive-return group); per-forager daily contributions sum the rescaled $\tilde\phi_i^{(s)}$ across every group the forager participated in on a given date. Two denominators are used downstream: foraging days (effort = 1; failed trips enter as 0 kcal) and in-camp days (every in-camp day, with non-foraging days and failed trips both 0 kcal).
 
@@ -512,38 +523,36 @@ else:
     idata = None
 
 
+def _skill_params(post):
+    return (np.exp(post["m0"].values.flatten()),
+            np.exp(post["k0"].values.flatten()),
+            np.exp(post["b0"].values.flatten()),
+            float(post.attrs.get("age_scale", 70.0)))
+
+
 def peak_skill_age(post):
-    """Numerical posterior of the age at which S(x) peaks, in years."""
-    a_scale = float(post.attrs.get("age_scale", 70.0))
-    m = np.exp(post["m0"].values.flatten())
-    k = np.exp(post["k0"].values.flatten())
-    b = np.exp(post["b0"].values.flatten())
-    grid = np.linspace(0.5, 80, 400)
-    n = min(2000, len(m))
-    sub = np.random.default_rng(0).choice(len(m), n, replace=False)
-    M = np.exp(-np.outer(m[sub], grid / a_scale))
-    K = np.clip(1 - np.exp(-np.outer(k[sub], grid / a_scale)), 1e-10, 1)
-    S = M * K ** b[sub, None]
-    return grid[S.argmax(axis=1)]
+    """Posterior of the age at which S(x) peaks, in years.
+
+    Analytical (dS/dx = 0 => x* = (1/k) log(1 + bk/m)), matching
+    scripts/extract_results.py. A grid search truncates the upper tail under
+    the wide-prior variants, where a small fraction of draws peak beyond
+    80 years.
+    """
+    m, k, b, a_scale = _skill_params(post)
+    return (1 / k) * np.log1p(b * k / m) * a_scale
 
 
 def age_at_half_peak(post):
-    a_scale = float(post.attrs.get("age_scale", 70.0))
-    m = np.exp(post["m0"].values.flatten())
-    k = np.exp(post["k0"].values.flatten())
-    b = np.exp(post["b0"].values.flatten())
-    grid = np.linspace(0.5, 80, 400)
-    n = min(2000, len(m))
-    sub = np.random.default_rng(0).choice(len(m), n, replace=False)
-    M = np.exp(-np.outer(m[sub], grid / a_scale))
-    K = np.clip(1 - np.exp(-np.outer(k[sub], grid / a_scale)), 1e-10, 1)
-    S = M * K ** b[sub, None]
-    half = 0.5 * S.max(axis=1, keepdims=True)
-    out = np.empty(S.shape[0])
-    for i in range(S.shape[0]):
-        idx = np.where(S[i] >= half[i, 0])[0]
-        out[i] = grid[idx[0]] if len(idx) else np.nan
-    return out
+    """Posterior of the age at which S(x) first reaches half its peak."""
+    m, k, b, a_scale = _skill_params(post)
+    x_peak = (1 / k) * np.log1p(b * k / m)
+    S_peak = np.exp(-m * x_peak) * (1 - np.exp(-k * x_peak)) ** b
+    grid = np.linspace(0.5, 80, 1600) / a_scale
+    S = np.exp(-np.outer(m, grid)) * np.clip(
+        1 - np.exp(-np.outer(k, grid)), 1e-10, 1) ** b[:, None]
+    reached = S >= (S_peak[:, None] / 2)
+    return np.where(reached.any(axis=1),
+                    grid[reached.argmax(axis=1)] * a_scale, np.nan)
 ```
 
 Prior specification (from model config):
@@ -875,7 +884,7 @@ Log-scale residuals on the kcal observation, $r_g = \log Y_g^{\text{obs}} - \wid
 
 ```{python}
 #| label: fig-returns-residuals
-#| fig-cap: "Log-scale residuals for the LogNormal returns component (one point per group, n = 1 070), plotted against predicted log kcal (left), mean age of contributing foragers (centre), and group size (right). Dashed lines mark $\\pm 2\\hat\\sigma$ from the posterior mean of the LogNormal scale."
+#| fig-cap: "Log-scale residuals for the LogNormal returns component (one point per group, n = 1 065), plotted against predicted log kcal (left), mean age of contributing foragers (centre), and group size (right). Dashed lines mark $\\pm 2\\hat\\sigma$ from the posterior mean of the LogNormal scale."
 #| fig-width: 13
 #| fig-height: 4
 
@@ -924,7 +933,7 @@ The model assumes per-forager daily kcal contributions are conditionally indepen
 
 ```{python}
 #| label: fig-shapley-acf
-#| fig-cap: "Within-forager autocorrelation of daily Shapley-attributed kcal across consecutive in-camp days (non-foraging days entered as 0 kcal). Coloured lines: per-forager ACFs (one line per forager, n = 49). Black: median ACF across foragers. Shaded band: pointwise 5–95 percentile across foragers. Dashed lines mark $\\pm 2/\\sqrt{\\bar n}$ as a rough 95% reference for the per-forager ACF under the white-noise null, where $\\bar n$ is the median per-forager number of in-camp days."
+#| fig-cap: "Within-forager autocorrelation of daily Shapley-attributed kcal across consecutive in-camp days (non-foraging days entered as 0 kcal). Coloured lines: per-forager ACFs, one line per forager with at least nine in-camp days (n = 45 of the 48 modeled foragers; the lag-7 ACF requires nine days, which excludes two foragers with shorter in-camp records and one missing from the daily-presence file). Black: median ACF across foragers. Shaded band: pointwise 5–95 percentile across foragers. Dashed lines mark $\\pm 2/\\sqrt{\\bar n}$ as a rough 95% reference for the per-forager ACF under the white-noise null, where $\\bar n$ is the median per-forager number of in-camp days."
 #| fig-width: 9
 #| fig-height: 5
 
@@ -1159,14 +1168,14 @@ for grp, names in groups_def.items():
             continue
         prior_s = _samples(prior_arr, nm) or [None] * len(post_s)
         if nm.endswith("_stds"):
-            sex_lbl = "male" if "_male_" in nm else "female"
-            labels = [f"effort RE sd ({sex_lbl})", f"skill RE sd ({sex_lbl})"]
+            g_lbl = GENDER_DISPLAY["male" if "_male_" in nm else "female"].lower()
+            labels = [f"effort RE sd ({g_lbl})", f"skill RE sd ({g_lbl})"]
         elif nm.endswith("_corr"):
-            sex_lbl = "male" if "_male_" in nm else "female"
-            labels = [f"psi ({sex_lbl})"]
+            g_lbl = GENDER_DISPLAY["male" if "_male_" in nm else "female"].lower()
+            labels = [f"psi ({g_lbl})"]
         elif nm.endswith("_gender"):
             base = nm[:-len("_gender")]
-            labels = [f"{base} (male)", f"{base} (female)"]
+            labels = [f"{base} ({GENDER_DISPLAY[g].lower()})" for g in ("male", "female")]
         else:
             labels = [nm]
         for lbl, ps, qs in zip(labels, post_s, prior_s):
@@ -1273,7 +1282,7 @@ plt.show()
 #| fig-cap: "Posterior population skill curve $S(x) = \\exp(-mx/A) \\cdot (1 - \\exp(-kx/A))^b$ for the main-text fit. Solid line is the posterior mean; shaded bands are 50% and 95% credible intervals. Dashed verticals mark the posterior mean of the peak skill age and the age at which 50% of peak skill is reached."
 
 age_scale = float(idata.posterior.attrs.get("age_scale", 70.0))
-age_grid = np.linspace(0.5, 80, 400)
+age_grid = np.linspace(2, 70, 400)  # display range: youngest modeled forager (2) to oldest (70)
 m = np.exp(idata.posterior["m0"].values.flatten())
 k = np.exp(idata.posterior["k0"].values.flatten())
 b = np.exp(idata.posterior["b0"].values.flatten())
@@ -1302,6 +1311,7 @@ ax.axvline(peak.mean(), color="#1B5E8C", ls="--", alpha=0.7,
            label=f"Peak age {peak.mean():.1f} yr")
 ax.axvline(half_age.mean(), color="#5C8C40", ls="--", alpha=0.7,
            label=f"50% peak {half_age.mean():.1f} yr")
+ax.set_xlim(2, 70)
 ax.set_xlabel("Age (years)")
 ax.set_ylabel("Subsistence skill $S(x)$")
 ax.legend(loc="lower right", frameon=False, fontsize=9)
@@ -1318,7 +1328,7 @@ The skill curve $S(x) = M(x) \cdot K(x)^{b}$ blends three age-dependent factors:
 #| fig-cap: "Posterior decomposition of the population skill curve into its three components. Left: the senescence multiplier $M(x)$ — strictly decreasing in age. Middle: the learning multiplier $K(x)$ — strictly increasing toward 1. Right: the resulting product $S(x) = M(x) K(x)^b$. Solid lines are posterior means; shaded bands are 95% credible intervals."
 
 age_scale = float(idata.posterior.attrs.get("age_scale", 70.0))
-age_grid = np.linspace(0.5, 80, 400)
+age_grid = np.linspace(2, 70, 400)  # display range: youngest modeled forager (2) to oldest (70)
 m = np.exp(idata.posterior["m0"].values.flatten())
 k = np.exp(idata.posterior["k0"].values.flatten())
 b = np.exp(idata.posterior["b0"].values.flatten())
@@ -1338,6 +1348,7 @@ for ax, (title, mat, color) in zip(axes, panels):
     lo95, hi95 = np.percentile(mat, [2.5, 97.5], axis=0)
     ax.fill_between(age_grid, lo95, hi95, color=color, alpha=0.18)
     ax.plot(age_grid, mat.mean(axis=0), color=color, lw=2.0)
+    ax.set_xlim(2, 70)
     ax.set_xlabel("Age (years)")
     ax.set_title(title, fontsize=11)
     ax.set_ylim(0, None)
@@ -1359,7 +1370,7 @@ The effort and success components have the same structure as the skill component
 from scipy.special import expit
 
 post = idata.posterior
-ages_plot = np.linspace(0.5, 70, 200)
+ages_plot = np.linspace(2, 70, 200)  # display range: youngest modeled forager (2) to oldest (70)
 raw_ages = np.asarray(idata.constant_data["age_raw"].values, dtype=float)
 age_mean, age_sd = float(raw_ages.mean()), float(raw_ages.std())
 ages_z = (ages_plot - age_mean) / age_sd
@@ -1404,7 +1415,7 @@ for g_idx, sex in enumerate(["male", "female"]):
         color=COLORS_SEX[sex], alpha=0.15,
     )
     axes[0].plot(ages_plot, p_eff.mean(axis=0), color=COLORS_SEX[sex],
-                 lw=2.0, label=sex.capitalize())
+                 lw=2.0, label=GENDER_DISPLAY[sex])
 
     # P(success | trip): success ~ Bernoulli(logit(alpha + eta * S(x)))
     m_g = np.exp(m0 + m0_g[:, g_idx])
@@ -1425,11 +1436,12 @@ for g_idx, sex in enumerate(["male", "female"]):
         color=COLORS_SEX[sex], alpha=0.15,
     )
     axes[1].plot(ages_plot, p_suc.mean(axis=0), color=COLORS_SEX[sex],
-                 lw=2.0, label=sex.capitalize())
+                 lw=2.0, label=GENDER_DISPLAY[sex])
 
 axes[0].set_title("P(subsistence trip | in camp)", fontsize=11)
 axes[1].set_title("P(returned with food | trip)", fontsize=11)
 for ax in axes:
+    ax.set_xlim(2, 70)
     ax.set_xlabel("Age (years)")
     ax.set_ylim(0, 1.0)
     ax.legend(loc="lower right", frameon=False, fontsize=9)
@@ -1444,7 +1456,7 @@ plt.show()
 
 ```{python}
 #| label: fig-re-correlations
-#| fig-cap: "Per-forager posterior mean random effects: effort propensity (x-axis, logit scale) vs skill (y-axis, log scale). Points are coloured by forager age. The negative trend (lower-skilled-for-age individuals tend to forage more frequently) is the visual anchor for the effort–skill correlation. Note that $\\psi$ is estimated separately for men and women; this scatter pools both genders for visualisation."
+#| fig-cap: "Per-forager posterior mean random effects: effort propensity (x-axis, logit scale) vs skill (y-axis, log scale). Points are coloured by forager age. The negative trend (lower-skilled-for-age individuals tend to forage more frequently) is the visual anchor for the effort–skill correlation. Note that $\\psi$ is estimated separately for boys/men and girls/women; this scatter pools both genders for visualisation."
 
 re = idata.posterior["re"].mean(dim=["chain", "draw"]).values
 re_effort = re[:, 0]
@@ -1565,7 +1577,7 @@ The figures below summarise the per-forager Shapley-attributed kcal posteriors f
 
 ### Per-forager distribution on foraging days
 
-![Per-forager Shapley-attributed daily kcal across foraging days (main-text fit; variant ID `ln_nogp_meage_long`). Each dot is one (forager, foraging day); failed trips (no returns) enter as zero kcal. Foragers are placed at their actual age in years; same-age foragers are jittered symmetrically within ±1 yr. Short horizontal bars mark per-forager means. Y-axis is on a $\sqrt{\cdot}$ scale (zero preserved).](../results/figures/figure2_shapley_by_forager.png){#fig-shapley-by-forager fig-align="center" width="100%"}
+![Per-forager Shapley-attributed daily kcal across foraging days (main-text fit). Each dot is one (forager, foraging day); failed trips (no returns) enter as zero kcal. Foragers are placed at their actual age in years; same-age foragers are jittered symmetrically within ±1 yr. Short horizontal bars mark per-forager means. Y-axis is on a $\sqrt{\cdot}$ scale (zero preserved).](../results/figures/figure2_shapley_by_forager.png){#fig-shapley-by-forager fig-align="center" width="100%"}
 
 ```{python}
 #| label: load-forager-day
@@ -1644,8 +1656,8 @@ ax.set_xticklabels([str(t) for t in ticks])
 ax.set_xlabel("Forager age (years)")
 ax.set_ylabel("Per in-camp day (kcal, $\\sqrt{\\cdot}$ axis)")
 ax.legend(handles=[
-    Patch(facecolor=COLORS_SEX["male"], alpha=0.65, label="Male"),
-    Patch(facecolor=COLORS_SEX["female"], alpha=0.65, label="Female"),
+    Patch(facecolor=COLORS_SEX["male"], alpha=0.65, label=GENDER_DISPLAY["male"]),
+    Patch(facecolor=COLORS_SEX["female"], alpha=0.65, label=GENDER_DISPLAY["female"]),
     Line2D([0], [0], color="gray", lw=2.0, label="Per-forager mean"),
 ], loc="upper left", frameon=False)
 for spine in ("top", "right"):
@@ -1704,7 +1716,7 @@ def _draw_panel(ax, summary, title):
         lo = np.asarray(s["ci_lo"], dtype=float)
         hi = np.asarray(s["ci_hi"], dtype=float)
         ns = np.asarray(s["n_foragers"], dtype=int)
-        ax.plot(x, y, marker="o", color=color, lw=2.0, label=sex.capitalize(),
+        ax.plot(x, y, marker="o", color=color, lw=2.0, label=GENDER_DISPLAY[sex],
                 markerfacecolor=color, markeredgecolor="white",
                 markersize=7, mew=1.0)
         ax.fill_between(x, lo, hi, color=color, alpha=0.15)
@@ -1758,7 +1770,7 @@ for ax, df_cv, title in [
             continue
         ax.scatter(sub["age"], sub["cv"], s=42, c=color, alpha=0.85,
                    edgecolors="white", linewidths=0.7,
-                   label=f"{sex.capitalize()} (n={len(sub)})")
+                   label=f"{GENDER_DISPLAY[sex]} (n={len(sub)})")
     ax.set_xlabel("Forager age (years)")
     ax.set_title(title, fontsize=10)
     ax.legend(loc="upper right", frameon=False, fontsize=9)
@@ -1796,10 +1808,20 @@ def _age_class(a: float) -> str:
     return ">20"
 
 
-classes = [f"{s} {_age_class(a)}" for s, a in zip(sex_arr_t, ages_arr)]
+# Age class qualifies the gender label: girls/boys under 15, women/men over 20,
+# both forms for the 15-20 band.
+CLASS_DISPLAY = {
+    "female <15": "Girls <15",
+    "female 15-20": "Girls/women 15-20",
+    "female >20": "Women >20",
+    "male <15": "Boys <15",
+    "male 15-20": "Boys/men 15-20",
+    "male >20": "Men >20",
+}
+classes = [CLASS_DISPLAY[f"{s} {_age_class(a)}"] for s, a in zip(sex_arr_t, ages_arr)]
 class_order = [
-    "female <15", "female 15-20", "female >20",
-    "male <15", "male 15-20", "male >20",
+    "Girls <15", "Girls/women 15-20", "Women >20",
+    "Boys <15", "Boys/men 15-20", "Men >20",
 ]
 totals = {c: np.zeros(len(dates_t)) for c in class_order}
 for f_i, c in enumerate(classes):
@@ -1810,12 +1832,12 @@ df_raw = pd.DataFrame(totals, index=dates_t).sort_index()
 class_totals = df_raw.sum(axis=0)
 
 class_colors = {
-    "female <15":   "#FCAEAE",
-    "female 15-20": "#E94F37",
-    "female >20":   "#8B1E1E",
-    "male <15":     "#A6C8E0",
-    "male 15-20":   "#2E86AB",
-    "male >20":     "#1B4F72",
+    "Girls <15":         "#FCAEAE",
+    "Girls/women 15-20": "#E94F37",
+    "Women >20":         "#8B1E1E",
+    "Boys <15":          "#A6C8E0",
+    "Boys/men 15-20":    "#2E86AB",
+    "Men >20":           "#1B4F72",
 }
 
 fig, axes = plt.subplots(1, 2, figsize=(15, 5),
@@ -1873,7 +1895,7 @@ plt.show()
 
 ### Returns vs. recall share of total production
 
-Total kcal in the data splits into food returned to camp (`returns.csv`) and food eaten in the field while away from camp (`recall.csv`). The recall stream matters because excluding it underestimates child production in particular [Crittenden et al. 2013]; we keep both in the model so child production is not understated. The pies below decompose the Shapley-attributed kcal into these two channels — first study-wide, then by gender × age class.
+Total kcal in the data splits into food returned to camp (`returns.csv`) and food eaten in the field while away from camp (`recall.csv`). The recall stream matters because excluding it underestimates child production in particular [@crittenden_juvenile_2013]; we keep both in the model so child production is not understated. The pies below decompose the Shapley-attributed kcal into these two channels — first study-wide, then by gender × age class.
 
 ```{python}
 #| label: fig-returns-vs-recall-pie
@@ -1887,6 +1909,14 @@ attr_rr = shap_rr["shapley_contribution"].mean(dim="sample").values
 # matching scripts/compute_kcal_summary.py.
 returns_rr = pd.read_csv(here("raw_data/returns.csv"))
 recall_rr  = pd.read_csv(here("raw_data/recall.csv"))
+# Canonical gift rule: outright gifts (gift == 1) excluded; preserve column case.
+def _no_gifts_rr(df):
+    gcol = next((c for c in df.columns if c.lower() == "gift"), None)
+    if gcol is not None:
+        df = df[pd.to_numeric(df[gcol], errors="coerce").fillna(0) != 1]
+    return df
+returns_rr = _no_gifts_rr(returns_rr)
+recall_rr = _no_gifts_rr(recall_rr)
 kcal_rr    = pd.read_csv(here("raw_data/kcal.csv")).rename(columns={"Index": "index", "kcal.g": "kcal_g"})
 returns_rr["Date"] = pd.to_datetime(returns_rr["Date"], format="mixed", dayfirst=True)
 recall_rr["Date"]  = pd.to_datetime(recall_rr["Date"],  format="mixed", dayfirst=True)
@@ -1953,20 +1983,30 @@ plt.show()
 # Forager-level metadata: gender + age class (using observed age)
 gender_arr = idata.constant_data["gender_idx"].values
 age_arr_pie = np.asarray(idata.observed_data["age_obs"].values, dtype=float)
-sex_arr_pie = np.where(gender_arr == 0, "Male", "Female")
+sex_arr_pie = np.where(gender_arr == 0, "male", "female")
 def _ac_pie(a):
     if a < 15: return "<15"
     if a < 20: return "15–20"
     return ">20"
-class_arr_pie = np.array([f"{s} {_ac_pie(a)}" for s, a in zip(sex_arr_pie, age_arr_pie)])
+CLASS_DISPLAY_PIE = {
+    "male <15": "Boys <15",
+    "male 15–20": "Boys/men 15–20",
+    "male >20": "Men >20",
+    "female <15": "Girls <15",
+    "female 15–20": "Girls/women 15–20",
+    "female >20": "Women >20",
+}
+class_arr_pie = np.array([
+    CLASS_DISPLAY_PIE[f"{s} {_ac_pie(a)}"] for s, a in zip(sex_arr_pie, age_arr_pie)
+])
 
 # Per-(group, forager) returned vs. consumed Shapley contributions
 shap_ret = attr_rr * share[:, None]
 shap_con = attr_rr * (1 - share[:, None])
 
 cells_pie = [
-    "Male <15", "Male 15–20", "Male >20",
-    "Female <15", "Female 15–20", "Female >20",
+    "Boys <15", "Boys/men 15–20", "Men >20",
+    "Girls <15", "Girls/women 15–20", "Women >20",
 ]
 fig_cls, axes_cls = plt.subplots(2, 3, figsize=(11, 7))
 for ax, cell in zip(axes_cls.ravel(), cells_pie):
@@ -1998,11 +2038,11 @@ plt.tight_layout()
 plt.show()
 ```
 
-The same recall/returns decomposition can be applied to the per-forager averages reported above. The "returns only" columns rescale each per-group Shapley share by `returns_kcal / (returns + recall)` for that group; the canonical computation lives in `scripts/compute_kcal_summary.py`.
+The same recall/returns decomposition can be applied to the per-forager averages reported above. The "returns only" columns rescale each per-group Shapley share by `returns_kcal / (returns + recall)` for that group; the computation is implemented in `scripts/compute_kcal_summary.py`.
 
 ```{python}
 #| label: tbl-kcal-summary
-#| tbl-cap: "Per-forager average kcal per foraging day and per in-camp day (Shapley-attributed), with and without in-field consumption."
+#| tbl-cap: "Per-forager average kcal per participation day and per in-camp day (Shapley-attributed), with and without in-field consumption; n = 48 modeled foragers. A participation day is defined exactly as in the model's effort component — a logged foraging trip or credit on a food package that day — and failed trips enter as 0 kcal. One boy has food-package contributions but no daily-presence record: his kcal and package days enter the totals, but he adds no days to the in-camp denominator."
 
 ks = pd.read_csv(here("results/kcal_summary.csv"))
 ks_disp = ks[[
@@ -2013,25 +2053,25 @@ ks_disp = ks[[
     "kcal_per_camp_day_returns_only",
 ]].rename(columns={
     "n_foragers": "n",
-    "kcal_per_foraging_day_with_recall":  "kcal/forage day (with recall)",
-    "kcal_per_foraging_day_returns_only": "kcal/forage day (returns only)",
+    "kcal_per_foraging_day_with_recall":  "kcal/participation day (with recall)",
+    "kcal_per_foraging_day_returns_only": "kcal/participation day (returns only)",
     "kcal_per_camp_day_with_recall":      "kcal/camp day (with recall)",
     "kcal_per_camp_day_returns_only":     "kcal/camp day (returns only)",
 }).round(0).astype({c: int for c in [
     "n",
-    "kcal/forage day (with recall)",
-    "kcal/forage day (returns only)",
+    "kcal/participation day (with recall)",
+    "kcal/participation day (returns only)",
     "kcal/camp day (with recall)",
     "kcal/camp day (returns only)",
 ]})
 ks_disp
 ```
 
-Per-camp-day denominators are fixed (in-camp days do not depend on which kcal channel we count), so the per-camp-day drop equals the recall share exactly: ~16% for men and ~3% for women, matching the disposition pies above. Per-foraging-day drops are smaller because the foraging-day denominator also shrinks — days where a forager only had recall (no returns) drop out when we exclude recall.
+Per-camp-day denominators are fixed (in-camp days do not depend on which kcal channel we count), so the per-camp-day drop equals the recall share exactly: ~16% for boys/men and ~3% for girls/women, matching the disposition pies above. The per-participation-day drops are identical, because the participation-day denominator is likewise unchanged by which kcal channel we count.
 
 ### Between-forager variability of effort and skill, by gender
 
-The covariance of the (effort, skill) random effects is estimated separately for men and women, so the within-gender between-forager spread of effort propensity and skill propensity can differ. We report this on the *observable* scale rather than the latent (logit-effort, log-skill) scale, because the latent scale's nonlinear compression makes a 1-unit difference at the centre of the curve very different from a 1-unit difference at the tail. Concretely, for each forager we compute their posterior-mean deviation from the age × gender expectation in two natural units — additive probability-points for effort, $\Delta P_i = \mathrm{expit}(\eta_i + u^{\text{eff}}_i) - \mathrm{expit}(\eta_i)$, and a multiplicative ratio for skill, $S_i / S_{\text{base}}(x_i)$ — and summarise their between-forager standard deviation within each gender.
+The covariance of the (effort, skill) random effects is estimated separately for boys/men and girls/women, so the within-gender between-forager spread of effort propensity and skill propensity can differ. We report this on the *observable* scale rather than the latent (logit-effort, log-skill) scale, because the latent scale's nonlinear compression makes a 1-unit difference at the centre of the curve very different from a 1-unit difference at the tail. Concretely, for each forager we compute their posterior-mean deviation from the age × gender expectation in two natural units — additive probability-points for effort, $\Delta P_i = \mathrm{expit}(\eta_i + u^{\text{eff}}_i) - \mathrm{expit}(\eta_i)$, and a multiplicative ratio for skill, $S_i / S_{\text{base}}(x_i)$ — and summarise their between-forager standard deviation within each gender.
 
 ```{python}
 #| label: fig-re-sd-by-gender-observable
@@ -2068,8 +2108,8 @@ for ax, vals_m, vals_f, ttl in [
     (axes_re[1], logR_sd_m, logR_sd_f, r"SD of $\log(S_i / S_{\mathrm{base}})$"),
 ]:
     for j, (vals, color, lbl) in enumerate([
-        (vals_m, COL_M_RE, "Male"),
-        (vals_f, COL_F_RE, "Female"),
+        (vals_m, COL_M_RE, GENDER_DISPLAY["male"]),
+        (vals_f, COL_F_RE, GENDER_DISPLAY["female"]),
     ]):
         m_   = float(np.mean(vals))
         l50, h50 = np.percentile(vals, [25, 75])
@@ -2079,7 +2119,7 @@ for ax, vals_m, vals_f, ttl in [
         ax.plot([l50, h50], [y, y], color=color, lw=3.6)
         ax.plot([m_], [y], "o", color=color, markersize=7,
                 markeredgecolor="white", mew=0.6, zorder=4)
-    ax.set_yticks([1, 0]); ax.set_yticklabels(["Male", "Female"])
+    ax.set_yticks([1, 0]); ax.set_yticklabels([GENDER_DISPLAY["male"], GENDER_DISPLAY["female"]])
     ax.set_xlabel(ttl); ax.set_xlim(left=0)
     ax.grid(axis="x", alpha=0.3)
     for sp in ("top", "right"): ax.spines[sp].set_visible(False)
@@ -2089,7 +2129,7 @@ plt.show()
 
 ```{python}
 #| label: tbl-re-sd-ratio
-#| tbl-cap: "Male-to-female ratio of between-forager SDs on the observable scale. Values >1 indicate more between-male than between-female variation; the right column is the posterior probability that the male SD exceeds the female SD."
+#| tbl-cap: "Ratio of between-forager SDs on the observable scale, boys/men relative to girls/women. Values >1 indicate more between-forager variation among boys/men than among girls/women; the right column is the posterior probability that the boys/men SD exceeds the girls/women SD."
 
 ratio_dP   = dP_sd_m / dP_sd_f
 ratio_logR = logR_sd_m / logR_sd_f
@@ -2102,18 +2142,20 @@ def _row(name, x):
         "P(ratio > 1)":   float(np.mean(x > 1)),
     }
 pd.DataFrame([
-    _row("SD ratio: effort deviation, M / F", ratio_dP),
-    _row("SD ratio: skill deviation,  M / F", ratio_logR),
+    _row("SD ratio: effort deviation, boys/men ÷ girls/women", ratio_dP),
+    _row("SD ratio: skill deviation, boys/men ÷ girls/women", ratio_logR),
 ]).round(3)
 ```
 
-In words: a typical man one between-individual SD above the male age × gender expectation is roughly $1.32\times$ as skilled as the male age-norm and goes on subsistence trips on about $8$ percentage points more days than the male age-norm; for women the equivalent forager is roughly $1.15\times$ as skilled and goes out about $6$ percentage points more often. The skill-scale asymmetry — about three-and-a-half times more between-male than between-female variation, with $P(\text{M} > \text{F}) \approx 0.92$ — is the more clearly resolved of the two and is the most direct reason $\psi_{\text{female}}$ is more weakly identified than $\psi_{\text{male}}$: a residual correlation between effort and skill is estimated more precisely when the two random effects vary more across individuals.
+In words: a typical boy or man one between-individual SD above the boys/men age × gender expectation is roughly $1.32\times$ as skilled as that age-norm and goes on subsistence trips on about $8$ percentage points more days than that norm; for girls/women the equivalent forager is roughly $1.15\times$ as skilled and goes out about $6$ percentage points more often. The skill-scale asymmetry — about three-and-a-half times more between-forager variation among boys/men than among girls/women, with $P(\text{ratio} > 1) \approx 0.92$ — is the more clearly resolved of the two and is the most direct reason $\psi$ is more weakly identified for girls/women than for boys/men: a residual correlation between effort and skill is estimated more precisely when the two random effects vary more across individuals.
+
+Note that the posterior-mean SD ratios in @tbl-re-sd-ratio ($\approx 3.4$ effort, $\approx 3.5$ skill) are means of a heavily right-skewed ratio posterior (95% CIs span roughly 0.5–15) and therefore run well above the typical (median) ratios implied by the deviations quoted above ($\approx 1.4$ and $\approx 2.0$); the direction of the asymmetry, not the magnitude of the posterior-mean ratio, is the robust summary.
 
 ### Resource composition by within-gender skill
 
 To check how resource specialisation tracks individual skill, we compute each forager's share of Shapley-attributed kcal by resource (top-12 plus 'other') and split by within-gender skill tercile. Faint lines are individual foragers (coloured continuously by within-gender skill rank); bold lines are tercile means.
 
-![Per-forager Shapley-kcal share by resource, stratified by within-gender skill tercile. Two panels (males, females); each forager appears as a faint coloured line, tercile means in bold. Within both genders, high-skill foragers concentrate kcal in palm oil and (males) honey or (females) mela; low-skill foragers spread across maondo, caterpillars, and cassava leaves.](../results/figures/eda_parallel_resource_skill.png){#fig-resource-by-skill fig-align="center" width="100%"}
+![Per-forager Shapley-kcal share by resource, stratified by within-gender skill tercile. Two panels (boys/men, girls/women); each forager appears as a faint coloured line, tercile means in bold. Within both genders, high-skill foragers concentrate kcal in oil palm and honey (boys/men) or *mela* (girls/women); low-skill foragers spread across maondo, caterpillars, and cassava leaves.](../results/figures/eda_parallel_resource_skill.png){#fig-resource-by-skill fig-align="center" width="100%"}
 
 ## Sensitivity Analyses
 
@@ -2122,8 +2164,9 @@ We compare the fit reported in the main text against alternative specifications,
 - **mean aggregation** — group skill aggregated by the mean in place of best-top-$k$;
 - **all out-of-camp days** — effort counts every out-of-camp day, not only trips with a stated foraging purpose (the canonical fit restricts to foraging-labeled trips);
 - **returns only** — food consumed in the field (the recall stream, 9% of total kcal) excluded from production;
+- **excluding part-gift rows** — the eight rows flagged as partly gifted (gift = 0.5) dropped in addition to the outright gifts excluded canonically. One forager's only food package is among them, so this variant models 47 rather than 48 foragers;
 - **excluding oil palm** — all oil-palm resources (40% of total kcal) removed;
-- **excluding largest palm harvest** — only the single exceptionally large ($\approx$ 68 kg) oil-palm harvest removed;
+- **excluding largest palm harvest** — the single exceptionally large oil-palm harvest removed. This is the largest returns observation in the dataset: one date $\times$ contributor set (six foragers, 30 July), $\approx$ 68 kg summed across seven packages, $\approx$ 131,000 kcal;
 - **priors $\times 2$ wider (all)** — every prior's scale doubled (means preserved where the family allows);
 - **priors $\times 2$ wider (Koster-derived only)** — only the five priors derived from the Koster et al. (2020) cross-cultural posteriors ($m_0$, $k_0$, $b_0$, $\eta_{\mu 0}$, $\eta_{\text{success},0}$) doubled, isolating the concern that these priors drive the results.
 
@@ -2141,6 +2184,7 @@ if avg_path.exists():
 SENSITIVITY_VARIANTS = {
     "sens_all_outings": "all out-of-camp days",
     "sens_no_recall": "returns only (no recall)",
+    "sens_no_part_gifts": "excl. part-gift rows",
     "sens_no_palm": "excluding oil palm",
     "sens_no_top_palm": "excl. largest palm harvest",
     "sens_wide_priors": "priors ×2 wider (all)",
@@ -2152,38 +2196,36 @@ for dirname, label in SENSITIVITY_VARIANTS.items():
         variants[label] = az.from_netcdf(p)
 
 
+def _skill_params(post):
+    return (np.exp(post["m0"].values.flatten()),
+            np.exp(post["k0"].values.flatten()),
+            np.exp(post["b0"].values.flatten()),
+            float(post.attrs.get("age_scale", 70.0)))
+
+
 def peak_skill_age(post):
-    """Numerical posterior of the age at which S(x) peaks, in years."""
-    a_scale = float(post.attrs.get("age_scale", 70.0))
-    m = np.exp(post["m0"].values.flatten())
-    k = np.exp(post["k0"].values.flatten())
-    b = np.exp(post["b0"].values.flatten())
-    grid = np.linspace(0.5, 80, 400)
-    n = min(2000, len(m))
-    sub = np.random.default_rng(0).choice(len(m), n, replace=False)
-    M = np.exp(-np.outer(m[sub], grid / a_scale))
-    K = np.clip(1 - np.exp(-np.outer(k[sub], grid / a_scale)), 1e-10, 1)
-    S = M * K ** b[sub, None]
-    return grid[S.argmax(axis=1)]
+    """Posterior of the age at which S(x) peaks, in years.
+
+    Analytical (dS/dx = 0 => x* = (1/k) log(1 + bk/m)), matching
+    scripts/extract_results.py. A grid search truncates the upper tail under
+    the wide-prior variants, where a small fraction of draws peak beyond
+    80 years.
+    """
+    m, k, b, a_scale = _skill_params(post)
+    return (1 / k) * np.log1p(b * k / m) * a_scale
 
 
 def age_at_half_peak(post):
-    a_scale = float(post.attrs.get("age_scale", 70.0))
-    m = np.exp(post["m0"].values.flatten())
-    k = np.exp(post["k0"].values.flatten())
-    b = np.exp(post["b0"].values.flatten())
-    grid = np.linspace(0.5, 80, 400)
-    n = min(2000, len(m))
-    sub = np.random.default_rng(0).choice(len(m), n, replace=False)
-    M = np.exp(-np.outer(m[sub], grid / a_scale))
-    K = np.clip(1 - np.exp(-np.outer(k[sub], grid / a_scale)), 1e-10, 1)
-    S = M * K ** b[sub, None]
-    half = 0.5 * S.max(axis=1, keepdims=True)
-    out = np.empty(S.shape[0])
-    for i in range(S.shape[0]):
-        idx = np.where(S[i] >= half[i, 0])[0]
-        out[i] = grid[idx[0]] if len(idx) else np.nan
-    return out
+    """Posterior of the age at which S(x) first reaches half its peak."""
+    m, k, b, a_scale = _skill_params(post)
+    x_peak = (1 / k) * np.log1p(b * k / m)
+    S_peak = np.exp(-m * x_peak) * (1 - np.exp(-k * x_peak)) ** b
+    grid = np.linspace(0.5, 80, 1600) / a_scale
+    S = np.exp(-np.outer(m, grid)) * np.clip(
+        1 - np.exp(-np.outer(k, grid)), 1e-10, 1) ** b[:, None]
+    reached = S >= (S_peak[:, None] / 2)
+    return np.where(reached.any(axis=1),
+                    grid[reached.argmax(axis=1)] * a_scale, np.nan)
 
 
 def estimand_summary(post, name):
@@ -2307,25 +2349,35 @@ plt.tight_layout()
 plt.show()
 ```
 
-Days participating and total time out of camp are highly correlated across foragers (r $\approx$ 0.78), so the binary operationalization preserves the bulk of between-forager variation in time allocation and the effort–skill correlation ψ is not an artifact of discarding duration. Trip durations do rise steeply with age (median $\approx$ 35 min for foragers under 10 vs. $\approx$ 5 h for those 40+), which has a conservative implication for our developmental conclusions: because children's participation days involve fewer hours, their per-day returns *understate* their per-hour efficiency relative to adults, and an hourly-rate analysis would compress, not widen, the inferred age gradient. We retain the binary measure because (i) production is recorded per day and per food package, not per trip-segment, so a kcal-per-hour rate would attribute opportunistic and multi-day acquisition noisily; and (ii) daily production, rather than hourly efficiency, is the quantity that enters a pooled energy budget.
+Days participating and total time out of camp are strongly correlated across foragers (r $\approx$ 0.78; n = 49, all foragers with logged trips — this trip-log descriptive includes the forager who does not enter the likelihood, see § Data), so the binary measure ranks foragers similarly to a duration-based one. Note that this correlation is partly mechanical — total minutes is roughly days $\times$ mean trip duration — and it is a descriptive check on the *measure*, not a test of the effort–skill correlation $\psi$: establishing that $\psi$ is unchanged under a duration-based effort variable would require refitting the model with such a variable, which the per-day, per-package structure of the production data does not support.
+
+Trip durations do rise steeply with age (median $\approx$ 35 min for foragers under 10 vs. $\approx$ 4.9 h for those 40+). This has a conservative implication for our developmental conclusions: because children's participation days involve fewer hours, their per-day returns *understate* their per-hour efficiency relative to adults, so an hourly-rate analysis would compress, not widen, the inferred age gradient in skill. We retain the binary measure because (i) production is recorded per day and per food package, not per trip-segment, so a kcal-per-hour rate would attribute opportunistic and multi-day acquisition noisily; and (ii) daily production, rather than hourly efficiency, is the quantity that enters a pooled energy budget.
 
 ### Production over the study period
 
-If the study itself (announced aims, end-of-stay gifts) had prompted increasing or decreasing foraging over time, the date random effects should trend across the 42-day window. We regress each posterior draw's date random-effect vector (on the linear-predictor scale, i.e. multiplied by its scale parameter) on the centered study day and summarize the posterior of the slope.
+If the study itself (announced aims, end-of-stay gifts) had prompted increasing or decreasing foraging over time, the date random effects should trend across the 42-day window. We regress each posterior draw's date random-effect vector (on the linear-predictor scale) on the centered study day and summarize the posterior of the slope. The 42 dates are consecutive, so study day is simply the index of the date axis.
+
+This is a deliberately weak test in one direction: the date effects carry an i.i.d. $\text{Normal}(0, \sigma)$ prior with no temporal structure, which shrinks any true monotone drift toward zero. It can therefore rule out a large drift but would not detect a subtle one; we treat a null result as reassurance rather than proof.
 
 ```{python}
 #| label: tbl-temporal-trend
 #| tbl-cap: "Posterior linear trend of the date random effects across the 42-day study period, per model component. Slopes are per study day on the linear-predictor (logit / log) scale. All 95% credible intervals include zero: no evidence that participation, success, or returns drifted over the study."
 
 trend_rows = []
-for comp, re_var, sig_var in [
-    ("Effort (participation)", "gp_effort_raw", "gp_sigma_effort"),
-    ("Success", "gp_success_raw", "gp_sigma_success"),
-    ("Returns", "gp_returns_raw", "gp_sigma_returns"),
+for comp, re_var, raw_var, sig_var in [
+    ("Effort (participation)", "gp_effort", "gp_effort_raw", "gp_sigma_effort"),
+    ("Success", "gp_success", "gp_success_raw", "gp_sigma_success"),
+    ("Returns", "gp_returns", "gp_returns_raw", "gp_sigma_returns"),
 ]:
-    re_raw = idata.posterior[re_var].stack(s=("chain", "draw")).values
-    sig = idata.posterior[sig_var].stack(s=("chain", "draw")).values
-    re = re_raw * sig
+    # Use the stored deterministic where available. Reconstructing it as
+    # raw * sigma is exact only for the canonical non-GP fit; under use_gp
+    # the date effects are chol(sigma^2 * Matern32) @ raw, so sigma sits
+    # inside the Cholesky factor and the product would be wrong.
+    if re_var in idata.posterior:
+        re = idata.posterior[re_var].stack(s=("chain", "draw")).values
+    else:
+        re = (idata.posterior[raw_var] * idata.posterior[sig_var]
+              ).stack(s=("chain", "draw")).values
     day = np.arange(re.shape[0]) - (re.shape[0] - 1) / 2
     slope = (day @ re) / (day @ day)
     lo, hi = np.percentile(slope, [2.5, 97.5])
@@ -2338,17 +2390,13 @@ for comp, re_var, sig_var in [
 pd.DataFrame(trend_rows)
 ```
 
-### Why no hunting-only model
-
-Reviewers of related work often ask whether skill curves differ for hunting specifically. In this dataset a hunting-only refit is not estimable: game accounts for just 4.0% of returned kcal (73 package rows across 32 days, touched by 26 foragers), far too sparse to identify a three-parameter learning-senescence curve plus individual random effects. The near-absence of hunting is itself informative — the age-related gains in production documented here arise almost entirely from gathered and collected resources, so they cannot be attributed to the long-delay proficiency profile that hunting-specific studies emphasize.
-
 ### Skill aggregation: best-top-k vs. mean
 
-PSIS-LOO comparison of the two aggregation methods on the same observations (n = 1 070 group-level returns):
+PSIS-LOO comparison of the two aggregation methods on the same observations (n = 1 065 group-level returns):
 
 ```{python}
 #| label: tbl-aggregation-loo
-#| tbl-cap: "PSIS-LOO comparison of the main-text variant (best-top-k) and the mean-aggregation variant. We omit Akaike-style stacking weights — at the magnitude of $\\Delta$ELPD seen here they are binary (1 / 0) and overstate the effective preference; Vehtari's CV-FAQ recommends $|\\Delta\\text{ELPD}/\\text{SE}| > 4$ before a difference is treated as decisive."
+#| tbl-cap: "PSIS-LOO comparison of the main-text variant (best-top-k) and the mean-aggregation variant. We omit Akaike-style stacking weights — at the magnitude of $\\Delta$ELPD seen here they are binary (1 / 0) and overstate the effective preference; we report `elpd_diff` with its standard error instead, per Vehtari's CV-FAQ."
 
 if avg_path.exists():
     comp = az.compare(
@@ -2362,11 +2410,11 @@ else:
 comp_tbl
 ```
 
-`dse` is the standard error of `elpd_diff`. Following @sivula_uncertainty_2022 and Vehtari's [CV-FAQ](https://avehtari.github.io/modelselection/CV-FAQ.html#se_diff), differences smaller than $\sim 4\,\text{SE}$ should be treated as inconclusive: PSIS-LOO standard errors are themselves uncertain and underestimate the true variability of model comparison when the two models are similar. The aggregate $\Delta$ELPD here is roughly 2 SE — well within the inconclusive zone.
+`dse` is the standard error of `elpd_diff`. By the quick rule in Vehtari's [CV-FAQ](https://avehtari.github.io/modelselection/CV-FAQ.html#se_diff), an absolute $\Delta$ELPD below 4 is negligible; above 4 it is judged against its standard error. Here $\Delta$ELPD $= 8.1$ with SE $= 3.6$ ($\approx 2.2$ SE) — a real but modest aggregate preference for mean aggregation. @sivula_uncertainty_2022 caution that this SE can itself be underestimated when the two models make similar predictions, so we read the comparison as suggestive rather than decisive; the pointwise decomposition below and the attribution comparison in the following section show where the difference arises and why the main text retains best-top-$k$.
 
 ```{python}
 #| label: fig-loo-pointwise-by-kcal
-#| fig-cap: "Pointwise LOO ELPD difference (mean aggregation $-$ best-top-$k$) for each of the 1 070 group-level returns, ordered by observed kcal. Positive values: mean aggregation predicts that observation better; negative: best-top-$k$ does. Marker size scales with group size. The two specifications are essentially indistinguishable for small-to-moderate kcal observations (the bulk of the sample); best-top-$k$ predicts the high-kcal *bonanzas* substantially better, mean aggregation predicts modest small-group hauls slightly better."
+#| fig-cap: "Pointwise LOO ELPD difference (mean aggregation $-$ best-top-$k$) for each of the 1 065 group-level returns, ordered by observed kcal. Positive values: mean aggregation predicts that observation better; negative: best-top-$k$ does. Marker size scales with group size. The two specifications are essentially indistinguishable for small-to-moderate kcal observations (the bulk of the sample); best-top-$k$ predicts the high-kcal *bonanzas* substantially better, mean aggregation predicts modest small-group hauls slightly better."
 
 if avg_path.exists():
     avg_idata = variants["mean aggregation"]
@@ -2412,7 +2460,7 @@ The two aggregation methods imply different value functions on subsets of forage
 
 ```{python}
 #| label: fig-shapley-vs-shapley
-#| fig-cap: "Per-forager total Shapley-attributed kcal under best-top-$k$ aggregation (main text) versus true mean aggregation. Each point is one forager; marker shape is gender, colour is age. Dashed grey line is $y = x$. Mean aggregation's Shapley uses the proper mean-skill value function and produces small negative attributions on individual food packages (but per-forager totals across all packages remain positive)."
+#| fig-cap: "Per-forager total Shapley-attributed kcal under best-top-$k$ aggregation (main text) versus true mean aggregation. Each point is one forager; marker shape is gender, colour is age. Dashed grey line is $y = x$. Mean aggregation's Shapley uses the proper mean-skill value function and produces negative attributions on individual food packages; for five young foragers (ages 2–10) these accumulate to negative per-forager totals."
 
 if avg_path.exists():
     from scipy.stats import spearmanr, pearsonr
@@ -2451,7 +2499,7 @@ if avg_path.exists():
                             marker=marker, s=22,
                             vmin=age_arr.min(), vmax=age_arr.max(),
                             alpha=0.35, edgecolor="none",
-                            label=sex_label.capitalize())
+                            label=GENDER_DISPLAY[sex_label])
         cb = plt.colorbar(sc, ax=ax); cb.set_label("Age (years)")
         ax.set_xscale("symlog", linthresh=10)
         ax.set_yscale("symlog", linthresh=10)
@@ -2468,7 +2516,13 @@ if avg_path.exists():
         plt.show()
 ```
 
-Each point is one forager's Shapley attribution for one food package, plotted under the two aggregation rules. Points along the dashed $y = x$ line indicate cases where the choice of aggregation rule does not change the attribution. Mean aggregation produces a tail of negative attributions (lower-left quadrant) on packages where a low-skill member dragged down the group mean — best-top-$k$ never produces these because adding any forager can only weakly improve the maximum. Despite these per-package disagreements, the per-forager *totals* across all packages remain positive under both rules.
+Each point is one forager's Shapley attribution for one food package, plotted under the two aggregation rules. Points along the dashed $y = x$ line indicate cases where the choice of aggregation rule does not change the attribution. Mean aggregation produces a tail of negative attributions (lower-left quadrant) on packages where a low-skill member dragged down the group mean — best-top-$k$ never produces these because adding any forager can only weakly improve the maximum. These per-package disagreements are not innocuous: under mean aggregation, five foragers — young children (ages 2–10) — end up with *negative* total attributed production across the study (as low as $-6{,}591$ kcal), because their presence lowers the group mean on cooperative packages. Best-top-$k$ assigns the same children small non-negative totals. For a study of children's foraging, an attribution rule that credits young children with negative total food production is not interpretable, which is a substantive reason — beyond predictive fit — to prefer best-top-$k$.
+
+## Regional comparison with Kitanishi (1995)
+
+Compared to values reported in the main text, @kitanishi_seasonal_1995 finds approx. 1000 fewer kcals per person per day returned to a forest camp between late August and early September 1992, which overlaps with the season covered in the present study [see also @veen_development_2023; @yasuoka_longterm_2006; @sato_wild_2012]. Kitanishi reports similar proportions of foraging returns attributed to wild tubers and wild nuts and seeds as in the present study. We report a smaller proportion of game and honey than Kitanishi, likely reflecting ecological shifts related to logging and overhunting [@riddell_assessing_2013; @laporte_expansion_2007]. In contrast, we found far greater returns for oil palm than Kitanishi. Oil palm is high in fat and carotenoids, precursors to vitamin A [@sundram_palm_2003]. Oil palm therefore likely nutritionally complements other plant-based proteinaceous foods (nuts & seeds, cassava leaves) harvested during the study period. Higher daily returns reported in the present study are likely attributable to methodological, social, ecological, and seasonal factors. First, Kitanishi only measured food returned to camp, thus excluding harvests consumed during subsistence trips. Nine percent of the total kcals produced in the present study were consumed while on foraging trips (@fig-returns-vs-recall-pie; @fig-returns-vs-recall-pie-by-class). Second, we observed that in many cases, participants with an excess of oil palm transported these to the village 2hrs walk away from camp to share with kin, or with Bandongo fictive kin [@lewlevy_sharing_2026]. Therefore, not all food production was consumed on site. While the study village is relatively remote and BaYaka do not engage directly in the sale of forest products [@lewlevy_market_2025], Bandongo do sometimes commission BaYaka to collect palm nuts, which Bandongo process and sell onwards to the logging town. In exchange for this work, BaYaka receive goods such as baby clothes, machetes, and radios. It is important to note, however, that the resources received through such exchanges often reflect acute fertility or subsistence needs, shared joy—a foundational aspect of BaYaka social and spiritual life [@hoyte_no_2025; @bombjakova_role_2018]—and are often circulated as part of the immediate-return sharing economy and the acquisition of forest-spirit plays [@lewis_goods_2015; @oishi_cash_2012]. Third, the forest surrounding the camp is known regionally as being especially rich in oil palm, contrasting with Kitanishi's study location. Finally, during the research period, participants were preparing for the *kombi* fishing season, which occurs in parts of the forest where oil palm is rare. Small quantities of excess palm oil were likely stored for use in *kombi* camps.
+
+Interannual, seasonal, and site variation of this magnitude is expected between studies conducted 26 years apart in different locations, and we would caution against reading the difference as a temporal trend.
 
 ## Field photographs
 
@@ -2481,6 +2535,6 @@ Each point is one forager's Shapley attribution for one food package, plotted un
 ::: {#refs}
 :::
 
----
+## Data Availability {.unnumbered}
 
-This supplement accompanies the main manuscript. Data and code are available at the project's GitHub repository.
+All model and analysis code, together with an anonymised public dataset sufficient to re-run every fit reported here, are available at the project's GitHub repository. The public dataset replaces participant identifiers with anonymised labels (unrelated to IDs in other BaYaka publications), reports ages rather than birth years, and removes resource-level attribution and raw package weights, retaining the precomputed per-package kcal totals that the model consumes. The full dataset is available from the corresponding authors on reasonable request, subject to ethical approval.
